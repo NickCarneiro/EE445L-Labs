@@ -1,0 +1,16 @@
+Forward Design Changes Report
+-----------------------------
+
+Report File    : C:\Users\aaron\Dropbox\EE445L\lab8\small_edits_unrouted\lab8_scheme_restart_2 (PCB - Forward Design Changes Report).txt
+Report Written : Wednesday, April 06, 2011
+Design Path    : C:\Users\aaron\Dropbox\EE445L\lab8\small_edits_unrouted\lab8_scheme_restart_2.pcb
+Design Title   : 
+Created        : 3/27/2011 9:48:09 PM
+Last Saved     : 4/7/2011 2:15:52 AM
+Editing Time   : 1342 min
+Units          : inches (precision 3)
+
+Connected pin "U1.4" to net "7406_In_23".
+
+
+End Of Report.

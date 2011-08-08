@@ -1,0 +1,124 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  // filename ******** Main.C ************** 
+    2:  // Authors: Aaron Alaniz  (aa28877)
+    3:  //          Denis Sokolov (dks574)
+    4:  
+    5:  #include <hidef.h>           /* common defines and macros */
+    6:  #include "derivative.h"      /* derivative-specific definitions */
+    7:  #include "pll.h"
+    8:  #include "timer.h"
+    9:  #include "stepper.h"
+   10:  #include "switches.h"
+   11:  
+   12:  extern const struct State* Cur_State;
+   13:  static unsigned char old_switches = 0x00;
+   14:  static unsigned char input = 0;
+   15:    
+   16:  //---------------------OC_Init0---------------------
+   17:  // arm output compare 0 for periodic interrupt
+   18:  // Input: none
+   19:  // Output: none
+   20:  void OC0_Init(void)
+   21:  {
+*** EVALUATION ***
+
+Function: OC0_Init
+Source  : C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\Sources\main.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\bin;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\prm;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\cmd;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\Moore_DP512_Data\Standard\ObjectCode\main.c.o -WmsgSd1106
+
+   22:    DDRP |= 0x80;     // debugging monitor (heartbeat)
+  0000 1c000080     [4]     BSET  _DDRP,#128
+   23:    TIOS |= 0x01;     // activate TC0 as output compare
+  0004 4c0001       [4]     BSET  _TIOS,#1
+   24:    TIE |= 0x01;      // arm the interrupt
+  0007 4c0001       [4]     BSET  _TIE,#1
+   25:    TC0 = TCNT+100;   // first interrupt right away
+  000a dc00         [3]     LDD   _TCNT
+  000c c30064       [2]     ADDD  #100
+  000f 5c00         [2]     STD   _TC0
+   26:  }
+  0011 3d           [5]     RTS   
+   27:  
+   28:  //handle OC0 interrupts
+   29:  interrupt 8 void TOC0handler(void)
+   30:  { 
+*** EVALUATION ***
+
+Function: TOC0handler
+Source  : C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\Sources\main.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\bin;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\prm;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\cmd;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\Moore_DP512_Data\Standard\ObjectCode\main.c.o -WmsgSd1106
+
+   31:    TFLG1 = 0x01;                                 // acknowledge OC0
+  0000 c601         [1]     LDAB  #1
+  0002 5b00         [2]     STAB  _TFLG1
+   32:    TC0 = TC0 + Cur_State->time;                  // 300 ms
+  0004 dc00         [3]     LDD   _TC0
+  0006 fe0000       [3]     LDX   Cur_State
+  0009 e301         [3]     ADDD  1,X
+  000b 5c00         [2]     STD   _TC0
+   33:    PTT = (PTT & 0xF0) + (Cur_State->output);     //set output
+  000d f60000       [3]     LDAB  _PTT
+  0010 c4f0         [1]     ANDB  #240
+  0012 ebfb0000     [6]     ADDB  [Cur_State,PCR]
+  0016 7b0000       [3]     STAB  _PTT
+   34:    Cur_State = Cur_State->next[input];           //step to next state
+  0019 f60000       [3]     LDAB  input
+  001c 87           [1]     CLRA  
+  001d 59           [1]     LSLD  
+  001e f30000       [3]     ADDD  Cur_State
+  0021 b745         [1]     TFR   D,X
+  0023 ee03         [3]     LDX   3,X
+  0025 7e0000       [3]     STX   Cur_State
+   35:    PTP ^= 0x80;
+  0028 f60000       [3]     LDAB  _PTP
+  002b c880         [1]     EORB  #128
+  002d 7b0000       [3]     STAB  _PTP
+   36:  }
+  0030 0b           [8]     RTI   
+   37:  
+   38:  void main(void){
+*** EVALUATION ***
+
+Function: main
+Source  : C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\Sources\main.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\bin;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\prm;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\cmd;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\Moore_DP512_Data\Standard\ObjectCode\main.c.o -WmsgSd1106
+
+   39:    
+   40:    PLL_Init();       // 24 MHz
+  0000 160000       [4]     JSR   PLL_Init
+   41:    Timer_Init();     // TCNT at 5.33us period
+  0003 160000       [4]     JSR   Timer_Init
+   42:    OC0_Init();       // OC0 interrupts every 300ms
+  0006 0700         [4]     BSR   OC0_Init
+   43:    Switches_Init();  // set switch directions
+  0008 160000       [4]     JSR   Switches_Init
+   44:    Stepper_Init();   // initialize state machine
+  000b 160000       [4]     JSR   Stepper_Init
+   45:    asm cli
+  000e 10ef         [1]     CLI   
+   46:   
+   47:    while(1) 
+   48:    { 
+   49:      //state machine runs in back ground
+   50:     
+   51:      old_switches = Get_Switches();
+  0010 160000       [4]     JSR   Get_Switches
+  0013 7b0000       [3]     STAB  old_switches
+   52:      Timer_Wait(1876);                      //debounce switches ~10 micro seconds
+  0016 cc0754       [2]     LDD   #1876
+  0019 160000       [4]     JSR   Timer_Wait
+   53:      if (old_switches == Get_Switches()){
+  001c 160000       [4]     JSR   Get_Switches
+  001f f10000       [3]     CMPB  old_switches
+  0022 26ec         [3/1]   BNE   *-18 ;abs = 0010
+   54:        input = old_switches;                //if switches still same, then update input to state machine
+  0024 f60000       [3]     LDAB  old_switches
+  0027 7b0000       [3]     STAB  input
+  002a 20e4         [3]     BRA   *-26 ;abs = 0010
+   55:      }
+   56:     
+   57:    }
+   58:  }
+   59:  

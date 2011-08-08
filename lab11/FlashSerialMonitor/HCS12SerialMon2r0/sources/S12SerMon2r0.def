@@ -1,0 +1,124 @@
+;*********************************************************************
+;* One device specific NVM definition below should be uncommented
+;*********************************************************************
+Dx512:
+;EEpromStart:   equ   $0400         ;eeprom start
+;EEpromEnd:     equ   $07FF         ;eeprom end (rest is hidden)
+;RamStart:      equ   $0800         ;first RAM location
+;SectorSize:    equ   $0400         ;Flash sector size
+;FlashBlks:     equ   $04           ;# of flash blks
+;LowestPage:    equ   $20           ;lowest page
+;PagesBlk:      equ   $08           ;pages per block
+;softwareID4:   equ   $0400		    ;device ID #
+
+Dx256:
+;EEpromStart:   equ   $0400         ;eeprom start
+;EEpromEnd:     equ   $0FFF         ;eeprom end
+;RamStart:      equ   $1000         ;first RAM location
+;SectorSize:    equ   $0200         ;Flash sector size
+;FlashBlks:     equ   $04           ;# of flash blks
+;LowestPage:    equ   $30           ;lowest page
+;PagesBlk:      equ   $04           ;pages per block
+;softwareID4:   equ   $0011		    ;device ID #
+
+Dx128:
+;EEpromStart:   equ   $0800         ;eeprom start
+;EEpromEnd:     equ   $0FFF         ;eeprom end
+;RamStart:      equ   $2000         ;first RAM location
+;FlashBlks:     equ   $02           ;# of flash blks
+;SectorSize:    equ   $0200         ;Flash sector size
+;LowestPage:    equ   $38           ;lowest page
+;PagesBlk:      equ   $04           ;pages per block
+;softwareID4:   equ   $0110		    ;device ID #
+
+Dx64:
+;EEpromStart:   equ   $0C00         ;eeprom start
+;EEpromEnd:     equ   $0FFF         ;eeprom End
+;RamStart:      equ   $3000         ;first RAM location
+;FlashBlks:     equ   $01           ;# of flash blks
+;SectorSize:    equ   $0200         ;Flash sector size
+;LowestPage:    equ   $3C           ;lowest page
+;PagesBlk:      equ   $04           ;pages per block
+;softwareID4:   equ   $0201		    ;device ID #
+
+E128:
+;EEpromStart:   equ   $0000         ;eeprom Start (no EEprom)
+;EEpromEnd:     equ   $0000         ;eeprom End  
+;RamStart:      equ   $2000         ;first RAM location
+;FlashBlks:     equ   $01           ;# of flash blks
+;SectorSize:    equ   $0400         ;Flash sector size
+;LowestPage:    equ   $38           ;lowest page
+;PagesBlk:      equ   $08           ;pages per block
+;softwareID4:   equ   $5102		    ;device ID #
+
+C32:
+EEpromStart:   equ   $0000         ;eeprom start (no EEprom)
+EEpromEnd:     equ   $0000         ;eeprom End
+RamStart:      equ   $3800         ;first RAM location
+FlashBlks:     equ   $01           ;# of flash blks
+SectorSize:    equ   $0200         ;Flash sector size
+LowestPage:    equ   $3E           ;lowest page
+PagesBlk:      equ   $02           ;pages per block
+softwareID4:   equ   $3300		    ;device ID #
+
+Dx32:
+;EEpromStart:   equ   $0C00         ;eeprom start
+;EEpromEnd:     equ   $0FFF         ;eeprom End
+;RamStart:      equ   $3800         ;first RAM location
+;FlashBlks:     equ   $01           ;# of flash blks
+;SectorSize:    equ   $0200         ;Flash sector size
+;LowestPage:    equ   $3E           ;lowest page
+;PagesBlk:      equ   $02           ;pages per block
+;softwareID4:   equ   $0300		    ;device ID #
+
+
+;*********************************************************************
+;* One application specific Osc definition below should be uncommented
+;* If Additonal eneries are required initSYNR and initREFDV must be
+;* set for 24MHz PLL frequency. SCI communication problems will result
+;* at other frequencies.
+;*********************************************************************
+;OscFreq:     equ   4000           ;Enter Osc speed
+;initSYNR:    equ   $05            ; mult by synr + 1 = 6 (24MHz)
+;initREFDV:   equ   $00            ;
+;---------------------------------------------------------------------
+OscFreq:     equ   8000           ;Enter Osc speed
+initSYNR:    equ   $02            ; mult by synr + 1 = 3 (24MHz)
+initREFDV:   equ   $00            ;
+;---------------------------------------------------------------------
+;OscFreq:     equ   16000          ;Enter Osc speed
+;initSYNR:    equ   $02            ; mult by synr + 1 = 3/2 (24MHz)
+;initREFDV:   equ   $01            ; divide by Refdiv + 1
+
+;*********************************************************************
+;* One application specific Run Load Switch definition below should be 
+;* uncommented. This defininition sets the placement of the switch to 
+;* force entery into the monitor. The switch sould be configure such
+;* that the load position applies a logic zero to the selected pin.
+;*********************************************************************
+;---------------------------------------------------------------------
+;SwPort:      equ    PTQ           ;pushbutton sw connected to port Q
+;Switch:      equ    PTQ0          ;switch connected to PTQ bit-5
+;SwPullup:    equ    PERQ          ;pullup enable for sw port
+;mSwPullup:   equ	 PTQ0          ;Mask value to enable for sw port
+;---------------------------------------------------------------------
+SwPort:      equ    PTP           ;pushbutton sw connected to port P
+Switch:      equ    PTP5          ;switch connected to PTP bit-5
+SwPullup:    equ    PERP          ;pullup enable for sw port
+mSwPullup:   equ	PTP5          ;Mask value to enable for sw port
+;---------------------------------------------------------------------
+;SwPort:      equ    PORTA         ;pushbutton sw connected to port A
+;Switch:      equ    PTA6          ;switch connected to PTA bit-6
+;SwPullup:    equ    PUCR          ;pullup enable for sw port
+;mSwPullup:   equ	 PUPAE         ;Mask value to enable for sw port
+;---------------------------------------------------------------------
+;SwPort:      equ    PORTB         ;pushbutton sw connected to port B
+;Switch:      equ    PTB4          ;switch connected to PTB bit-4
+;Switch:      equ    PTB0          ;switch connected to PTB bit-0
+;SwPullup:    equ    PUCR          ;pullup enable for sw port
+;mSwPullup:   equ	 PUPBE         ;Mask value to enable for sw port
+
+AllowSci0     equ    $1			   ;set to one to allow user application
+								   ; use of sci0. The monitor will not 
+								   ; Be able to break into user code if
+								   ; this is set. This will effect debugging

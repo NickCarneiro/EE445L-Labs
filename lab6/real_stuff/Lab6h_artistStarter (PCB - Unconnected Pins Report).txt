@@ -1,0 +1,89 @@
+Unconnected Pins Report
+-----------------------
+
+Report File    : C:\Users\Owner\Dropbox\EE445L\lab6\real_stuff\Lab6h_artistStarter (PCB - Unconnected Pins Report).txt
+Report Written : Saturday, March 05, 2011
+Design Path    : C:\Users\Owner\Dropbox\EE445L\lab6\real_stuff\Lab6h_artistStarter.pcb
+Design Title   : 
+Created        : 9/11/2009 4:58:24 PM
+Last Saved     : 3/5/2011 9:12:45 PM
+Editing Time   : 1932 min
+Units          : mil (precision 0)
+
+Component U1  Pin 21  PB5
+Component U1  Pin 22  PB6
+Component U1  Pin 23  PB7
+Component U1  Pin 27  PE4/ECLK
+Component U1  Pin 37  PE3/LSTRB*
+Component U1  Pin 38  PE2/RW
+Component U1  Pin 41  PA0
+Component U1  Pin 42  PA1
+Component U1  Pin 43  PA2
+Component U1  Pin 44  PA3
+Component U1  Pin 45  PA4
+Component U1  Pin 46  PA5
+Component U1  Pin 47  PA6
+Component U1  Pin 48  PA7
+Component U1  Pin 51  PAD00/AN00
+Component U1  Pin 52  PAD01/AN01
+Component U1  Pin 53  PAD02/AN02
+Component U1  Pin 54  PAD03/AN03
+Component U1  Pin 55  PAD04/AN04
+Component U1  Pin 56  PAD05/AN05
+Component U1  Pin 57  PAD06/AN06
+Component U1  Pin 58  PAD07/AN07
+Component U1  Pin 65  PS2
+Component U1  Pin 66  PS3
+Component U1  Pin 67  PP6/KWP6
+Component U1  Pin 68  PJ7/KWJ7
+Component U1  Pin 69  PJ6/KWJ6
+Component U1  Pin 73  PM2/MISO
+Component U1  Pin 74  PM1/TXCAN
+Component U1  Pin 75  PM0/RXCAN
+Component U1  Pin 78  PP7/KWP7
+Component U1  Pin 79  PP5/KWP5/PW5
+Component U1  Pin 80  PP4/KWP4/PW4
+Component U1  Pin 1  PP3/KWP3/PW3
+Component U1  Pin 5  PT0/IOC0/PW0
+Component U1  Pin 6  PT1/IOC1/PW1
+Component U1  Pin 7  PT2/IOC2/PW2
+Component U1  Pin 8  PT3/IOC3/PW3
+Component U1  Pin 11  PT4/IOC4/PW4
+Component U1  Pin 12  PT5/IOC5
+Component U1  Pin 13  PT6/IOC6
+Component U1  Pin 14  PT7/IOC7
+Component U1  Pin 16  PB0
+Component U1  Pin 17  PB1
+Component U1  Pin 18  PB2
+Component U1  Pin 19  PB3
+Component U1  Pin 20  PB4
+Component J1  Pin 3  nc
+Component J1  Pin 5  nc
+Component TheBox  Pin 1  Screw1
+Component TheBox  Pin 2  Screw2
+Component TheBox  Pin 3  Screw3
+Component TheBox  Pin 4  Screw4
+Component U3  Pin 7  T2o
+Component U3  Pin 8  R2i
+Component U3  Pin 11  T1i
+Component U3  Pin 12  R1o
+Component U3  Pin 13  R1i
+Component U3  Pin 14  T1o
+Component J3  Pin 6  DSR
+Component J3  Pin 7  RTS
+Component J3  Pin 8  CTS
+Component J3  Pin 9  RI
+Component J3  Pin 5  SG
+Component J3  Pin 4  DTR
+Component J3  Pin 3  RxD
+Component J3  Pin 2  TxD
+Component J3  Pin 1  DCD
+Component Rewind  Pin 4  
+Component Stop  Pin 1  
+Component Play  Pin 1  
+Component DAC  Pin 4  Dout
+Component Amp  Pin 1  CD
+
+Unconnected pins found : 73
+
+End Of Report.

@@ -1,0 +1,24 @@
+Design Consistency Status Report
+--------------------------------
+
+Report File    : C:\Users\Owner\Dropbox\EE445L\lab8\final_pcb\UTX-2011SP08 (PCB - Design Consistency Status Report).txt
+Report Written : Thursday, April 07, 2011
+Design Path    : C:\Users\Owner\Dropbox\EE445L\lab8\final_pcb\UTX-2011SP08.pcb
+Design Title   : 
+Created        : 3/27/2011 9:48:09 PM
+Last Saved     : 4/8/2011 1:18:34 AM
+Editing Time   : 1436 min
+Units          : inches (precision 3)
+
+Checking integrity of Schematic "C:\Users\Owner\Dropbox\EE445L\lab8\final_pcb\UTX-2011SP08.sch" with PCB "C:\Users\Owner\Dropbox\EE445L\lab8\final_pcb\UTX-2011SP08.pcb".
+
+The PCB and Schematic designs do not match.
+To bring them into line, you will need to make the following changes to the PCB design:
+
+Component 'HD44780' package 'SIL14' in PCB is newer version than Schematic, use Update Component to correct this.
+Component 'SmallPot' package 'SIP' in PCB is newer version than Schematic, use Update Component to correct this.
+
+Add Component "TheBox" [CAS1007]
+
+
+End Of Report.

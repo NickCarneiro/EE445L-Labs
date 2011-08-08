@@ -1,0 +1,133 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.40 Build 10020, Jan 21 2010
+
+    1:  // File **********Timer.C***********
+    2:  // Timer wait routines, 9S12DP512
+    3:  // assumes PLL is active and E clock is 24 MHz
+    4:  // TCNT will become 1.5MHz
+    5:  // Jonathan W. Valvano 1/27/09
+    6:  
+    7:  //  This example accompanies the books
+    8:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+    9:  //         Thomson Engineering, copyright (c) 2006,
+   10:  //   "Introduction to Embedded Microcomputer Systems: 
+   11:  //    Motorola 6811 and 6812 Simulation", Thomson, copyright (c) 2002
+   12:  
+   13:  // Copyright 2009 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   14:  //    You may use, edit, run or distribute this file 
+   15:  //    as long as the above copyright notice remains 
+   16:  
+   17:  #include <mc9s12c32.h>     /* derivative information */
+   18:  
+   19:   
+   20:  
+   21:  //---------------------Timer_Init---------------------
+   22:  // activate TCNT at 1.5 MHz, assumes 24 MHz E clock
+   23:  // inputs: none
+   24:  // outputs: none
+   25:  void Timer_Init(void){
+*** EVALUATION ***
+
+Function: Timer_Init
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\Timer.C
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\Timer.C.o" -WmsgSd1106
+
+   26:    asm sei         // make ritual atomic 
+  0000 1410         [1]     SEI   
+   27:    TSCR1 = 0x80;   // Enable TCNT, 24 MHz E clock
+  0002 cc0480       [2]     LDD   #1152
+  0005 5b00         [2]     STAB  _TSCR1
+   28:    TSCR2 = 0x04;   // divide by 16 TCNT prescale, TOI disarm
+  0007 5a00         [2]     STAA  _TSCR2
+   29:    PACTL = 0;      // timer prescale used for TCNT
+  0009 790000       [3]     CLR   _PACTL
+   30:  /* Bottom three bits of TSCR2 (PR2,PR1,PR0) determine TCNT period
+   31:      divide  FastMode(24MHz)    Slow Mode (4MHz)
+   32:  000   1     42ns  TOF  2.73ms  250ns TOF 16.384ms
+   33:  001   2     84ns  TOF  5.46ms  500ns TOF 32.768ms 
+   34:  010   4    167ns  TOF  10.9ms    1us TOF 65.536ms   
+   35:  011   8    333ns  TOF  21.8ms 	 2us TOF 131.072ms
+   36:  100  16    667ns  TOF  43.7ms 	 4us TOF 262.144ns
+   37:  101  32   1.33us  TOF  87.4ms		 8us TOF 524.288ms
+   38:  110  64   2.67us  TOF 174.8ms   16us TOF 1.048576s
+   39:  111 128   5.33us  TOF 349.5ms   32us TOF 2.097152s */ 
+   40:  }
+  000c 3d           [5]     RTS   
+   41:  
+   42:  
+   43:  //---------Timer_Wait------------------
+   44:  // fixed time delay
+   45:  // inputs: time to wait in 667ns cycles
+   46:  // outputs: none
+   47:  void Timer_Wait(unsigned short delay){ 
+*** EVALUATION ***
+
+Function: Timer_Wait
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\Timer.C
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\Timer.C.o" -WmsgSd1106
+
+  0000 6cac         [2]     STD   4,-SP
+   48:  unsigned short startTime;
+   49:    startTime = TCNT;
+  0002 dc00         [3]     LDD   _TCNT
+  0004 6c82         [2]     STD   2,SP
+   50:    while((TCNT-startTime) <= delay){} 
+  0006 dc00         [3]     LDD   _TCNT
+  0008 a382         [3]     SUBD  2,SP
+  000a ac80         [3]     CPD   0,SP
+  000c 23f8         [3/1]   BLS   *-6 ;abs = 0006
+   51:  }
+  000e 1b84         [2]     LEAS  4,SP
+  0010 3d           [5]     RTS   
+   52:  
+   53:  //---------Timer_Wait1ms------------------
+   54:  // fixed time delay
+   55:  // inputs: time to wait in ms
+   56:  // outputs: none
+   57:  // 1500 cycles equals 1ms
+   58:  void Timer_Wait1ms(unsigned short delay){ 
+*** EVALUATION ***
+
+Function: Timer_Wait1ms
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\Timer.C
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\Timer.C.o" -WmsgSd1106
+
+   59:    for(;delay>0;delay--){
+  0000 b745         [1]     TFR   D,X
+  0002 2008         [3]     BRA   *+10 ;abs = 000c
+   60:      Timer_Wait(1500); 
+  0004 cc05dc       [2]     LDD   #1500
+  0007 34           [2]     PSHX  
+  0008 0700         [4]     BSR   Timer_Wait
+  000a 30           [3]     PULX  
+  000b 09           [1]     DEX   
+  000c 0475f5       [3]     TBNE  X,*-8 ;abs = 0004
+   61:    }
+   62:  }
+  000f 3d           [5]     RTS   
+   63:  
+   64:  //---------Timer_Wait10ms------------------
+   65:  // fixed time delay
+   66:  // inputs: time to wait in 10ms
+   67:  // outputs: none
+   68:  // 15000 cycles equals 10ms
+   69:  void Timer_Wait10ms(unsigned short delay){
+*** EVALUATION ***
+
+Function: Timer_Wait10ms
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\Timer.C
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\Timer.C.o" -WmsgSd1106
+
+   70:    for(;delay>0;delay--){
+  0000 b745         [1]     TFR   D,X
+  0002 2008         [3]     BRA   *+10 ;abs = 000c
+   71:      Timer_Wait(15000);
+  0004 cc3a98       [2]     LDD   #15000
+  0007 34           [2]     PSHX  
+  0008 0700         [4]     BSR   Timer_Wait
+  000a 30           [3]     PULX  
+  000b 09           [1]     DEX   
+  000c 0475f5       [3]     TBNE  X,*-8 ;abs = 0004
+   72:    }
+   73:  }
+  000f 3d           [5]     RTS   

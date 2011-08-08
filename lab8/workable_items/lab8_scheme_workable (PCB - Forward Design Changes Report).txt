@@ -1,0 +1,118 @@
+Forward Design Changes Report
+-----------------------------
+
+Report File    : C:\Users\aaron\Dropbox\EE445L\lab8\workable_items\lab8_scheme_workable (PCB - Forward Design Changes Report).txt
+Report Written : Monday, April 04, 2011
+Design Path    : C:\Users\aaron\Dropbox\EE445L\lab8\workable_items\lab8_scheme_workable.pcb
+Design Title   : 
+Created        : 3/27/2011 9:48:09 PM
+Last Saved     : 4/4/2011 4:27:42 AM
+Editing Time   : 822 min
+Units          : inches (precision 3)
+
+Net N0292 renamed to LED6high
+Net N0293 renamed to LED7high
+Net N0294 renamed to LED8high
+Net N0295 renamed to LED9high
+Net N0296 renamed to LED10high
+Net N0297 renamed to LED11high
+Net N0298 renamed to LED12high
+Net N0299 renamed to LED13 high
+Net N0300 renamed to LED14high
+Net N0301 renamed to LED15high
+Net N0302 renamed to LED16high
+Net N0303 renamed to LED17high
+Net N0304 renamed to LED18high
+Net N0305 renamed to LED19high
+Net N0306 renamed to LED20high
+Net N0308 renamed to LED22high
+Net N0310 renamed to LED23high
+Net N0311 renamed to LED24high
+Net N0312 renamed to LED26high
+Net N0313 renamed to LED25high
+Net N0380 renamed to LED1low
+Net N0381 renamed to LED2low
+Net N0382 renamed to LED3low
+Net N0383 renamed to LED4low
+Net N0385 renamed to LED6low
+Net N0386 renamed to LED7low
+Net N0387 renamed to LED8low
+Net N0388 renamed to LED9low
+Net N0389 renamed to LED10low
+Net N0390 renamed to LED11low
+Net N0391 renamed to LED12low
+Net N0395 renamed to LED13low
+Net N0397 renamed to LED14low
+Net N0400 renamed to LED15low
+Net N0403 renamed to LED16low
+Net N0404 renamed to LED17low
+Net N0405 renamed to LED18low
+Net N0406 renamed to LED19low
+Net N0407 renamed to LED20low
+Net N0408 renamed to LED21low
+Net N0409 renamed to LED22low
+Net N0410 renamed to LED23low
+Net N0411 renamed to LED24low
+Net N0412 renamed to LED25low
+Net N0416 renamed to LED26low
+Net N0417 renamed to LED27low
+Net N0425 renamed to LCD_VLC
+Net N0450 renamed to Spkr1
+Net N0451 renamed to Spkr2
+Net N0452 renamed to Amp_In
+Net N0453 renamed to Amp_Cap_1
+Net N0454 renamed to Amp_Cap_big
+Net N0457 renamed to FUBU
+Net N0459 renamed to Refin
+Net N0464 renamed to DAC_Out_1
+Net N0465 renamed to DAC_Out_2
+Net N0511 renamed to Button_In_1
+Net N0514 renamed to Button_In_2
+Net N0515 renamed to Button_In_3
+Net N0519 renamed to Button_In_4
+Net N0524 renamed to Button_In_5
+Net N0473 renamed to SS
+Net N0476 renamed to MOSI
+Net N0478 renamed to Sclk
+Net N0480 renamed to 7406_In_1
+Net N0481 renamed to 7406_In_2
+Net N0482 renamed to 7406_In_3
+Net N0483 renamed to 7406_In_4
+Net N0484 renamed to 7406_In_5
+Net N0485 renamed to 7406_In_6
+Net N0486 renamed to 7406_In_7
+Net N0487 renamed to 7406_In_8
+Net N0490 renamed to 7406_In_9
+Net N0491 renamed to 7406_In_10
+Net N0492 renamed to 7406_In_11
+Net N0493 renamed to 7406_In_12
+Net N0494 renamed to 7406_In_13
+Net N0495 renamed to 7406_In_14
+Net N0496 renamed to 7406_In_15
+Net N0497 renamed to 7406_In_16
+Net N0498 renamed to 7406_In_17
+Net N0499 renamed to 7406_In_18
+Net N0500 renamed to 7406_In_19
+Net N0502 renamed to 7406_In_20
+Net N0503 renamed to 7406_In_21
+Net N0505 renamed to 7406_In_22
+Net N0506 renamed to 7406_In_23
+Net N0507 renamed to 7406_In_24
+Net N0508 renamed to 7406_In_25
+Net N0510 renamed to 7406_In_26
+Net N0532 renamed to DB7
+Net N0533 renamed to DB6
+Net N0534 renamed to DB5
+Net N0535 renamed to DB4
+Net N0536 renamed to RS
+Net N0537 renamed to LCD_E
+Net N0539 renamed to 7406_In_27
+Net N0541 renamed to Serial3
+Net N0542 renamed to Serial2
+Net N0543 renamed to LED28high
+Net N0384 renamed to LED5low
+Net N0489 renamed to LED27high
+Net N0012 renamed to LED21high
+
+
+End Of Report.

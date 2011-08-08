@@ -1,0 +1,86 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  // filename ******** OC.C ************** 
+    2:  //Authors: Reagan Revisore, Michael May
+    3:  //Date Created: 3/10/2011
+    4:  // Busy-wait SCI0 driver for the 9S12DP512,
+    5:  //Lab Number: 7
+    6:  //TA: Justin Capogna 
+    7:  //Date of Last Revision: 3/10/2011
+    8:  
+    9:  //  This example accompanies the books
+   10:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+   11:  //        Thompson, copyright (c) 2006,
+   12:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+   13:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   14:  
+   15:  // Copyright 2009 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   16:  // You may use, edit, run or distribute this file 
+   17:  //    as long as the above copyright notices remain
+   18:  #include <hidef.h>      /* common defines and macros */
+   19:  #include <mc9s12dp512.h>     /* derivative information */
+   20:  #include <stdio.h>
+   21:  #pragma LINK_INFO DERIVATIVE "mc9s12dp512"
+   22:  #include "FIFO.h"
+   23:  
+   24:  #define ONE_KHZ 1500//1000*24/TCNTdivider
+   25:  //---------------------TOC0handler---------------------
+   26:  // Interrupt used for incrementing time
+   27:  // Input: none
+   28:  // Output: none 
+   29:  // analog input    left justified   right justified
+   30:  //  0.000               0	               0
+   31:  //  0.005            0040	               1
+   32:  //  0.010            0080                2
+   33:  //  1.250            4000              100
+   34:  //  2.500            8000							 200
+   35:  //  5.000            FFC0						   3FF
+   36:  interrupt 8 void TOC0handler(void){ 
+*** EVALUATION ***
+
+Function: TOC0handler
+Source  : C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Sources\OC.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\prm;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\cmd;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\OC.c.o" -WmsgSd1106
+
+   37:    unsigned short sample;
+   38:    asm sei 
+  0000 1410         [1]     SEI   
+   39:    TFLG1 = 0x01;                  // acknowledge OC0
+  0002 c601         [1]     LDAB  #1
+  0004 5b00         [2]     STAB  _TFLG1
+   40:    Fifo_Put(sample);
+  0006 ecae         [3]     LDD   2,-SP
+  0008 160000       [4]     JSR   Fifo_Put
+   41:    TC0 += ONE_KHZ;                    // 1000hz
+  000b dc00         [3]     LDD   _TC0
+  000d c305dc       [2]     ADDD  #1500
+  0010 5c00         [2]     STD   _TC0
+   42:    asm cli
+  0012 10ef         [1]     CLI   
+   43:  }       
+  0014 3a           [3]     PULD  
+  0015 0b           [8]     RTI   
+   44:  
+   45:  //---------------------OC0_Init---------------------
+   46:  // arm output compare 0 for 1000Hz periodic interrupt
+   47:  // Input: none
+   48:  // Output: none 
+   49:  void OC0_Init(void){
+*** EVALUATION ***
+
+Function: OC0_Init
+Source  : C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Sources\OC.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\prm;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\cmd;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\OC.c.o" -WmsgSd1106
+
+   50:    //Note: TCNT initialized in lcd.c
+   51:    TIOS |= 0x01;   // activate TC0 as output compare
+  0000 4c0001       [4]     BSET  _TIOS,#1
+   52:    TIE  |= 0x01;   // arm OC0
+  0003 4c0001       [4]     BSET  _TIE,#1
+   53:    TC0 = TCNT+50; // first interrupt right away
+  0006 dc00         [3]     LDD   _TCNT
+  0008 c30032       [2]     ADDD  #50
+  000b 5c00         [2]     STD   _TC0
+   54:  }
+  000d 3d           [5]     RTS   

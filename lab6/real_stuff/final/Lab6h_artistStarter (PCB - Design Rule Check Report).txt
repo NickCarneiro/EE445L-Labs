@@ -1,0 +1,43 @@
+Design Rule Check Report
+------------------------
+
+Report File    : C:\Users\aaron\Dropbox\EE445L\lab6\real_stuff\final\Lab6h_artistStarter (PCB - Design Rule Check Report).txt
+Report Written : Tuesday, March 08, 2011
+Design Path    : C:\Users\aaron\Dropbox\EE445L\lab6\real_stuff\final\Lab6h_artistStarter.pcb
+Design Title   : 
+Created        : 9/11/2009 4:58:24 PM
+Last Saved     : 3/7/2011 2:59:21 AM
+Editing Time   : 1945 min
+Units          : mil (precision 0)
+
+Results
+-------
+
+
+No errors found
+
+Settings
+--------
+
+Spacings
+    Tracks                             Yes
+    Pads and Vias                      Yes
+    Shapes                             Yes
+    Text                               Yes
+    Board                              Yes
+    Drills                             Yes
+    Components                         No
+
+Manufacturing
+    Min Drill Hole Size                Yes
+    Min Track Width                    Yes
+    Min Annular Ring                   Yes
+    Drill Breakout                     Yes
+
+Nets
+    Net Completion                     Yes
+    Dangling Tracks                    Yes
+    Net Track Length Differences       No
+
+
+End Of Report.

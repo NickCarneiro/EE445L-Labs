@@ -1,0 +1,103 @@
+Forward Design Changes Report
+-----------------------------
+
+Report File    : C:\Users\aaron\Dropbox\EE445L\lab8\small_edits\lab8_scheme_workable (PCB - Forward Design Changes Report).txt
+Report Written : Tuesday, April 05, 2011
+Design Path    : C:\Users\aaron\Dropbox\EE445L\lab8\small_edits\lab8_scheme_workable.pcb
+Design Title   : 
+Created        : 3/27/2011 9:48:09 PM
+Last Saved     : 4/6/2011 12:09:13 AM
+Editing Time   : 843 min
+Units          : inches (precision 3)
+
+Disconnected pin "D2.1" from net "LED1low".
+Disconnected pin "D2.2" from net "LED2high".
+Disconnected pin "D3.1" from net "LED2low".
+Disconnected pin "D3.2" from net "LED3high".
+Disconnected pin "D5.1" from net "LED4low".
+Disconnected pin "D5.2" from net "LED5high".
+Disconnected pin "D6.1" from net "LED5low".
+Disconnected pin "D6.2" from net "LED6high".
+Disconnected pin "D7.1" from net "LED6low".
+Disconnected pin "D7.2" from net "LED7high".
+Disconnected pin "D13.1" from net "LED13low".
+Disconnected pin "D13.2" from net "LED14high".
+Disconnected pin "D26.1" from net "LED26low".
+Disconnected pin "D26.2" from net "LED25high".
+Disconnected pin "D27.1" from net "LED27low".
+Disconnected pin "D27.2" from net "LED26high".
+Disconnected pin "D28.1" from net "LED7low".
+Disconnected pin "D28.2" from net "LED8high".
+Disconnected pin "R6.1" from net "LED2high".
+Disconnected pin "R6.2" from net "VCC".
+Disconnected pin "R7.1" from net "LED3high".
+Disconnected pin "R7.2" from net "VCC".
+Disconnected pin "R9.1" from net "LED5high".
+Disconnected pin "R9.2" from net "VCC".
+Disconnected pin "R10.1" from net "LED6high".
+Disconnected pin "R10.2" from net "VCC".
+Disconnected pin "R11.1" from net "LED7high".
+Disconnected pin "R11.2" from net "VCC".
+Disconnected pin "R12.1" from net "LED8high".
+Disconnected pin "R12.2" from net "VCC".
+Disconnected pin "R18.1" from net "LED14high".
+Disconnected pin "R18.2" from net "VCC".
+Disconnected pin "R30.1" from net "LED25high".
+Disconnected pin "R30.2" from net "VCC".
+Disconnected pin "R31.1" from net "LED26high".
+Disconnected pin "R31.2" from net "VCC".
+Disconnected pin "U4.1" from net "7406_In_26".
+Disconnected pin "U4.2" from net "LED2low".
+Disconnected pin "U4.3" from net "7406_In_18".
+Disconnected pin "U4.4" from net "LED4low".
+Disconnected pin "U4.5" from net "7406_In_19".
+Disconnected pin "U4.6" from net "LED5low".
+Disconnected pin "U4.7" from net "GND".
+Disconnected pin "U4.8" from net "LED6low".
+Disconnected pin "U4.9" from net "7406_In_27".
+Disconnected pin "U4.10" from net "LED7low".
+Disconnected pin "U4.11" from net "7406_In_20".
+Disconnected pin "U4.12" from net "LED1low".
+Disconnected pin "U4.13" from net "7406_In_25".
+Disconnected pin "U4.14" from net "VCC".
+Disconnected pin "U8.1" from net "7406_In_7".
+Disconnected pin "U8.2" from net "LED26low".
+Disconnected pin "U8.3" from net "7406_In_8".
+Disconnected pin "U8.4" from net "LED27low".
+Disconnected pin "U8.7" from net "GND".
+Disconnected pin "U8.12" from net "LED13low".
+Disconnected pin "U8.13" from net "7406_In_15".
+Disconnected pin "U8.14" from net "VCC".
+Disconnected pin "U1.41" from net "7406_In_25".
+Disconnected pin "U1.42" from net "7406_In_26".
+Disconnected pin "U1.67" from net "7406_In_18".
+Disconnected pin "U1.79" from net "7406_In_19".
+Disconnected pin "U1.80" from net "7406_In_27".
+Disconnected pin "U1.1" from net "7406_In_20".
+Disconnected pin "U1.6" from net "7406_In_8".
+Disconnected pin "U1.7" from net "7406_In_7".
+Disconnected pin "U1.17" from net "7406_In_15".
+
+Deleted component reference "D2".
+Deleted component reference "D3".
+Deleted component reference "D5".
+Deleted component reference "D6".
+Deleted component reference "D7".
+Deleted component reference "D13".
+Deleted component reference "D26".
+Deleted component reference "D27".
+Deleted component reference "D28".
+Deleted component reference "R6".
+Deleted component reference "R7".
+Deleted component reference "R9".
+Deleted component reference "R10".
+Deleted component reference "R11".
+Deleted component reference "R12".
+Deleted component reference "R18".
+Deleted component reference "R30".
+Deleted component reference "R31".
+Deleted component reference "U4".
+Deleted component reference "U8".
+
+
+End Of Report.

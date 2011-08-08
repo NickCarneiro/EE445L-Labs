@@ -1,0 +1,267 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  // filename *************Fifo.c********
+    2:  // Two-Index implementation of a FIFO
+    3:  // Jonathan W. Valvano 8/28/10
+    4:  
+    5:  //  This example accompanies the books
+    6:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+    7:  //        Thompson, copyright (c) 2006,
+    8:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+    9:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   10:  
+   11:  // Copyright 2010 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   12:  //    You may use, edit, run or distribute this file 
+   13:  //    as long as the above copyright notice remains 
+   14:  
+   15:  #include "Fifo.h"
+   16:  #include "SCI0.h"
+   17:  
+   18:  
+   19:  unsigned short volatile PutI;  // put next
+   20:  unsigned short volatile GetI;  // get next
+   21:  dataType static Fifo[FIFOSIZE];
+   22:  
+   23:  // ******* Fifo_Init ********
+   24:  // Initialize FIFO, making it empty
+   25:  // This function must be called before FIFO is used,
+   26:  // Can be called again to empty FIFO
+   27:  // Inputs: none
+   28:  // Outputs: none
+   29:  void Fifo_Init(void){ unsigned char SaveCCR;
+*** EVALUATION ***
+
+Function: Fifo_Init
+Source  : C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Sources\FIFO.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\prm;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\cmd;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin" -Env"TEXTPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Lab2g_v2_DP512_Data\HCS12_Serial_Monitor\ObjectCode\FIFO.C.o"
+
+  0000 36           [2]     PSHA  
+   30:  asm  tpa  
+  0001 b720         [1]     TPA   
+   31:  asm  staa SaveCCR 
+  0003 6a80         [2]     STAA  0,SP
+   32:  asm  sei          // make atomic 
+  0005 1410         [1]     SEI   
+   33:    PutI = GetI = 0;      // Empty
+  0007 c7           [1]     CLRB  
+  0008 87           [1]     CLRA  
+  0009 7c0000       [3]     STD   GetI
+  000c fe0000       [3]     LDX   GetI
+  000f 7e0000       [3]     STX   PutI
+   34:  asm  ldaa SaveCCR
+  0012 a680         [3]     LDAA  0,SP
+   35:  asm  tap          // end critical section 
+  0014 b702         [1]     TAP   
+   36:  }
+  0016 32           [3]     PULA  
+  0017 3d           [5]     RTS   
+   37:  
+   38:  // ******* Fifo_Put ********
+   39:  // Put data into FIFO
+   40:  // Inputs: data to save in FIFO
+   41:  // Outputs: FIFOSUCCESS if saved
+   42:  //          FIFOFAIL if not saved, because FIFO was full
+   43:  int Fifo_Put(dataType data){
+*** EVALUATION ***
+
+Function: Fifo_Put
+Source  : C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Sources\FIFO.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\prm;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\cmd;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin" -Env"TEXTPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Lab2g_v2_DP512_Data\HCS12_Serial_Monitor\ObjectCode\FIFO.C.o"
+
+  0000 37           [2]     PSHB  
+   44:    if((PutI-GetI) & ~(FIFOSIZE-1)){
+  0001 fc0000       [3]     LDD   PutI
+  0004 b30000       [3]     SUBD  GetI
+  0007 c4f0         [1]     ANDB  #240
+  0009 044403       [3]     TBEQ  D,*+6 ;abs = 000f
+   45:      return(FIFOFAIL); // Failed, fifo full
+  000c c7           [1]     CLRB  
+  000d 2015         [3]     BRA   *+23 ;abs = 0024
+   46:    }
+   47:    Fifo[PutI&(FIFOSIZE-1)] = data; // put
+  000f f60000       [3]     LDAB  PutI:1
+  0012 c40f         [1]     ANDB  #15
+  0014 a680         [3]     LDAA  0,SP
+  0016 ce0000       [2]     LDX   #Fifo
+  0019 6ae5         [2]     STAA  B,X
+   48:    PutI++;  // Success, update
+  001b fe0000       [3]     LDX   PutI
+  001e 08           [1]     INX   
+  001f 7e0000       [3]     STX   PutI
+   49:    return(FIFOSUCCESS);
+  0022 c601         [1]     LDAB  #1
+  0024 87           [1]     CLRA  
+   50:  }
+  0025 1b81         [2]     LEAS  1,SP
+  0027 3d           [5]     RTS   
+   51:  
+   52:  
+   53:  // ******* Fifo_Get ********
+   54:  // Get data from FIFO
+   55:  // Inputs: pointer to memory into which to return data
+   56:  // Outputs: FIFOSUCCESS if data properly removed
+   57:  //          FIFOFAIL if not removed, because FIFO was empty
+   58:  int Fifo_Get(dataType *datapt){
+*** EVALUATION ***
+
+Function: Fifo_Get
+Source  : C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Sources\FIFO.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\prm;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\cmd;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin" -Env"TEXTPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Lab2g_v2_DP512_Data\HCS12_Serial_Monitor\ObjectCode\FIFO.C.o"
+
+  0000 3b           [2]     PSHD  
+   59:    if(PutI == GetI ){
+  0001 fc0000       [3]     LDD   PutI
+  0004 bc0000       [3]     CPD   GetI
+  0007 2603         [3/1]   BNE   *+5 ;abs = 000c
+   60:      return(FIFOFAIL); // Empty if PutI=GetI
+  0009 c7           [1]     CLRB  
+  000a 2017         [3]     BRA   *+25 ;abs = 0023
+   61:    }
+   62:    *datapt = Fifo[GetI&(FIFOSIZE-1)];
+  000c f60000       [3]     LDAB  GetI:1
+  000f c40f         [1]     ANDB  #15
+  0011 ce0000       [2]     LDX   #Fifo
+  0014 a6e5         [3]     LDAA  B,X
+  0016 ee80         [3]     LDX   0,SP
+  0018 6a00         [2]     STAA  0,X
+   63:    GetI++;  // Success, update
+  001a fe0000       [3]     LDX   GetI
+  001d 08           [1]     INX   
+  001e 7e0000       [3]     STX   GetI
+   64:    return(FIFOSUCCESS);
+  0021 c601         [1]     LDAB  #1
+  0023 87           [1]     CLRA  
+   65:  }
+  0024 30           [3]     PULX  
+  0025 3d           [5]     RTS   
+   66:  
+   67:  // ******* Fifo_Size ********
+   68:  // Check the status of the FIFO
+   69:  // Inputs: none
+   70:  // Outputs: number of elements currently stored
+   71:  // 0 to FIFOSIZE (0 means empty, FIFOSIZE means full)
+   72:  unsigned short Fifo_Size(void){
+*** EVALUATION ***
+
+Function: Fifo_Size
+Source  : C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Sources\FIFO.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\prm;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\cmd;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin" -Env"TEXTPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Lab2g_v2_DP512_Data\HCS12_Serial_Monitor\ObjectCode\FIFO.C.o"
+
+   73:   return ((unsigned short)(PutI-GetI));
+  0000 fc0000       [3]     LDD   PutI
+  0003 b30000       [3]     SUBD  GetI
+   74:  }
+  0006 3d           [5]     RTS   
+   75:  
+   76:  // Version 2) with debugging print 
+   77:  int Fifo_Get2(dataType *datapt){
+*** EVALUATION ***
+
+Function: Fifo_Get2
+Source  : C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Sources\FIFO.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\prm;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\cmd;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin" -Env"TEXTPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Lab2g_v2_DP512_Data\HCS12_Serial_Monitor\ObjectCode\FIFO.C.o"
+
+  0000 3b           [2]     PSHD  
+   78:    if(PutI == GetI ){
+  0001 fc0000       [3]     LDD   PutI
+  0004 bc0000       [3]     CPD   GetI
+  0007 2603         [3/1]   BNE   *+5 ;abs = 000c
+   79:      return(FIFOFAIL); // Empty if PutI=GetI
+  0009 c7           [1]     CLRB  
+  000a 2037         [3]     BRA   *+57 ;abs = 0043
+   80:    }
+   81:    *datapt = Fifo[GetI&(FIFOSIZE-1)];
+  000c f60000       [3]     LDAB  GetI:1
+  000f c40f         [1]     ANDB  #15
+  0011 ce0000       [2]     LDX   #Fifo
+  0014 a6e5         [3]     LDAA  B,X
+  0016 ee80         [3]     LDX   0,SP
+  0018 6a00         [2]     STAA  0,X
+   82:    SCI0_OutUHex(GetI&(FIFOSIZE-1)); 
+  001a fc0000       [3]     LDD   GetI
+  001d c40f         [1]     ANDB  #15
+  001f 87           [1]     CLRA  
+  0020 160000       [4]     JSR   SCI0_OutUHex
+   83:    SCI0_OutChar(32);
+  0023 c620         [1]     LDAB  #32
+  0025 160000       [4]     JSR   SCI0_OutChar
+   84:    SCI0_OutUDec((unsigned short)*datapt);
+  0028 ee80         [3]     LDX   0,SP
+  002a e600         [3]     LDAB  0,X
+  002c 87           [1]     CLRA  
+  002d 160000       [4]     JSR   SCI0_OutUDec
+   85:    SCI0_OutChar(13); SCI0_OutChar(10);
+  0030 c60d         [1]     LDAB  #13
+  0032 160000       [4]     JSR   SCI0_OutChar
+  0035 c60a         [1]     LDAB  #10
+  0037 160000       [4]     JSR   SCI0_OutChar
+   86:    GetI++;  // Success, update
+  003a fe0000       [3]     LDX   GetI
+  003d 08           [1]     INX   
+  003e 7e0000       [3]     STX   GetI
+   87:    return(FIFOSUCCESS);
+  0041 c601         [1]     LDAB  #1
+  0043 87           [1]     CLRA  
+   88:  }  
+  0044 30           [3]     PULX  
+  0045 3d           [5]     RTS   
+   89:  
+   90:  // Version 3) with debugging dump
+   91:  unsigned short ptBuf[10];
+   92:  dataType dataBuf[10];
+   93:  unsigned short Debug_n=0;
+   94:  int Fifo_Get3(dataType *datapt){
+*** EVALUATION ***
+
+Function: Fifo_Get3
+Source  : C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Sources\FIFO.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\prm;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\cmd;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin" -Env"TEXTPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Lab2g_v2_DP512_Data\HCS12_Serial_Monitor\ObjectCode\FIFO.C.o"
+
+  0000 3b           [2]     PSHD  
+   95:    if(PutI == GetI ){
+  0001 fc0000       [3]     LDD   PutI
+  0004 bc0000       [3]     CPD   GetI
+  0007 2603         [3/1]   BNE   *+5 ;abs = 000c
+   96:      return(FIFOFAIL); // Empty if PutI=GetI
+  0009 c7           [1]     CLRB  
+  000a 203b         [3]     BRA   *+61 ;abs = 0047
+   97:    }
+   98:    *datapt = Fifo[GetI&(FIFOSIZE-1)];
+  000c f60000       [3]     LDAB  GetI:1
+  000f c40f         [1]     ANDB  #15
+  0011 ce0000       [2]     LDX   #Fifo
+  0014 a6e5         [3]     LDAA  B,X
+  0016 ee80         [3]     LDX   0,SP
+  0018 6a00         [2]     STAA  0,X
+   99:    if(Debug_n<10){
+  001a fc0000       [3]     LDD   Debug_n
+  001d 8c000a       [2]     CPD   #10
+  0020 241c         [3/1]   BCC   *+30 ;abs = 003e
+  100:      ptBuf[Debug_n] =  GetI&(FIFOSIZE-1);
+  0022 59           [1]     LSLD  
+  0023 b745         [1]     TFR   D,X
+  0025 fc0000       [3]     LDD   GetI
+  0028 c40f         [1]     ANDB  #15
+  002a 87           [1]     CLRA  
+  002b 6ce20000     [3]     STD   ptBuf,X
+  101:      dataBuf[Debug_n] = *datapt;
+  002f ee80         [3]     LDX   0,SP
+  0031 e600         [3]     LDAB  0,X
+  0033 fe0000       [3]     LDX   Debug_n
+  0036 6be20000     [3]     STAB  dataBuf,X
+  102:      Debug_n++;
+  003a 08           [1]     INX   
+  003b 7e0000       [3]     STX   Debug_n
+  103:    }  
+  104:    GetI++;  // Success, update
+  003e fe0000       [3]     LDX   GetI
+  0041 08           [1]     INX   
+  0042 7e0000       [3]     STX   GetI
+  105:    return(FIFOSUCCESS);
+  0045 c601         [1]     LDAB  #1
+  0047 87           [1]     CLRA  
+  106:  }  
+  0048 30           [3]     PULX  
+  0049 3d           [5]     RTS   
+  107:  

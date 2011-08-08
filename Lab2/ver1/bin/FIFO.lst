@@ -1,0 +1,228 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  // filename *************Fifo.c********
+    2:  // Two-Index implementation of a FIFO
+    3:  // Jonathan W. Valvano 8/29/10
+    4:  
+    5:  //  This example accompanies the books
+    6:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+    7:  //        Thompson, copyright (c) 2006,
+    8:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+    9:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   10:  
+   11:  // Copyright 2010 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   12:  //    You may use, edit, run or distribute this file 
+   13:  //    as long as the above copyright notice remains 
+   14:  
+   15:  #include "Fifo.h"
+   16:  
+   17:  // set Good equal to 0 to use a FIFO with a critical section
+   18:  // set Good equal to 1 to use a FIFO without a critical section
+   19:  #define Good 1
+   20:  dataType static Fifo[FIFOSIZE];
+   21:  
+   22:  #if Good 
+   23:  
+   24:  unsigned short volatile PutI;  // put next
+   25:  unsigned short volatile GetI;  // get next
+   26:  
+   27:  // ******* Fifo_Init ********
+   28:  // Initialize FIFO, making it empty
+   29:  // This function must be called before FIFO is used,
+   30:  // Can be called again to empty FIFO
+   31:  // Inputs: none
+   32:  // Outputs: none
+   33:  void Fifo_Init(void){ unsigned char SaveCCR;
+*** EVALUATION ***
+
+Function: Fifo_Init
+Source  : C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Sources\FIFO.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\prm;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\cmd;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin" -Env"TEXTPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Lab2g_DP512_Data\HCS12_Serial_Monitor\ObjectCode\FIFO.C.o"
+
+  0000 36           [2]     PSHA  
+   34:  asm  tpa  
+  0001 b720         [1]     TPA   
+   35:  asm  staa SaveCCR 
+  0003 6a80         [2]     STAA  0,SP
+   36:  asm  sei          // make atomic 
+  0005 1410         [1]     SEI   
+   37:    PutI = GetI = 0;      // Empty
+  0007 c7           [1]     CLRB  
+  0008 87           [1]     CLRA  
+  0009 7c0000       [3]     STD   GetI
+  000c fe0000       [3]     LDX   GetI
+  000f 7e0000       [3]     STX   PutI
+   38:  asm  ldaa SaveCCR
+  0012 a680         [3]     LDAA  0,SP
+   39:  asm  tap          // end critical section 
+  0014 b702         [1]     TAP   
+   40:  }
+  0016 32           [3]     PULA  
+  0017 3d           [5]     RTS   
+   41:  
+   42:  // ******* Fifo_Put ********
+   43:  // Put data into FIFO
+   44:  // Inputs: data to save in FIFO
+   45:  // Outputs: FIFOSUCCESS if saved
+   46:  //          FIFOFAIL if not saved, because FIFO was full
+   47:  int Fifo_Put(dataType data){
+*** EVALUATION ***
+
+Function: Fifo_Put
+Source  : C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Sources\FIFO.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\prm;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\cmd;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin" -Env"TEXTPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Lab2g_DP512_Data\HCS12_Serial_Monitor\ObjectCode\FIFO.C.o"
+
+  0000 37           [2]     PSHB  
+   48:    if((PutI-GetI) & ~(FIFOSIZE-1)){
+  0001 fc0000       [3]     LDD   PutI
+  0004 b30000       [3]     SUBD  GetI
+  0007 c4e0         [1]     ANDB  #224
+  0009 044403       [3]     TBEQ  D,*+6 ;abs = 000f
+   49:      return(FIFOFAIL); // Failed, fifo full
+  000c c7           [1]     CLRB  
+  000d 2015         [3]     BRA   *+23 ;abs = 0024
+   50:    }
+   51:    Fifo[PutI&(FIFOSIZE-1)] = data; // put
+  000f f60000       [3]     LDAB  PutI:1
+  0012 c41f         [1]     ANDB  #31
+  0014 a680         [3]     LDAA  0,SP
+  0016 ce0000       [2]     LDX   #Fifo
+  0019 6ae5         [2]     STAA  B,X
+   52:    PutI++;  // Success, update
+  001b fe0000       [3]     LDX   PutI
+  001e 08           [1]     INX   
+  001f 7e0000       [3]     STX   PutI
+   53:    return(FIFOSUCCESS);
+  0022 c601         [1]     LDAB  #1
+  0024 87           [1]     CLRA  
+   54:  }
+  0025 1b81         [2]     LEAS  1,SP
+  0027 3d           [5]     RTS   
+   55:  
+   56:  
+   57:  // ******* Fifo_Get ********
+   58:  // Get data from FIFO
+   59:  // Inputs: pointer to memory into which to return data
+   60:  // Outputs: FIFOSUCCESS if data properly removed
+   61:  //          FIFOFAIL if not removed, because FIFO was empty
+   62:  int Fifo_Get(dataType *datapt){
+*** EVALUATION ***
+
+Function: Fifo_Get
+Source  : C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Sources\FIFO.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\prm;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\cmd;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin" -Env"TEXTPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Lab2g_DP512_Data\HCS12_Serial_Monitor\ObjectCode\FIFO.C.o"
+
+  0000 3b           [2]     PSHD  
+   63:    if(PutI == GetI ){
+  0001 fc0000       [3]     LDD   PutI
+  0004 bc0000       [3]     CPD   GetI
+  0007 2603         [3/1]   BNE   *+5 ;abs = 000c
+   64:      return(FIFOFAIL); // Empty if PutI=GetI
+  0009 c7           [1]     CLRB  
+  000a 2017         [3]     BRA   *+25 ;abs = 0023
+   65:    }
+   66:    *datapt = Fifo[GetI&(FIFOSIZE-1)];
+  000c f60000       [3]     LDAB  GetI:1
+  000f c41f         [1]     ANDB  #31
+  0011 ce0000       [2]     LDX   #Fifo
+  0014 a6e5         [3]     LDAA  B,X
+  0016 ee80         [3]     LDX   0,SP
+  0018 6a00         [2]     STAA  0,X
+   67:    GetI++;  // Success, update
+  001a fe0000       [3]     LDX   GetI
+  001d 08           [1]     INX   
+  001e 7e0000       [3]     STX   GetI
+   68:    return(FIFOSUCCESS);
+  0021 c601         [1]     LDAB  #1
+  0023 87           [1]     CLRA  
+   69:  }
+  0024 30           [3]     PULX  
+  0025 3d           [5]     RTS   
+   70:  
+   71:  // ******* Fifo_Size ********
+   72:  // Check the status of the FIFO
+   73:  // Inputs: none
+   74:  // Outputs: number of elements currently stored
+   75:  // 0 to FIFOSIZE (0 means empty, FIFOSIZE means full)
+   76:  unsigned short Fifo_Size(void){
+*** EVALUATION ***
+
+Function: Fifo_Size
+Source  : C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Sources\FIFO.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\prm;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\cmd;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin" -Env"TEXTPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Lab2g_DP512_Data\HCS12_Serial_Monitor\ObjectCode\FIFO.C.o"
+
+   77:   return ((unsigned short)(PutI-GetI));
+  0000 fc0000       [3]     LDD   PutI
+  0003 b30000       [3]     SUBD  GetI
+   78:  }
+  0006 3d           [5]     RTS   
+   79:  
+   80:  
+   81:  #else
+   82:  //***************Second Implementation with critical section****
+   83:  unsigned short static volatile Size;   /* number of elements in FIFO */
+   84:  dataType static volatile *PutPt;    /* Pointer of where to put next */
+   85:  dataType static volatile *GetPt;    /* Pointer of where to get next */
+   86:  
+   87:  /*-----------------------Fifo_Init----------------------------
+   88:    Initialize fifo to be empty
+   89:    Inputs: none
+   90:    Outputs: none */
+   91:  void Fifo_Init(void){
+   92:  unsigned char SaveCCR;
+   93:  asm  tpa  
+   94:  asm  staa SaveCCR 
+   95:  asm  sei          // make atomic 
+   96:    PutPt=GetPt=&Fifo[0];   // Empty when PutPt=GetPt
+   97:    Size = 0; 
+   98:  asm  ldaa SaveCCR
+   99:  asm  tap          // end critical section 
+  100:  }
+  101:  
+  102:  
+  103:  /*-----------------------Fifo_Put----------------------------
+  104:    Enter one character into the fifo
+  105:    Inputs: data
+  106:    Outputs: true if data is properly saved,
+  107:             false if data not saved because it was previously full*/
+  108:  int Fifo_Put(dataType data){
+  109:    if(Size==FIFOSIZE){
+  110:      return 0;     // Failed, fifo was previously full
+  111:    }
+  112:    *(PutPt) = data;      // try to Put data into fifo 
+  113:    PutPt++;              
+  114:    if(PutPt == &Fifo[FIFOSIZE]){ // need to wrap?
+  115:      PutPt = &Fifo[0];
+  116:    }
+  117:    Size++;   // one more element
+  118:    return(1);
+  119:  }
+  120:  
+  121:  /*-----------------------Fifo_Get----------------------------
+  122:    Remove one character from the fifo
+  123:    Inputs: pointer to place to return data
+  124:    Outputs: true if data is valid, 
+  125:             false if fifo was empty at the time of the call*/
+  126:  int Fifo_Get(dataType *datapt){ 
+  127:    if(Size == 0){
+  128:      return(0);     // Empty if no elements in FIFO 
+  129:    }
+  130:    *datapt = *(GetPt);  // return by reference
+  131:    GetPt++;             // removes data from fifo
+  132:    if(GetPt == &Fifo[FIFOSIZE]){ 
+  133:      GetPt = &Fifo[0];  // wrap
+  134:    }
+  135:    Size--;   // one less element
+  136:    return(1); 
+  137:  }
+  138:  
+  139:  //-----------------------Fifo_Size----------------------------
+  140:  // Check the status of the FIFO
+  141:  // Inputs: none
+  142:  // Outputs: number of elements currently stored
+  143:  // 0 to FIFOSIZE (0 means empty, FIFOSIZE-1 means full)
+  144:  unsigned short Fifo_Size(void){ 
+  145:    return Size;
+  146:  }
+  147:  #endif

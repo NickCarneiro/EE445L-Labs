@@ -1,0 +1,169 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.40 Build 10020, Jan 21 2010
+
+    1:  /* ************************ adc.c *****************************
+    2:   * Simple I/O routines ADC port 
+    3:   * ************************************************************ */
+    4:   
+    5:  // 9S12DP512
+    6:  // Jonathan W. Valvano 7/14/07
+    7:  
+    8:  //  This example accompanies the books
+    9:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+   10:  //        Thomson Engineering, copyright (c) 2006,
+   11:  //   "Introduction to Embedded Microcomputer Systems: 
+   12:  //    Motorola 6811 and 6812 Simulation", Brooks-Cole, copyright (c) 2002
+   13:  
+   14:  // Copyright 2007 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   15:  //    You may use, edit, run or distribute this file 
+   16:  //    as long as the above copyright notice remains 
+   17:  
+   18:  #include <mc9s12c32.h>     /* derivative information */
+   19:  #include <hidef.h>      /* common defines and macros */
+   20:  #include "ADC.h"
+   21:  
+   22:  //******** ADC_In *************** 
+   23:  // perform 10-bit analog to digital conversion
+   24:  // input: chan is 0 to 7 specifying analog channel to sample
+   25:  // output: 10-bit ADC sample (left justified) 
+   26:  // analog input    left justified   right justified
+   27:  //  0.000               0	               0
+   28:  //  0.005            0040	               1
+   29:  //  0.010            0080                2
+   30:  //  1.250            4000              100
+   31:  //  2.500            8000							 200
+   32:  //  5.000            FFC0						   3FF
+   33:  // uses busy-wait synchronization
+   34:  // bit 7 DJM Result Register Data Justification
+   35:  //       1=right justified, 0=left justified
+   36:  // bit 6 DSGN Result Register Data Signed or Unsigned Representation
+   37:  //       1=signed, 0=unsigned
+   38:  // bit 5 SCAN Continuous Conversion Sequence Mode
+   39:  //       1=continuous, 0=single
+   40:  // bit 4 MULT Multi-Channel Sample Mode
+   41:  //       1=multiple channel, 0=single channel
+   42:  // bit 3 0
+   43:  // bit 2-0 CC,CB,CA channel number 0 to 7
+   44:  // example  data = ADC_In(0x82); // samples right-justified channel 2
+   45:  unsigned short ADC_In(unsigned short chan){ 
+*** EVALUATION ***
+
+Function: ADC_In
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\adc.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\adc.c.o" -WmsgSd1106
+
+  0000 3b           [2]     PSHD  
+   46:    ATDCTL5 = (unsigned char)chan + 0x80;  // start sequence
+  0001 e681         [3]     LDAB  1,SP
+  0003 cb80         [1]     ADDB  #128
+  0005 5b00         [2]     STAB  _ATDCTL45:1
+   47:    while((ATDSTAT1&0x01)==0){};    // wait for CCF0 
+  0007 4f0001fc     [4]     BRCLR _ATDSTAT1,#1,*+0 ;abs = 0007
+   48:    return ATDDR0; 
+  000b dc00         [3]     LDD   _ATDDR0
+   49:  }
+  000d 30           [3]     PULX  
+  000e 3d           [5]     RTS   
+   50:  
+   51:  //******** ADC_Init *************** 
+   52:  // Initialize ADC, sequence length=1, 10-bit mode
+   53:  // input: none
+   54:  // output: none
+   55:  // errors: none
+   56:  void ADC_Init(void){
+*** EVALUATION ***
+
+Function: ADC_Init
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\adc.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\adc.c.o" -WmsgSd1106
+
+   57:    ATDCTL2 = 0x80; // enable ADC
+  0000 c680         [1]     LDAB  #128
+  0002 5b00         [2]     STAB  _ATDCTL23
+   58:    // bit 7 ADPU=1 enable
+   59:    // bit 6 AFFC=0 ATD Fast Flag Clear All
+   60:    // bit 5 AWAI=0 ATD Power Down in Wait Mode
+   61:    // bit 4 ETRIGLE=0 External Trigger Level/Edge Control
+   62:    // bit 3 ETRIGP=0 External Trigger Polarity
+   63:    // bit 2 ETRIGE=0 External Trigger Mode Enable
+   64:    // bit 1 ASCIE=0 ATD Sequence Complete Interrupt Enable
+   65:    // bit 0 ASCIF=0 ATD Sequence Complete Interrupt Flag
+   66:    
+   67:    //ATD0CTL3 = 0x08; 
+   68:    // bit 6 S8C =0 Sequence length = 1
+   69:    // bit 5 S4C =0 
+   70:    // bit 4 S2C =0 
+   71:    // bit 3 S1C =1
+   72:    // bit 2 FIFO=0 no FIFO mode
+   73:    // bit 1 FRZ1=0 no freeze
+   74:    // bit 0 FRZ0=0 
+   75:    
+   76:    //ATD0CTL4 = 0x05; // enable ADC
+   77:    // bit 7 SRES8=0 A/D Resolution Select
+   78:    //      1 => n=8 bit resolution
+   79:    //      0 => n=10 bit resolution
+   80:    // bit 6 SMP1=0 Sample Time Select 
+   81:    // bit 5 SMP0=0 s=4
+   82:    // bit 4 PRS4=0 ATD Clock Prescaler m=5
+   83:    // bit 3 PRS3=0 ATD Clock Prescaler
+   84:    // bit 2 PRS2=1 ATD Clock Prescaler
+   85:    // bit 1 PRS1=0 ATD Clock Prescaler
+   86:    // bit 0 PRS0=1 ATD Clock Prescaler
+   87:    // Prescale = 2(m+1) = 12 cycles
+   88:    // ADC clock period = 2(m+1)/24MHz = 0.5us
+   89:    // choose m so 2(m+1)/Eperiod is between 0.5 to 2us
+   90:    // Sample time s=4
+   91:    // SMP1 SMP0  s sample time
+   92:    //  0    0    4 ADC clock periods
+   93:    //  0    1    6 ADC clock periods
+   94:    //  1    0   10 ADC clock periods
+   95:    //  1    1   18 ADC clock periods
+   96:    // ADC conversion time  2(m+1)(s+n)/24MHz = 7us
+   97:    // if multiple samples are selected, then each requires 7us
+   98:    
+   99:  }
+  0004 3d           [5]     RTS   
+  100:  extern unsigned short interruptRate;
+  101:  void OC_Start  (void){ 
+*** EVALUATION ***
+
+Function: OC_Start
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\adc.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\adc.c.o" -WmsgSd1106
+
+  102:    DisableInterrupts;  
+  0000 1410         [1]     SEI   
+  103:    TimerInit();
+  0002 160000       [4]     JSR   TimerInit
+  104:    TIOS |= 0x01;   // activate TC0 as output compare
+  0005 4c0001       [4]     BSET  _TIOS,#1
+  105:    TIE  |= 0x01;   // arm OC0     
+  0008 4c0001       [4]     BSET  _TIE,#1
+  106:    TC0 = TCNT + 50; //First interrupt = immediate
+  000b dc00         [3]     LDD   _TCNT
+  000d c30032       [2]     ADDD  #50
+  0010 5c00         [2]     STD   _TC0
+  107:    EnableInterrupts;
+  0012 10ef         [1]     CLI   
+  108:  }
+  0014 3d           [5]     RTS   
+  109:   /*
+  110:  unsigned short ADC0_In (unsigned short channel){
+  111:    //Sample Given channel
+  112:    ATD0CTL5 = channel;
+  113:    while ((ATD0STAT1&0x01) == 0);
+  114:    return ATD0DR0;
+  115:  }  
+  116:   
+  117:  interrupt 8 void TOC0handler(void){ // executes at Hz defined in main
+  118:    DisableInterrupts; 
+  119:    TFLG1 = 0x01;         // acknowledge OC0
+  120:  
+  121:  //we don't need a fifo. we just want the most recent value for paddle position.
+  122:    Update_Left_Paddle(ADC0_In(0x80));      // function that samples channel 0
+  123:    Update_Right_Paddle(ADC0_In(0x82));      //channel 1
+  124:    TC0 += interruptRate;     
+  125:    
+  126:    EnableInterrupts; 
+  127:  }
+  128:       */

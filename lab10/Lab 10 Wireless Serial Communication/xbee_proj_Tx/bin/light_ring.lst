@@ -1,0 +1,113 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  //******LED toggle Functions******
+    2:  //Purpose(all): Toggle specified LED in ring. Accessed via function pointer.
+    3:  //Input: none
+    4:  //Output: toggles desired LED 	
+    5:  
+    6:  #include "light_ring.h"
+    7:  
+    8:  void ToggleLED_top(){
+*** EVALUATION ***
+
+Function: ToggleLED_top
+Source  : C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\Sources\light_ring.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\prm;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\cmd;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\cyclone_Data\HCS12_Serial_Monitor\ObjectCode\light_ring.c.o -WmsgSd1106
+
+    9:    PTP ^= 0x80;          // debugging monitor
+  0000 f60000       [3]     LDAB  _PTP
+  0003 c880         [1]     EORB  #128
+  0005 7b0000       [3]     STAB  _PTP
+   10:  	PTT_PTT4 ^= 1;
+  0008 f60000       [3]     LDAB  _PTT
+  000b c810         [1]     EORB  #16
+  000d 7b0000       [3]     STAB  _PTT
+   11:  }
+  0010 3d           [5]     RTS   
+   12:  void ToggleLED_b(){
+*** EVALUATION ***
+
+Function: ToggleLED_b
+Source  : C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\Sources\light_ring.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\prm;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\cmd;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\cyclone_Data\HCS12_Serial_Monitor\ObjectCode\light_ring.c.o -WmsgSd1106
+
+   13:    PTP ^= 0x80;          // debugging monitor
+  0000 f60000       [3]     LDAB  _PTP
+  0003 c880         [1]     EORB  #128
+  0005 7b0000       [3]     STAB  _PTP
+   14:  	PTT_PTT1 ^= 1;
+  0008 f60000       [3]     LDAB  _PTT
+  000b c802         [1]     EORB  #2
+  000d 7b0000       [3]     STAB  _PTT
+   15:  }
+  0010 3d           [5]     RTS   
+   16:  void ToggleLED_c(){
+*** EVALUATION ***
+
+Function: ToggleLED_c
+Source  : C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\Sources\light_ring.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\prm;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\cmd;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\cyclone_Data\HCS12_Serial_Monitor\ObjectCode\light_ring.c.o -WmsgSd1106
+
+   17:    PTP ^= 0x80;          // debugging monitor
+  0000 f60000       [3]     LDAB  _PTP
+  0003 c880         [1]     EORB  #128
+  0005 7b0000       [3]     STAB  _PTP
+   18:  	PTT_PTT2 ^= 1;
+  0008 f60000       [3]     LDAB  _PTT
+  000b c804         [1]     EORB  #4
+  000d 7b0000       [3]     STAB  _PTT
+   19:  }
+  0010 3d           [5]     RTS   
+   20:  void ToggleLED_d(){
+*** EVALUATION ***
+
+Function: ToggleLED_d
+Source  : C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\Sources\light_ring.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\prm;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\cmd;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\cyclone_Data\HCS12_Serial_Monitor\ObjectCode\light_ring.c.o -WmsgSd1106
+
+   21:    PTP ^= 0x80;          // debugging monitor
+  0000 f60000       [3]     LDAB  _PTP
+  0003 c880         [1]     EORB  #128
+  0005 7b0000       [3]     STAB  _PTP
+   22:  	PTT_PTT5 ^= 1;
+  0008 f60000       [3]     LDAB  _PTT
+  000b c820         [1]     EORB  #32
+  000d 7b0000       [3]     STAB  _PTT
+   23:  }
+  0010 3d           [5]     RTS   
+   24:  void ToggleLED_e(){
+*** EVALUATION ***
+
+Function: ToggleLED_e
+Source  : C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\Sources\light_ring.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\prm;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\cmd;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\cyclone_Data\HCS12_Serial_Monitor\ObjectCode\light_ring.c.o -WmsgSd1106
+
+   25:    PTP ^= 0x80;          // debugging monitor
+  0000 f60000       [3]     LDAB  _PTP
+  0003 c880         [1]     EORB  #128
+  0005 7b0000       [3]     STAB  _PTP
+   26:  	PTT_PTT3 ^= 1;
+  0008 f60000       [3]     LDAB  _PTT
+  000b c808         [1]     EORB  #8
+  000d 7b0000       [3]     STAB  _PTT
+   27:  }
+  0010 3d           [5]     RTS   
+   28:  void ToggleLED_f(){
+*** EVALUATION ***
+
+Function: ToggleLED_f
+Source  : C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\Sources\light_ring.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\prm;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\cmd;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\cyclone_Data\HCS12_Serial_Monitor\ObjectCode\light_ring.c.o -WmsgSd1106
+
+   29:    PTP ^= 0x80;          // debugging monitor
+  0000 f60000       [3]     LDAB  _PTP
+  0003 c880         [1]     EORB  #128
+  0005 7b0000       [3]     STAB  _PTP
+   30:  	PTT_PTT0 ^= 1;
+  0008 f60000       [3]     LDAB  _PTT
+  000b c801         [1]     EORB  #1
+  000d 7b0000       [3]     STAB  _PTT
+   31:  }
+  0010 3d           [5]     RTS   
+   32:  

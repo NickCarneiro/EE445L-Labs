@@ -1,0 +1,23 @@
+Forward Design Changes Report
+-----------------------------
+
+Report File    : C:\Users\aaron\Dropbox\EE445L\lab8\small_edits_unrouted\lab8_scheme_restart (PCB - Forward Design Changes Report).txt
+Report Written : Wednesday, April 06, 2011
+Design Path    : C:\Users\aaron\Dropbox\EE445L\lab8\small_edits_unrouted\lab8_scheme_restart.pcb
+Design Title   : 
+Created        : 3/27/2011 9:48:09 PM
+Last Saved     : 4/6/2011 6:08:21 AM
+Editing Time   : 1183 min
+Units          : inches (precision 3)
+
+Disconnected pin "U6.5" from net "7406_In_10".
+Disconnected pin "U1.22" from net "7406_In_10".
+
+Net N0547 renamed to LCD_E
+Net N0548 renamed to LCD_RS
+Net N0549 renamed to LCD_DB7
+Net N0550 renamed to LCD_DB6
+Net N0551 renamed to LCD_DB4
+
+
+End Of Report.

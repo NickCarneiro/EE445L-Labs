@@ -1,0 +1,196 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  // filename ******** main.C ************** 
+    2:  // Interrupt Input Capture program for the 9S12DP512   
+    3:  // 2 by 2 matrix keyboard
+    4:  // PT3,PT2 are inputs from a keyboard column, with internal +5pullup
+    5:  // PT7,PT6 are outputs to keyboard row
+    6:  // uses OC4 interrupt to debounce
+    7:  // Jonathan W. Valvano 10/25/09
+    8:  
+    9:  //  This example accompanies the books
+   10:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+   11:  //        Thompson, copyright (c) 2006,
+   12:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+   13:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   14:  
+   15:  // Copyright 2009 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   16:  //    You may use, edit, run or distribute this file 
+   17:  //    as long as the above copyright notice remains 
+   18:  
+   19:  #include <hidef.h>      /* common defines and macros */
+   20:  #include "derivative.h"      /* derivative-specific definitions */
+   21:  
+   22:  
+   23:  #include "PLL.H"
+   24:  //---------Wait------------------
+   25:  // fixed time delay
+   26:  // inputs: time to wait in 667ns cycles
+   27:  // outputs: none
+   28:  void Wait(unsigned short delay){ 
+*** EVALUATION ***
+
+Function: Wait
+Source  : C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Sources\IC.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\prm;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\cmd;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\IC.c.o" -WmsgSd1106
+
+  0000 6cac         [2]     STD   4,-SP
+   29:  unsigned short startTime;
+   30:    startTime = TCNT;
+  0002 dc00         [3]     LDD   _TCNT
+  0004 6c82         [2]     STD   2,SP
+   31:    while((TCNT-startTime) <= delay){} 
+  0006 dc00         [3]     LDD   _TCNT
+  0008 a382         [3]     SUBD  2,SP
+  000a ac80         [3]     CPD   0,SP
+  000c 23f8         [3/1]   BLS   *-6 ;abs = 0006
+   32:  }
+  000e 1b84         [2]     LEAS  4,SP
+  0010 3d           [5]     RTS   
+   33:  
+   34:  unsigned char Count;
+   35:  unsigned char LastKey;
+   36:  // -------------Key_Init--------------
+   37:  // enable input capture 2,3 interrupts on falling edge
+   38:  // inputs: none
+   39:  // outputs: none
+   40:  // will enable IC3.IC2 interrupts
+   41:  // enable OC4, disarm OC4
+   42:  // assumes all of PORTT used for this interface
+   43:  // so it will not be friendly accessing PORTT 
+   44:  void VirtualPort_Init(void){  
+*** EVALUATION ***
+
+Function: VirtualPort_Init
+Source  : C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Sources\IC.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\prm;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\cmd;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\IC.c.o" -WmsgSd1106
+
+   45:  asm sei           // make atomic
+  0000 1410         [1]     SEI   
+   46:    PERT = 0x0C;    // internal pullup on PT3,PT2
+  0002 cc800c       [2]     LDD   #32780
+  0005 7b0000       [3]     STAB  _PERT
+   47:    
+   48:    PTT  = 0x00;    // PT7=PT6=0 enable all rows
+  0008 790000       [3]     CLR   _PTT
+   49:    TSCR1 = 0x80;   // enable TCNT, 667ns
+  000b 5a00         [2]     STAA  _TSCR1
+   50:    TSCR2 = 0x04;   // divide by 16 TCNT prescale, TOI disarm
+  000d c604         [1]     LDAB  #4
+  000f 5b00         [2]     STAB  _TSCR2
+   51:    PACTL = 0;      // timer prescale used for TCNT
+  0011 790000       [3]     CLR   _PACTL
+   52:  /* Bottom three bits of TSCR2 (PR2,PR1,PR0) determine TCNT period
+   53:      divide TCNT    at 24MHz  
+   54:  000   1     42ns  TOF  2.73ms 
+   55:  001   2     84ns  TOF  5.46ms  
+   56:  010   4    167ns  TOF  10.9ms      
+   57:  011   8    333ns  TOF  21.8ms 	 
+   58:  100  16    667ns  TOF  43.7ms 
+   59:  101  32   1.33us  TOF  87.4ms		
+   60:  110  64   2.67us  TOF 174.8ms  
+   61:  111 128   5.33us  TOF 349.5ms  */ 
+   62:    TCTL4 = 0xA0;   // falling edges IC3,IC2
+  0014 c6a0         [1]     LDAB  #160
+  0016 5b00         [2]     STAB  _TCTL4
+   63:    TIE = 0x0C;     // Arm only IC3,IC2
+  0018 c60c         [1]     LDAB  #12
+  001a 5b00         [2]     STAB  _TIE
+   64:    Count = 0;  
+  001c 790000       [3]     CLR   Count
+   65:    LastKey = 0;
+  001f 790000       [3]     CLR   LastKey
+   66:    TIOS = 0x10;   // PT4 output compare,  PT3,PT2 input capture
+  0022 c610         [1]     LDAB  #16
+  0024 5b00         [2]     STAB  _TIOS
+   67:  asm cli
+  0026 10ef         [1]     CLI   
+   68:  }
+  0028 3d           [5]     RTS   
+   69:  
+   70:  //void main(void) {	
+   71:  //  PLL_Init();       // running at 24MHz
+   72:  //  Key_Init();       // start IC thread
+   73:  //  for(;;) {	
+   74:  //  }
+   75:  //}
+   76:  
+   77:  void interrupt 10 IC2Han(void){ 
+*** EVALUATION ***
+
+Function: IC2Han
+Source  : C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Sources\IC.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\prm;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\cmd;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\IC.c.o" -WmsgSd1106
+
+   78:    TC4 = TCNT+15000; // 10 ms later
+  0000 dc00         [3]     LDD   _TCNT
+  0002 c33a98       [2]     ADDD  #15000
+  0005 5c00         [2]     STD   _TC4
+   79:    TIE = 0x10;       // arm OC4, disarm IC3,IC2
+  0007 ccff10       [2]     LDD   #65296
+  000a 5b00         [2]     STAB  _TIE
+   80:    TFLG1 = 0xFF;     // clear all flags
+  000c 5a00         [2]     STAA  _TFLG1
+   81:  }
+  000e 0b           [8]     RTI   
+   82:  
+   83:  void interrupt 11 IC3Han(void){ 
+*** EVALUATION ***
+
+Function: IC3Han
+Source  : C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Sources\IC.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\prm;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\cmd;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\IC.c.o" -WmsgSd1106
+
+   84:    TC4 = TCNT+15000; // 10 ms later
+  0000 dc00         [3]     LDD   _TCNT
+  0002 c33a98       [2]     ADDD  #15000
+  0005 5c00         [2]     STD   _TC4
+   85:    TIE = 0x10;       // arm OC4, disarm IC3,IC2
+  0007 ccff10       [2]     LDD   #65296
+  000a 5b00         [2]     STAB  _TIE
+   86:    TFLG1 = 0xFF;     // clear all flags
+  000c 5a00         [2]     STAA  _TFLG1
+   87:  }
+  000e 0b           [8]     RTI   
+   88:  
+   89:  
+   90:  void interrupt 12 OC4Han(void){
+*** EVALUATION ***
+
+Function: OC4Han
+Source  : C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Sources\IC.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\prm;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\cmd;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\IC.c.o" -WmsgSd1106
+
+   91:  unsigned char mykey;
+   92:  
+   93:    if(mykey==0xFF){     // more than one
+  0000 e6af         [3]     LDAB  1,-SP
+  0002 c1ff         [1]     CMPB  #255
+  0004 2609         [3/1]   BNE   *+11 ;abs = 000f
+   94:      TC4 = TCNT+10000;   // wait for there to be one
+  0006 dc00         [3]     LDD   _TCNT
+  0008 c32710       [2]     ADDD  #10000
+  000b 5c00         [2]     STD   _TC4
+   95:    } else{            
+  000d 200d         [3]     BRA   *+15 ;abs = 001c
+   96:      TIE = 0x0C;        // arm IC3,IC2, disarm OC4
+  000f 860c         [1]     LDAA  #12
+  0011 5a00         [2]     STAA  _TIE
+   97:      if(mykey){         // exactly one
+  0013 044106       [3]     TBEQ  B,*+9 ;abs = 001c
+   98:        LastKey = mykey; // should be fifo Put
+  0016 7b0000       [3]     STAB  LastKey
+   99:        Count++;
+  0019 720000       [4]     INC   Count
+  100:      }
+  101:    }
+  102:    DDRT = 0xC0;         // all rows zero
+  001c ccffc0       [2]     LDD   #65472
+  001f 7b0000       [3]     STAB  _DDRT
+  103:    TFLG1 = 0xFF;        // clear all flags
+  0022 5a00         [2]     STAA  _TFLG1
+  104:  }
+  0024 32           [3]     PULA  
+  0025 0b           [8]     RTI   
+  105:  

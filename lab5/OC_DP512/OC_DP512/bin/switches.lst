@@ -1,0 +1,52 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  //**********SWITCHES.C********
+    2:  //switch drivers
+    3:  //assign ports and direction registers
+    4:  //authors: Aaron Alaniz (aa28877)
+    5:  //         Denis Sokolov (dks574)
+    6:  
+    7:  #include <mc9s12dp512.h>
+    8:  #include "music.h"
+    9:  #include "timer.h"
+   10:  #include "switches.h"
+   11:  #include "dac.h"
+   12:  
+   13:  extern unsigned char input;
+   14:  
+   15:  //---------Switches_Init------------------
+   16:  // initialize switches
+   17:  // inputs: none 
+   18:  // outputs: none
+   19:  void Switches_Init(void) 
+   20:  {
+*** EVALUATION ***
+
+Function: Switches_Init
+Source  : C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources\switches.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\switches.c.o -WmsgSd1106
+
+   21:    DDRP &= ~0x07;   //PP0-3 inputs
+  0000 1d000007     [4]     BCLR  _DDRP,#7
+   22:  }
+  0004 3d           [5]     RTS   
+   23:  
+   24:  //--------Get_Switches------
+   25:  // return switch values
+   26:  // inputs: none
+   27:  // outputs: switch value
+   28:  unsigned char Get_Switches(void)
+   29:  {
+*** EVALUATION ***
+
+Function: Get_Switches
+Source  : C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources\switches.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\switches.c.o -WmsgSd1106
+
+   30:    return (PTP & 0x07);
+  0000 f60000       [3]     LDAB  _PTP
+  0003 c407         [1]     ANDB  #7
+   31:  }
+  0005 3d           [5]     RTS   
+   32:    

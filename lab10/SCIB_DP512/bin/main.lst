@@ -1,0 +1,67 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.38 Build 9056, Feb 26 2009
+
+    1:  // filename ******** main.C ************** 
+    2:  // Test of virtual SCI port   
+    3:  // Technological Arts MC9S12DP512 board
+    4:  
+    5:  // 9S12DP512 PT2 is RxD (input to 9S12DP512) 
+    6:  // 9S12DP512 PT3 is TxD (output from 9S12DP512)
+    7:  // 9S12DP512 channel 4 output compare interrupt used 
+    8:  // baud rate can be from 1000 to 50000 bits/sec
+    9:  // 1 start bit, 8 bit data, 1 stop
+   10:  // Jonathan W. Valvano 10/25/09
+   11:  
+   12:  //  This example accompanies the books
+   13:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+   14:  //        Thompson, copyright (c) 2006,
+   15:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+   16:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   17:  
+   18:  // Copyright 2009 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   19:  //    You may use, edit, run or distribute this file 
+   20:  //    as long as the above copyright notice remains 
+   21:  
+   22:  #include <hidef.h>      /* common defines and macros */
+   23:  #include "derivative.h"      /* derivative-specific definitions */
+   24:  #include "SCIb.H"
+   25:  #include "PLL.H"
+   26:  
+   27:  
+   28:  unsigned short num;
+   29:  unsigned char Letter;
+   30:  void main(void) {
+*** EVALUATION ***
+
+Function: main
+Source  : D:\EE345L\9S12DP512\SCIB_DP512\Sources\main.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=D:\EE345L\9S12DP512\SCIB_DP512;D:\EE345L\9S12DP512\SCIB_DP512\bin;D:\EE345L\9S12DP512\SCIB_DP512\prm;D:\EE345L\9S12DP512\SCIB_DP512\cmd;D:\EE345L\9S12DP512\SCIB_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\SCIB_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\SCIB_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\SCIB_DP512\SCIB_DP512_Data\Standard\ObjectCode\main.c.o -WmsgSd1106
+
+   31:    PLL_Init();         // running at 24MHz
+  0000 160000       [4]     JSR   PLL_Init
+   32:    SCIb_Init(9600);    // SCIb initialization
+  0003 cc2580       [2]     LDD   #9600
+  0006 160000       [4]     JSR   SCIb_Init
+   33:    for(;;) {
+   34:      Letter = SCIb_InChar();
+  0009 160000       [4]     JSR   SCIb_InChar
+  000c 7b0000       [3]     STAB  Letter
+   35:      SCIb_OutChar(Letter);
+  000f 160000       [4]     JSR   SCIb_OutChar
+  0012 20f5         [3]     BRA   *-9 ;abs = 0009
+   36:   }
+   37:   /*
+   38:    SCIb_OutString("Jonathan Valvano 10/25/09");
+   39:    for(;;) {
+   40:      SCIb_OutChar(CR);   SCIb_OutChar(LF); 
+   41:      SCIb_OutString("Decimal ");
+   42:      num = SCIb_InUDec();
+   43:      SCIb_OutUDec(num);
+   44:      SCIb_OutChar(CR);   SCIb_OutChar(LF); 
+   45:      SCIb_OutString("Hex ");
+   46:      num = SCIb_InUHex();
+   47:      SCIb_OutUHex(num);
+   48:    } 
+   49:    */
+   50:  }
+   51:  

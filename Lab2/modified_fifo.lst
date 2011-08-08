@@ -1,0 +1,48 @@
+   57:  // ******* Fifo_Get ********
+   58:  // Get data from FIFO
+   59:  // Inputs: pointer to memory into which to return data
+   60:  // Outputs: FIFOSUCCESS if data properly removed
+   61:  //          FIFOFAIL if not removed, because FIFO was empty
+   62:  int Fifo_Get(dataType *datapt){
+
+Function: Fifo_Get
+Source  : C:\Users\Owner\Dropbox\EE445L\Lab2\ver1\Sources\FIFO.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\Owner\Dropbox\EE445L\Lab2\ver1;C:\Users\Owner\Dropbox\EE445L\Lab2\ver1\bin;C:\Users\Owner\Dropbox\EE445L\Lab2\ver1\prm;C:\Users\Owner\Dropbox\EE445L\Lab2\ver1\cmd;C:\Users\Owner\Dropbox\EE445L\Lab2\ver1\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\Owner\Dropbox\EE445L\Lab2\ver1\bin -EnvTEXTPATH=C:\Users\Owner\Dropbox\EE445L\Lab2\ver1\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\Owner\Dropbox\EE445L\Lab2\ver1\Lab2g_DP512_Data\HCS12_Serial_Monitor\ObjectCode\FIFO.C.o
+
+  0000 3b           [2]     PSHD  
+   63:    if(PutI == GetI ){
+  0001 fc0000       [3]     LDD   PutI
+  0004 bc0000       [3]     CPD   GetI
+  0007 2603         [3/1]   BNE   *+5 ;abs = 000c
+   64:      return(FIFOFAIL); // Empty if PutI=GetI
+  0009 c7           [1]     CLRB  
+  000a 2017         [3]     BRA   *+25 ;abs = 0023
+   65:    }
+   66:    *datapt = Fifo[GetI&(FIFOSIZE-1)];
+  000c f60000       [3]     LDAB  GetI:1
+  000f c41f         [1]     ANDB  #31
+  0011 ce0000       [2]     LDX   #Fifo
+  0014 a6e5         [3]     LDAA  B,X
+  0016 ee80         [3]     LDX   0,SP
+  0018 6a00         [2]     STAA  0,X
+   67:    GetI++;  // Success, update
+  001a fe0000       [3]     LDX   GetI
+  001d 08           [1]     INX   
+  001e 7e0000       [3]     STX   GetI
+   68:    return(FIFOSUCCESS);
+  0021 c601         [1]     LDAB  #1
+  0023 87           [1]     CLRA  
+   69:  }
+  0024 30           [3]     PULX  
+  0025 3d           [5]     RTS   
+
+  Function: main
+Source  : C:\Users\Owner\Dropbox\EE445L\Lab2\ver1\Sources\Lab2g.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\Owner\Dropbox\EE445L\Lab2\ver1;C:\Users\Owner\Dropbox\EE445L\Lab2\ver1\bin;C:\Users\Owner\Dropbox\EE445L\Lab2\ver1\prm;C:\Users\Owner\Dropbox\EE445L\Lab2\ver1\cmd;C:\Users\Owner\Dropbox\EE445L\Lab2\ver1\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\Owner\Dropbox\EE445L\Lab2\ver1\bin -EnvTEXTPATH=C:\Users\Owner\Dropbox\EE445L\Lab2\ver1\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\Owner\Dropbox\EE445L\Lab2\ver1\Lab2g_DP512_Data\HCS12_Serial_Monitor\ObjectCode\Lab2g.c.o -WmsgSd1106
+
+
+   91:      while(Fifo_Get(&ForeData)==FIFOFAIL){
+  0022 cc0000       [2]     LDD   #ForeData
+  0025 160000       [4]     JSR   Fifo_Get
+  0028 0454f7       [3]     TBEQ  D,*-6 ;abs = 0022
+   92:      }

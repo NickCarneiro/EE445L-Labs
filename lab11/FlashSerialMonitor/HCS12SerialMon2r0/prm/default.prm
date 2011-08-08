@@ -1,0 +1,24 @@
+/* This is a generic Prm File 
+   If it does not fit your needs, you may adapt it or choose an another one 
+   in the linker preference panel */
+
+NAMES   END 
+
+SECTIONS
+    MY_RAM = READ_WRITE 0x3800 TO 0x3FFF;
+    MY_ROM = READ_ONLY  0xE000 TO 0xF77F;
+//    User_Vectors = READ_ONLY  0xF780 TO 0xF7FF FILL 0xFF;
+
+PLACEMENT
+    DEFAULT_ROM      INTO  MY_ROM;
+    DEFAULT_RAM      INTO  MY_RAM;
+END
+
+STACKSIZE 0x100
+
+INIT Startup
+
+ENTRIES
+  * /* main.asm.o:VectorsT */
+END
+

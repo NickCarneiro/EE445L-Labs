@@ -1,0 +1,189 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  // filename ******** Lab2g_v2.C ************** 
+    2:  // output compare interrupt program for the 9S12DP512, Lab2g
+    3:  // Starter project for EE445L Lab2g_v2, DP512 version
+    4:  // Jonathan W. Valvano 8/28/10
+    5:  
+    6:  //  This example accompanies the books
+    7:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+    8:  //        Thompson, copyright (c) 2006,
+    9:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+   10:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   11:  
+   12:  // Copyright 2010 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   13:  //    You may use, edit, run or distribute this file 
+   14:  //    as long as the above copyright notice remains 
+   15:  
+   16:  // how to run programs that use the SCI port
+   17:  // 1) connect 9S12DP512 to PC's COM port, 
+   18:  //     set 9S12DP512 to LOAD mode
+   19:  //     reset 9S12DP512
+   20:  // 2) execute Project->Debug (compiles and downloads code to 9S12DP512)
+   21:  // 3) quit MW debugger once programming complete 
+   22:  //    quitting the debugger will release the COM port
+   23:  // 4) start a terminal program (like HyperTerminal)
+   24:  //    specify proper COM port, 115200 bits/sec, no flow control
+   25:  // 5) set to RUN mode and hit reset
+   26:  // 6) when done, quit terminal program
+   27:  //    quitting the terminal program will release the COM port
+   28:  //     set 9S12DP512 to LOAD mode
+   29:  //     reset 9S12DP512
+   30:  
+   31:  #include <hidef.h>      /* common defines and macros */
+   32:  #include <mc9s12dp512.h>     /* derivative information */
+   33:  #pragma LINK_INFO DERIVATIVE "mc9s12dp512"
+   34:  
+   35:  #include "pll.h"
+   36:  #include "SCI0.h"
+   37:  #include "Fifo.h"
+   38:  
+   39:  //---------------------OutCRLF---------------------
+   40:  // Output a CR,LF to SCI to go to a new line
+   41:  // Input: none
+   42:  // Output: none
+   43:  void OutCRLF(void){
+*** EVALUATION ***
+
+Function: OutCRLF
+Source  : C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Sources\Lab2g.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\prm;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\cmd;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin" -Env"TEXTPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Lab2g_v2_DP512_Data\HCS12_Serial_Monitor\ObjectCode\Lab2g.c.o" -WmsgSd1106
+
+   44:    SCI0_OutChar(CR);
+  0000 c60d         [1]     LDAB  #13
+  0002 160000       [4]     JSR   SCI0_OutChar
+   45:    SCI0_OutChar(LF);
+  0005 c60a         [1]     LDAB  #10
+  0007 060000       [3]     JMP   SCI0_OutChar
+   46:  }
+   47:  
+   48:  dataType ForeData;
+   49:  void main(void){ 
+*** EVALUATION ***
+
+Function: main
+Source  : C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Sources\Lab2g.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\prm;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\cmd;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin" -Env"TEXTPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver2\Lab2g_v2_DP512_Data\HCS12_Serial_Monitor\ObjectCode\Lab2g.c.o" -WmsgSd1106
+
+  0000 3b           [2]     PSHD  
+   50:  unsigned short First;
+   51:  unsigned short Delay = 0;	 
+   52:    PLL_Init();       // running at 24MHz
+  0001 160000       [4]     JSR   PLL_Init
+   53:    DDRT = 0xff;      // debugging outputs
+  0004 ccc2ff       [2]     LDD   #49919
+  0007 7b0000       [3]     STAB  _DDRT
+   54:    PTT = 0x00;
+  000a 790000       [3]     CLR   _PTT
+  000d c7           [1]     CLRB  
+   55:    SCI0_Init(115200);	// fastest standard baud rate on run mode 9S12DP512
+  000e ce0001       [2]     LDX   #1
+  0011 160000       [4]     JSR   SCI0_Init
+   56:    
+   57:    SCI0_OutString("EE445L Lab2g -JWV"); OutCRLF();
+  0014 cc0000       [2]     LDD   #"EE445L Lab2g -JWV"
+  0017 160000       [4]     JSR   main:0x00a1
+   58:    TSCR1 = 0x80;     // Enable TCNT, 24MHz assuming PLL is active
+  001a c680         [1]     LDAB  #128
+  001c 5b00         [2]     STAB  _TSCR1
+   59:    TSCR2 = 0;
+  001e 790000       [3]     CLR   _TSCR2
+   60:  // calibration offset  
+   61:    First = TCNT;
+  0021 dc00         [3]     LDD   _TCNT
+  0023 6c80         [2]     STD   0,SP
+   62:    //nothing here
+   63:    Delay = TCNT - First - 9;
+  0025 0772         [4]     BSR   *+116 ;abs = 0099
+   64:    SCI0_OutString("Time to execute nothing "); 
+  0027 3b           [2]     PSHD  
+  0028 cc0000       [2]     LDD   #"Time to execute nothing "
+  002b 160000       [4]     JSR   SCI0_OutString
+   65:    SCI0_OutUDec(Delay);
+  002e 3a           [3]     PULD  
+  002f 160000       [4]     JSR   SCI0_OutUDec
+   66:    SCI0_OutString(" cycles"); OutCRLF();
+  0032 cc0000       [2]     LDD   #" cycles"
+  0035 076a         [4]     BSR   *+108 ;abs = 00a1
+   67:  
+   68:  // measurement version 1, no debugging instruments 
+   69:    Fifo_Init();    // Initialize fifo
+  0037 160000       [4]     JSR   Fifo_Init
+   70:    Fifo_Put(1);    // make sure there is something in the fifo
+  003a c601         [1]     LDAB  #1
+  003c 160000       [4]     JSR   Fifo_Put
+   71:    First = TCNT;
+  003f dc00         [3]     LDD   _TCNT
+  0041 6c80         [2]     STD   0,SP
+   72:    Fifo_Get(&ForeData);
+  0043 cc0000       [2]     LDD   #ForeData
+  0046 160000       [4]     JSR   Fifo_Get
+   73:    Delay = TCNT-First-9;
+  0049 074e         [4]     BSR   *+80 ;abs = 0099
+   74:    SCI0_OutString("Time to execute Fifo_Get with no debugging instruments is "); 
+  004b 3b           [2]     PSHD  
+  004c cc0000       [2]     LDD   #"Time to execute Fifo_Get with no debugging instruments is "
+  004f 160000       [4]     JSR   SCI0_OutString
+   75:    SCI0_OutUDec(Delay);
+  0052 3a           [3]     PULD  
+  0053 160000       [4]     JSR   SCI0_OutUDec
+   76:    SCI0_OutString(" cycles"); OutCRLF();
+  0056 cc0000       [2]     LDD   #" cycles"
+  0059 072c         [4]     BSR   *+46 ;abs = 0087
+   77:  
+   78:  // measurement version 2, print debugging instruments 
+   79:    Fifo_Init();    // Initialize fifo
+   80:    Fifo_Put(1);    // make sure there is something in the fifo
+   81:    First = TCNT;
+   82:    Fifo_Get2(&ForeData);
+  005b 160000       [4]     JSR   Fifo_Get2
+   83:    Delay = TCNT-First-9;
+  005e 0739         [4]     BSR   *+59 ;abs = 0099
+   84:    SCI0_OutString("Time to execute Fifo_Get2 with print debugging instruments is "); 
+  0060 3b           [2]     PSHD  
+  0061 cc0000       [2]     LDD   #"Time to execute Fifo_Get2 with print debugging instruments is "
+  0064 160000       [4]     JSR   SCI0_OutString
+   85:    SCI0_OutUDec(Delay);
+  0067 3a           [3]     PULD  
+  0068 160000       [4]     JSR   SCI0_OutUDec
+   86:    SCI0_OutString(" cycles"); OutCRLF();
+  006b cc0000       [2]     LDD   #" cycles"
+  006e 0717         [4]     BSR   *+25 ;abs = 0087
+   87:    
+   88:  // measurement version 3, dump debugging instruments 
+   89:    Fifo_Init();    // Initialize fifo
+   90:    Fifo_Put(1);    // make sure there is something in the fifo
+   91:    First = TCNT;
+   92:    Fifo_Get3(&ForeData);
+  0070 160000       [4]     JSR   Fifo_Get3
+   93:    Delay = TCNT-First-9;
+  0073 0724         [4]     BSR   *+38 ;abs = 0099
+   94:    SCI0_OutString("Time to execute Fifo_Get3 with dump debugging instruments is "); 
+  0075 3b           [2]     PSHD  
+  0076 cc0000       [2]     LDD   #"Time to execute Fifo_Get3 with dump debugging instruments is "
+  0079 160000       [4]     JSR   SCI0_OutString
+   95:    SCI0_OutUDec(Delay);
+  007c 3a           [3]     PULD  
+  007d 160000       [4]     JSR   SCI0_OutUDec
+   96:    SCI0_OutString(" cycles"); OutCRLF();  
+  0080 cc0000       [2]     LDD   #" cycles"
+  0083 071c         [4]     BSR   *+30 ;abs = 00a1
+   97:    for(;;){}
+  0085 20fe         [3]     BRA   *+0 ;abs = 0085
+  0087 0718         [4]     BSR   *+26 ;abs = 00a1
+  0089 160000       [4]     JSR   Fifo_Init
+  008c c601         [1]     LDAB  #1
+  008e 160000       [4]     JSR   Fifo_Put
+  0091 dc00         [3]     LDD   _TCNT
+  0093 6c82         [2]     STD   2,SP
+  0095 cc0000       [2]     LDD   #ForeData
+  0098 3d           [5]     RTS   
+  0099 dc00         [3]     LDD   _TCNT
+  009b a382         [3]     SUBD  2,SP
+  009d 830009       [2]     SUBD  #9
+  00a0 3d           [5]     RTS   
+  00a1 160000       [4]     JSR   SCI0_OutString
+  00a4 060000       [3]     JMP   OutCRLF
+   98:  }
+   99:  

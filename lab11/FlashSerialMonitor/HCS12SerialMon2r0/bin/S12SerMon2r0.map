@@ -1,0 +1,738 @@
+*** EVALUATION ***
+PROGRAM "C:\Users\aaron\Dropbox\EE445L\lab11\FlashSerialMonitor\HCS12SerialMon2r0\bin\S12SerMon2r0.abs"
+
+*********************************************************************************************
+TARGET SECTION
+---------------------------------------------------------------------------------------------
+Processor   : Freescale HC12
+Memory Model: SMALL
+File Format : ELF\DWARF 2.0
+Linker      : SmartLinker V-5.0.40 Build 10203, Jul 23 2010
+
+*********************************************************************************************
+FILE SECTION
+---------------------------------------------------------------------------------------------
+S12SerMon2r0.asm.o                      Model: SMALL,         Lang: Assembler
+
+*********************************************************************************************
+STARTUP SECTION
+---------------------------------------------------------------------------------------------
+Entry point: 0xF800 (Startup)
+
+*********************************************************************************************
+SECTION-ALLOCATION SECTION
+Section Name                    Size  Type     From       To       Segment
+---------------------------------------------------------------------------------------------
+S12SerMon2r0.asm__ORG00001       1609     R     0xF800     0xFE48   .absSeg0
+S12SerMon2r0.asm__ORG00002         15     R     0xFEE6     0xFEF4   .absSeg1
+S12SerMon2r0.asm__ORG00003          8     R     0xFEF8     0xFEFF   .absSeg2
+S12SerMon2r0.asm__ORG00004         16     R     0xFF00     0xFF0F   .absSeg3
+S12SerMon2r0.asm__ORG00005        128     R     0xFF80     0xFFFF   .absSeg4
+.stack                           256   R/W     0x3800     0x38FF   MY_RAM
+
+Summary of section sizes per section type:
+READ_ONLY (R):         6F0 (dec:     1776)
+READ_WRITE (R/W):      100 (dec:      256)
+
+*********************************************************************************************
+VECTOR-ALLOCATION SECTION
+    Address     InitValue   InitFunction
+---------------------------------------------------------------------------------------------
+
+*********************************************************************************************
+OBJECT-ALLOCATION SECTION
+     Name               Module                 Addr   hSize   dSize     Ref    Section   RLIB
+---------------------------------------------------------------------------------------------
+MODULE:                 -- S12SerMon2r0.asm.o --
+- PROCEDURES:
+     ColdStart                                 F800       0       0       0   .init       
+     Startup                                   F800      13      19       0   .init       
+     ColdStart1                                F813      2F      47       0   .init       
+     Monitor                                   F842      27      39       0   .init       
+     stackInit                                 F869      26      38       0   .init       
+     coldBrk                                   F88F       A      10       0   .init       
+     BrkLoop                                   F899       9       9       0   .init       
+     waitforCR                                 F8A2      10      16       0   .init       
+     CommandOK                                 F8B2       2       2       0   .init       
+     Prompt                                    F8B4       A      10       0   .init       
+     EndPrompt                                 F8BE      13      19       0   .init       
+     PromptRun                                 F8D1       3       3       0   .init       
+     Prompt1                                   F8D4       6       6       0   .init       
+     CmdLoop                                   F8DA       F      15       0   .init       
+     DoCmd                                     F8E9       4       4       0   .init       
+     commandTbl                                F8ED       1       1       0   .init       
+     VAR00001                                  F8EE       2       2       0   .init       
+     VAR00002                                  F8F0       1       1       0   .init       
+     VAR00003                                  F8F1       2       2       0   .init       
+     VAR00004                                  F8F3       1       1       0   .init       
+     VAR00005                                  F8F4       2       2       0   .init       
+     VAR00006                                  F8F6       1       1       0   .init       
+     VAR00007                                  F8F7       2       2       0   .init       
+     VAR00008                                  F8F9       1       1       0   .init       
+     VAR00009                                  F8FA       2       2       0   .init       
+     VAR00010                                  F8FC       1       1       0   .init       
+     VAR00011                                  F8FD       2       2       0   .init       
+     VAR00012                                  F8FF       1       1       0   .init       
+     VAR00013                                  F900       2       2       0   .init       
+     VAR00014                                  F902       1       1       0   .init       
+     VAR00015                                  F903       2       2       0   .init       
+     VAR00016                                  F905       1       1       0   .init       
+     VAR00017                                  F906       2       2       0   .init       
+     VAR00018                                  F908       1       1       0   .init       
+     VAR00019                                  F909       2       2       0   .init       
+     VAR00020                                  F90B       1       1       0   .init       
+     VAR00021                                  F90C       2       2       0   .init       
+     VAR00022                                  F90E       1       1       0   .init       
+     VAR00023                                  F90F       2       2       0   .init       
+     VAR00024                                  F911       1       1       0   .init       
+     VAR00025                                  F912       2       2       0   .init       
+     VAR00026                                  F914       1       1       0   .init       
+     VAR00027                                  F915       2       2       0   .init       
+     VAR00028                                  F917       1       1       0   .init       
+     VAR00029                                  F918       2       2       0   .init       
+     VAR00030                                  F91A       1       1       0   .init       
+     VAR00031                                  F91B       2       2       0   .init       
+     VAR00032                                  F91D       1       1       0   .init       
+     VAR00033                                  F91E       2       2       0   .init       
+     VAR00034                                  F920       1       1       0   .init       
+     VAR00035                                  F921       2       2       0   .init       
+     VAR00036                                  F923       1       1       0   .init       
+     VAR00037                                  F924       2       2       0   .init       
+     VAR00038                                  F926       1       1       0   .init       
+     VAR00039                                  F927       2       2       0   .init       
+     VAR00040                                  F929       1       1       0   .init       
+     VAR00041                                  F92A       2       2       0   .init       
+     VAR00042                                  F92C       1       1       0   .init       
+     VAR00043                                  F92D       2       2       0   .init       
+     VAR00044                                  F92F       1       1       0   .init       
+     VAR00045                                  F930       2       2       0   .init       
+     DeviceCmd                                 F932      14      20       0   .init       
+     HaltCmd                                   F946       D      13       0   .init       
+     SciIsr                                    F953       A      10       0   .init       
+     SciIsr1                                   F95D      1E      30       0   .init       
+     SciIsrExit                                F97B       7       7       0   .init       
+     ResetCmd                                  F982       B      11       0   .init       
+     CopLock                                   F98D       4       4       0   .init       
+     Breakpoint                                F991       B      11       0   .init       
+     ReenterMon                                F99C      1A      26       0   .init       
+     SWIdone                                   F9B6       3       3       0   .init       
+     badSP                                     F9B9       8       8       0   .init       
+     EraseEECmd                                F9C1      19      25       0   .init       
+     ChkDoneE                                  F9DA      14      20       0   .init       
+     ErsPageErr1                               F9EE       5       5       0   .init       
+     EraseAllCmd                               F9F3      19      25       0   .init       
+     ChkDoneE1                                 FA0C       8       8       0   .init       
+     ErsBlk0                                   FA14       E      14       0   .init       
+     ErsBlk0Lp                                 FA22      2D      45       0   .init       
+     BlockLoop                                 FA4F       D      13       0   .init       
+     nBlockLoop                                FA5C      10      16       0   .init       
+     EraseDone                                 FA6C       8       8       0   .init       
+     BulkErase                                 FA74      13      19       0   .init       
+     ChkDoneF                                  FA87       A      10       0   .init       
+     ErsSectors                                FA91       2       2       0   .init       
+     ErsSectLp                                 FA93      15      21       0   .init       
+     ErsSectErr                                FAA8       3       3       0   .init       
+     ErsPage                                   FAAB      10      16       0   .init       
+     ErsPage1                                  FABB      1D      29       0   .init       
+     ErsFullPage                               FAD8      11      17       0   .init       
+     EraPageStat                               FAE9       C      12       0   .init       
+     ErsPageErr                                FAF5       5       5       0   .init       
+     RdByteCmd                                 FAFA       B      11       0   .init       
+     RdWordCmd                                 FB05       3       3       0   .init       
+     sendExit                                  FB08       D      13       0   .init       
+     ReadCmd                                   FB15       9       9       0   .init       
+     ReadNext                                  FB1E       B      11       0   .init       
+     xPrompt                                   FB29       3       3       0   .init       
+     WriteCmd                                  FB2C       9       9       0   .init       
+     WriteNext                                 FB35       B      11       0   .init       
+     WriteWord                                 FB40      15      21       0   .init       
+     WriteByte                                 FB55       9       9       0   .init       
+     Write1                                    FB5E       8       8       0   .init       
+     SkipBytes                                 FB66       3       3       0   .init       
+     WriteError                                FB69       7       7       0   .init       
+     RdNextCmd                                 FB70      10      16       0   .init       
+     notRun                                    FB80       5       5       0   .init       
+     WtByteCmd                                 FB85       D      13       0   .init       
+     isRAMbyte                                 FB92       8       8       0   .init       
+     WriteByteNVM                              FB9A       5       5       0   .init       
+     WtWordCmd                                 FB9F       8       8       0   .init       
+     WtNextCmd                                 FBA7       C      12       0   .init       
+     notRunW                                   FBB3       7       7       0   .init       
+     preInc                                    FBBA       B      11       0   .init       
+     RdRegsCmd                                 FBC5      29      41       0   .init       
+     WriteCcrCmd                               FBEE       8       8       0   .init       
+     WriteDCmd                                 FBF6       E      14       0   .init       
+     WriteIXCmd                                FC04       8       8       0   .init       
+     WriteIYCmd                                FC0C       8       8       0   .init       
+     WritePcCmd                                FC14       8       8       0   .init       
+     WriteSpCmd                                FC1C      13      19       0   .init       
+     spBad                                     FC2F       5       5       0   .init       
+     pagebits                                  FC34       1       1       0   .init       
+     VAR00046                                  FC35       1       1       0   .init       
+     VAR00047                                  FC36       1       1       0   .init       
+     VAR00048                                  FC37       2       2       0   .init       
+     VAR00049                                  FC39       2       2       0   .init       
+     VAR00050                                  FC3B       2       2       0   .init       
+     VAR00051                                  FC3D       2       2       0   .init       
+     Trace1Cmd                                 FC3F      28      40       0   .init       
+     GoCmd                                     FC67       7       7       0   .init       
+     put16                                     FC6E       9       9       0   .init       
+     getX                                      FC77       B      11       0   .init       
+     GetChar                                   FC82       6       6       0   .init       
+     RxReady                                   FC88       3       3       0   .init       
+     PutChar                                   FC8B       7       7       0   .init       
+     CheckModule                               FC92      14      20       0   .init       
+     isVector                                  FCA6       6       6       0   .init       
+     check4EE                                  FCAC       E      14       0   .init       
+     isToProgram                               FCBA       4       4       0   .init       
+     isRAM                                     FCBE       3       3       0   .init       
+     WriteD2IX                                 FCC1      18      24       0   .init       
+     oddAdrErr                                 FCD9       5       5       0   .init       
+     isRAMword                                 FCDE       5       5       0   .init       
+     WriteA2IX                                 FCE3      1B      27       0   .init       
+     isOddAdr                                  FCFE       7       7       0   .init       
+     isWRAMbyte                                FD05       5       5       0   .init       
+     DoProgram                                 FD0A       B      11       0   .init       
+     itsEE                                     FD15       2       2       0   .init       
+     ExitWrite                                 FD17       3       3       0   .init       
+     ProgEE                                    FD1A       F      15       0   .init       
+     ChkDoneEE                                 FD29       A      10       0   .init       
+     abClr                                     FD33       B      11       0   .init       
+     ProgFlash                                 FD3E      12      18       0   .init       
+     its3E                                     FD50       5       5       0   .init       
+     ProgFlash1                                FD55       D      13       0   .init       
+     nBlockLoopb                               FD62      1C      28       0   .init       
+     ProgFlashSP                               FD7E       7       7       0   .init       
+     DoOnStack                                 FD85       4       4       0   .init       
+     SpmoveLoop                                FD89      19      25       0   .init       
+     SpSub                                     FDA2      12      18       0   .init       
+     SpSubEnd                                  FDB4       2       2       0   .init       
+     uvector63                                 FDB4       0       0       0   .init       
+     uvector62                                 FDB6       2       2       0   .init       
+     uvector61                                 FDB8       2       2       0   .init       
+     uvector60                                 FDBA       2       2       0   .init       
+     uvector59                                 FDBC       2       2       0   .init       
+     uvector58                                 FDBE       2       2       0   .init       
+     uvector57                                 FDC0       2       2       0   .init       
+     uvector56                                 FDC2       2       2       0   .init       
+     uvector55                                 FDC4       2       2       0   .init       
+     uvector54                                 FDC6       2       2       0   .init       
+     uvector53                                 FDC8       2       2       0   .init       
+     uvector52                                 FDCA       2       2       0   .init       
+     uvector51                                 FDCC       2       2       0   .init       
+     uvector50                                 FDCE       2       2       0   .init       
+     uvector49                                 FDD0       2       2       0   .init       
+     uvector48                                 FDD2       2       2       0   .init       
+     uvector47                                 FDD4       2       2       0   .init       
+     uvector46                                 FDD6       2       2       0   .init       
+     uvector45                                 FDD8       2       2       0   .init       
+     uvector44                                 FDDA       2       2       0   .init       
+     uvector43                                 FDDC       2       2       0   .init       
+     uvector42                                 FDDE       2       2       0   .init       
+     uvector41                                 FDE0       2       2       0   .init       
+     uvector40                                 FDE2       2       2       0   .init       
+     uvector39                                 FDE4       2       2       0   .init       
+     uvector38                                 FDE6       2       2       0   .init       
+     uvector37                                 FDE8       2       2       0   .init       
+     uvector36                                 FDEA       2       2       0   .init       
+     uvector35                                 FDEC       2       2       0   .init       
+     uvector34                                 FDEE       2       2       0   .init       
+     uvector33                                 FDF0       2       2       0   .init       
+     uvector32                                 FDF2       2       2       0   .init       
+     uvector31                                 FDF4       2       2       0   .init       
+     uvector30                                 FDF6       2       2       0   .init       
+     uvector29                                 FDF8       2       2       0   .init       
+     uvector28                                 FDFA       2       2       0   .init       
+     uvector27                                 FDFC       2       2       0   .init       
+     uvector26                                 FDFE       2       2       0   .init       
+     uvector25                                 FE00       2       2       0   .init       
+     uvector24                                 FE02       2       2       0   .init       
+     uvector23                                 FE04       2       2       0   .init       
+     uvector22                                 FE06       2       2       0   .init       
+     uvector21                                 FE08       4       4       0   .init       
+     uvector19                                 FE0C       2       2       0   .init       
+     uvector18                                 FE0E       2       2       0   .init       
+     uvector17                                 FE10       2       2       0   .init       
+     uvector16                                 FE12       2       2       0   .init       
+     uvector15                                 FE14       2       2       0   .init       
+     uvector14                                 FE16       2       2       0   .init       
+     uvector13                                 FE18       2       2       0   .init       
+     uvector12                                 FE1A       2       2       0   .init       
+     uvector11                                 FE1C       2       2       0   .init       
+     uvector10                                 FE1E       2       2       0   .init       
+     uvector09                                 FE20       2       2       0   .init       
+     uvector08                                 FE22       2       2       0   .init       
+     uvector07                                 FE24       2       2       0   .init       
+     uvector06                                 FE26       2       2       0   .init       
+     uvector05                                 FE28       4       4       0   .init       
+     uvector03                                 FE2C       4       4       0   .init       
+     uvector01                                 FE30       4       4       0   .init       
+     ISRHandler                                FE34       C      12       0   .init       
+     BadVector                                 FE40       9       9       0   .init       
+- VARIABLES:
+     VAR00052                                  FEF8       2       2       0   .text       
+     VAR00053                                  FEFA       2       2       0   .text       
+     VAR00054                                  FEFC       2       2       0   .text       
+     VAR00055                                  FEFE       2       2       0   .text       
+     VAR00056                                  FF00       2       2       0   .text       
+     VAR00057                                  FF02       2       2       0   .text       
+     VAR00058                                  FF04       2       2       0   .text       
+     VAR00059                                  FF06       2       2       0   .text       
+     VAR00060                                  FF08       2       2       0   .text       
+     VAR00061                                  FF0A       1       1       0   .text       
+     VAR00062                                  FF0B       1       1       0   .text       
+     VAR00063                                  FF0C       1       1       0   .text       
+     VAR00064                                  FF0D       1       1       0   .text       
+     VAR00065                                  FF0E       1       1       0   .text       
+     VAR00066                                  FF0F       1       1       0   .text       
+     vector63                                  FF80       2       2       0   .text       
+     vector62                                  FF82       2       2       0   .text       
+     vector61                                  FF84       2       2       0   .text       
+     vector60                                  FF86       2       2       0   .text       
+     vector59                                  FF88       2       2       0   .text       
+     vector58                                  FF8A       2       2       0   .text       
+     vector57                                  FF8C       2       2       0   .text       
+     vector56                                  FF8E       2       2       0   .text       
+     vector55                                  FF90       2       2       0   .text       
+     vector54                                  FF92       2       2       0   .text       
+     vector53                                  FF94       2       2       0   .text       
+     vector52                                  FF96       2       2       0   .text       
+     vector51                                  FF98       2       2       0   .text       
+     vector50                                  FF9A       2       2       0   .text       
+     vector49                                  FF9C       2       2       0   .text       
+     vector48                                  FF9E       2       2       0   .text       
+     vector47                                  FFA0       2       2       0   .text       
+     vector46                                  FFA2       2       2       0   .text       
+     vector45                                  FFA4       2       2       0   .text       
+     vector44                                  FFA6       2       2       0   .text       
+     vector43                                  FFA8       2       2       0   .text       
+     vector42                                  FFAA       2       2       0   .text       
+     vector41                                  FFAC       2       2       0   .text       
+     vector40                                  FFAE       2       2       0   .text       
+     vector39                                  FFB0       2       2       0   .text       
+     vector38                                  FFB2       2       2       0   .text       
+     vector37                                  FFB4       2       2       0   .text       
+     vector36                                  FFB6       2       2       0   .text       
+     vector35                                  FFB8       2       2       0   .text       
+     vector34                                  FFBA       2       2       0   .text       
+     vector33                                  FFBC       2       2       0   .text       
+     vector32                                  FFBE       2       2       0   .text       
+     vector31                                  FFC0       2       2       0   .text       
+     vector30                                  FFC2       2       2       0   .text       
+     vector29                                  FFC4       2       2       0   .text       
+     vector28                                  FFC6       2       2       0   .text       
+     vector27                                  FFC8       2       2       0   .text       
+     vector26                                  FFCA       2       2       0   .text       
+     vector25                                  FFCC       2       2       0   .text       
+     vector24                                  FFCE       2       2       0   .text       
+     vector23                                  FFD0       2       2       0   .text       
+     vector22                                  FFD2       2       2       0   .text       
+     vector21                                  FFD4       2       2       0   .text       
+     vector20                                  FFD6       2       2       0   .text       
+     vector19                                  FFD8       2       2       0   .text       
+     vector18                                  FFDA       2       2       0   .text       
+     vector17                                  FFDC       2       2       0   .text       
+     vector16                                  FFDE       2       2       0   .text       
+     vector15                                  FFE0       2       2       0   .text       
+     vector14                                  FFE2       2       2       0   .text       
+     vector13                                  FFE4       2       2       0   .text       
+     vector12                                  FFE6       2       2       0   .text       
+     vector11                                  FFE8       2       2       0   .text       
+     vector10                                  FFEA       2       2       0   .text       
+     vector09                                  FFEC       2       2       0   .text       
+     vector08                                  FFEE       2       2       0   .text       
+     vector07                                  FFF0       2       2       0   .text       
+     vector06                                  FFF2       2       2       0   .text       
+     vector05                                  FFF4       2       2       0   .text       
+     vector04                                  FFF6       2       2       0   .text       
+     vector03                                  FFF8       2       2       0   .text       
+     vector02                                  FFFA       2       2       0   .text       
+     vector01                                  FFFC       2       2       0   .text       
+     vector00                                  FFFE       2       2       1   .text       
+
+*********************************************************************************************
+MODULE STATISTIC
+  Name                                      Data   Code  Const
+---------------------------------------------------------------------------------------------
+  S12SerMon2r0.asm.o                           0   1624    152
+  other                                      256      0      0
+
+*********************************************************************************************
+SECTION USE IN OBJECT-ALLOCATION SECTION
+---------------------------------------------------------------------------------------------
+SECTION: ".text"
+  VAR00052 VAR00053 VAR00054 VAR00055 VAR00056 VAR00057 VAR00058 VAR00059 
+  VAR00060 VAR00061 VAR00062 VAR00063 VAR00064 VAR00065 VAR00066 vector63 
+  vector62 vector61 vector60 vector59 vector58 vector57 vector56 vector55 
+  vector54 vector53 vector52 vector51 vector50 vector49 vector48 vector47 
+  vector46 vector45 vector44 vector43 vector42 vector41 vector40 vector39 
+  vector38 vector37 vector36 vector35 vector34 vector33 vector32 vector31 
+  vector30 vector29 vector28 vector27 vector26 vector25 vector24 vector23 
+  vector22 vector21 vector20 vector19 vector18 vector17 vector16 vector15 
+  vector14 vector13 vector12 vector11 vector10 vector09 vector08 vector07 
+  vector06 vector05 vector04 vector03 vector02 vector01 vector00 
+SECTION: ".init"
+  Startup ColdStart ColdStart1 Monitor stackInit coldBrk BrkLoop waitforCR 
+  CommandOK Prompt EndPrompt PromptRun Prompt1 CmdLoop DoCmd commandTbl 
+  VAR00001 VAR00002 VAR00003 VAR00004 VAR00005 VAR00006 VAR00007 VAR00008 
+  VAR00009 VAR00010 VAR00011 VAR00012 VAR00013 VAR00014 VAR00015 VAR00016 
+  VAR00017 VAR00018 VAR00019 VAR00020 VAR00021 VAR00022 VAR00023 VAR00024 
+  VAR00025 VAR00026 VAR00027 VAR00028 VAR00029 VAR00030 VAR00031 VAR00032 
+  VAR00033 VAR00034 VAR00035 VAR00036 VAR00037 VAR00038 VAR00039 VAR00040 
+  VAR00041 VAR00042 VAR00043 VAR00044 VAR00045 DeviceCmd HaltCmd SciIsr SciIsr1 
+  SciIsrExit ResetCmd CopLock Breakpoint ReenterMon SWIdone badSP EraseEECmd 
+  ChkDoneE ErsPageErr1 EraseAllCmd ChkDoneE1 ErsBlk0 ErsBlk0Lp BlockLoop 
+  nBlockLoop EraseDone BulkErase ChkDoneF ErsSectors ErsSectLp ErsSectErr 
+  ErsPage ErsPage1 ErsFullPage EraPageStat ErsPageErr RdByteCmd RdWordCmd 
+  sendExit ReadCmd ReadNext xPrompt WriteCmd WriteNext WriteWord WriteByte 
+  Write1 SkipBytes WriteError RdNextCmd notRun WtByteCmd isRAMbyte WriteByteNVM 
+  WtWordCmd WtNextCmd notRunW preInc RdRegsCmd WriteCcrCmd WriteDCmd WriteIXCmd 
+  WriteIYCmd WritePcCmd WriteSpCmd spBad pagebits VAR00046 VAR00047 VAR00048 
+  VAR00049 VAR00050 VAR00051 Trace1Cmd GoCmd put16 getX GetChar RxReady PutChar 
+  CheckModule isVector check4EE isToProgram isRAM WriteD2IX oddAdrErr isRAMword 
+  WriteA2IX isOddAdr isWRAMbyte DoProgram itsEE ExitWrite ProgEE ChkDoneEE 
+  abClr ProgFlash its3E ProgFlash1 nBlockLoopb ProgFlashSP DoOnStack SpmoveLoop 
+  SpSub uvector63 SpSubEnd uvector62 uvector61 uvector60 uvector59 uvector58 
+  uvector57 uvector56 uvector55 uvector54 uvector53 uvector52 uvector51 
+  uvector50 uvector49 uvector48 uvector47 uvector46 uvector45 uvector44 
+  uvector43 uvector42 uvector41 uvector40 uvector39 uvector38 uvector37 
+  uvector36 uvector35 uvector34 uvector33 uvector32 uvector31 uvector30 
+  uvector29 uvector28 uvector27 uvector26 uvector25 uvector24 uvector23 
+  uvector22 uvector21 uvector19 uvector18 uvector17 uvector16 uvector15 
+  uvector14 uvector13 uvector12 uvector11 uvector10 uvector09 uvector08 
+  uvector07 uvector06 uvector05 uvector03 uvector01 ISRHandler BadVector 
+
+*********************************************************************************************
+OBJECT LIST SORTED BY ADDRESS
+     Name                                      Addr   hSize   dSize     Ref    Section   RLIB
+---------------------------------------------------------------------------------------------
+     Startup                                   F800      13      19       0   .init       
+     ColdStart                                 F800       0       0       0   .init       
+     ColdStart1                                F813      2F      47       0   .init       
+     Monitor                                   F842      27      39       0   .init       
+     stackInit                                 F869      26      38       0   .init       
+     coldBrk                                   F88F       A      10       0   .init       
+     BrkLoop                                   F899       9       9       0   .init       
+     waitforCR                                 F8A2      10      16       0   .init       
+     CommandOK                                 F8B2       2       2       0   .init       
+     Prompt                                    F8B4       A      10       0   .init       
+     EndPrompt                                 F8BE      13      19       0   .init       
+     PromptRun                                 F8D1       3       3       0   .init       
+     Prompt1                                   F8D4       6       6       0   .init       
+     CmdLoop                                   F8DA       F      15       0   .init       
+     DoCmd                                     F8E9       4       4       0   .init       
+     commandTbl                                F8ED       1       1       0   .init       
+     VAR00001                                  F8EE       2       2       0   .init       
+     VAR00002                                  F8F0       1       1       0   .init       
+     VAR00003                                  F8F1       2       2       0   .init       
+     VAR00004                                  F8F3       1       1       0   .init       
+     VAR00005                                  F8F4       2       2       0   .init       
+     VAR00006                                  F8F6       1       1       0   .init       
+     VAR00007                                  F8F7       2       2       0   .init       
+     VAR00008                                  F8F9       1       1       0   .init       
+     VAR00009                                  F8FA       2       2       0   .init       
+     VAR00010                                  F8FC       1       1       0   .init       
+     VAR00011                                  F8FD       2       2       0   .init       
+     VAR00012                                  F8FF       1       1       0   .init       
+     VAR00013                                  F900       2       2       0   .init       
+     VAR00014                                  F902       1       1       0   .init       
+     VAR00015                                  F903       2       2       0   .init       
+     VAR00016                                  F905       1       1       0   .init       
+     VAR00017                                  F906       2       2       0   .init       
+     VAR00018                                  F908       1       1       0   .init       
+     VAR00019                                  F909       2       2       0   .init       
+     VAR00020                                  F90B       1       1       0   .init       
+     VAR00021                                  F90C       2       2       0   .init       
+     VAR00022                                  F90E       1       1       0   .init       
+     VAR00023                                  F90F       2       2       0   .init       
+     VAR00024                                  F911       1       1       0   .init       
+     VAR00025                                  F912       2       2       0   .init       
+     VAR00026                                  F914       1       1       0   .init       
+     VAR00027                                  F915       2       2       0   .init       
+     VAR00028                                  F917       1       1       0   .init       
+     VAR00029                                  F918       2       2       0   .init       
+     VAR00030                                  F91A       1       1       0   .init       
+     VAR00031                                  F91B       2       2       0   .init       
+     VAR00032                                  F91D       1       1       0   .init       
+     VAR00033                                  F91E       2       2       0   .init       
+     VAR00034                                  F920       1       1       0   .init       
+     VAR00035                                  F921       2       2       0   .init       
+     VAR00036                                  F923       1       1       0   .init       
+     VAR00037                                  F924       2       2       0   .init       
+     VAR00038                                  F926       1       1       0   .init       
+     VAR00039                                  F927       2       2       0   .init       
+     VAR00040                                  F929       1       1       0   .init       
+     VAR00041                                  F92A       2       2       0   .init       
+     VAR00042                                  F92C       1       1       0   .init       
+     VAR00043                                  F92D       2       2       0   .init       
+     VAR00044                                  F92F       1       1       0   .init       
+     VAR00045                                  F930       2       2       0   .init       
+     DeviceCmd                                 F932      14      20       0   .init       
+     HaltCmd                                   F946       D      13       0   .init       
+     SciIsr                                    F953       A      10       0   .init       
+     SciIsr1                                   F95D      1E      30       0   .init       
+     SciIsrExit                                F97B       7       7       0   .init       
+     ResetCmd                                  F982       B      11       0   .init       
+     CopLock                                   F98D       4       4       0   .init       
+     Breakpoint                                F991       B      11       0   .init       
+     ReenterMon                                F99C      1A      26       0   .init       
+     SWIdone                                   F9B6       3       3       0   .init       
+     badSP                                     F9B9       8       8       0   .init       
+     EraseEECmd                                F9C1      19      25       0   .init       
+     ChkDoneE                                  F9DA      14      20       0   .init       
+     ErsPageErr1                               F9EE       5       5       0   .init       
+     EraseAllCmd                               F9F3      19      25       0   .init       
+     ChkDoneE1                                 FA0C       8       8       0   .init       
+     ErsBlk0                                   FA14       E      14       0   .init       
+     ErsBlk0Lp                                 FA22      2D      45       0   .init       
+     BlockLoop                                 FA4F       D      13       0   .init       
+     nBlockLoop                                FA5C      10      16       0   .init       
+     EraseDone                                 FA6C       8       8       0   .init       
+     BulkErase                                 FA74      13      19       0   .init       
+     ChkDoneF                                  FA87       A      10       0   .init       
+     ErsSectors                                FA91       2       2       0   .init       
+     ErsSectLp                                 FA93      15      21       0   .init       
+     ErsSectErr                                FAA8       3       3       0   .init       
+     ErsPage                                   FAAB      10      16       0   .init       
+     ErsPage1                                  FABB      1D      29       0   .init       
+     ErsFullPage                               FAD8      11      17       0   .init       
+     EraPageStat                               FAE9       C      12       0   .init       
+     ErsPageErr                                FAF5       5       5       0   .init       
+     RdByteCmd                                 FAFA       B      11       0   .init       
+     RdWordCmd                                 FB05       3       3       0   .init       
+     sendExit                                  FB08       D      13       0   .init       
+     ReadCmd                                   FB15       9       9       0   .init       
+     ReadNext                                  FB1E       B      11       0   .init       
+     xPrompt                                   FB29       3       3       0   .init       
+     WriteCmd                                  FB2C       9       9       0   .init       
+     WriteNext                                 FB35       B      11       0   .init       
+     WriteWord                                 FB40      15      21       0   .init       
+     WriteByte                                 FB55       9       9       0   .init       
+     Write1                                    FB5E       8       8       0   .init       
+     SkipBytes                                 FB66       3       3       0   .init       
+     WriteError                                FB69       7       7       0   .init       
+     RdNextCmd                                 FB70      10      16       0   .init       
+     notRun                                    FB80       5       5       0   .init       
+     WtByteCmd                                 FB85       D      13       0   .init       
+     isRAMbyte                                 FB92       8       8       0   .init       
+     WriteByteNVM                              FB9A       5       5       0   .init       
+     WtWordCmd                                 FB9F       8       8       0   .init       
+     WtNextCmd                                 FBA7       C      12       0   .init       
+     notRunW                                   FBB3       7       7       0   .init       
+     preInc                                    FBBA       B      11       0   .init       
+     RdRegsCmd                                 FBC5      29      41       0   .init       
+     WriteCcrCmd                               FBEE       8       8       0   .init       
+     WriteDCmd                                 FBF6       E      14       0   .init       
+     WriteIXCmd                                FC04       8       8       0   .init       
+     WriteIYCmd                                FC0C       8       8       0   .init       
+     WritePcCmd                                FC14       8       8       0   .init       
+     WriteSpCmd                                FC1C      13      19       0   .init       
+     spBad                                     FC2F       5       5       0   .init       
+     pagebits                                  FC34       1       1       0   .init       
+     VAR00046                                  FC35       1       1       0   .init       
+     VAR00047                                  FC36       1       1       0   .init       
+     VAR00048                                  FC37       2       2       0   .init       
+     VAR00049                                  FC39       2       2       0   .init       
+     VAR00050                                  FC3B       2       2       0   .init       
+     VAR00051                                  FC3D       2       2       0   .init       
+     Trace1Cmd                                 FC3F      28      40       0   .init       
+     GoCmd                                     FC67       7       7       0   .init       
+     put16                                     FC6E       9       9       0   .init       
+     getX                                      FC77       B      11       0   .init       
+     GetChar                                   FC82       6       6       0   .init       
+     RxReady                                   FC88       3       3       0   .init       
+     PutChar                                   FC8B       7       7       0   .init       
+     CheckModule                               FC92      14      20       0   .init       
+     isVector                                  FCA6       6       6       0   .init       
+     check4EE                                  FCAC       E      14       0   .init       
+     isToProgram                               FCBA       4       4       0   .init       
+     isRAM                                     FCBE       3       3       0   .init       
+     WriteD2IX                                 FCC1      18      24       0   .init       
+     oddAdrErr                                 FCD9       5       5       0   .init       
+     isRAMword                                 FCDE       5       5       0   .init       
+     WriteA2IX                                 FCE3      1B      27       0   .init       
+     isOddAdr                                  FCFE       7       7       0   .init       
+     isWRAMbyte                                FD05       5       5       0   .init       
+     DoProgram                                 FD0A       B      11       0   .init       
+     itsEE                                     FD15       2       2       0   .init       
+     ExitWrite                                 FD17       3       3       0   .init       
+     ProgEE                                    FD1A       F      15       0   .init       
+     ChkDoneEE                                 FD29       A      10       0   .init       
+     abClr                                     FD33       B      11       0   .init       
+     ProgFlash                                 FD3E      12      18       0   .init       
+     its3E                                     FD50       5       5       0   .init       
+     ProgFlash1                                FD55       D      13       0   .init       
+     nBlockLoopb                               FD62      1C      28       0   .init       
+     ProgFlashSP                               FD7E       7       7       0   .init       
+     DoOnStack                                 FD85       4       4       0   .init       
+     SpmoveLoop                                FD89      19      25       0   .init       
+     SpSub                                     FDA2      12      18       0   .init       
+     uvector63                                 FDB4       0       0       0   .init       
+     SpSubEnd                                  FDB4       2       2       0   .init       
+     uvector62                                 FDB6       2       2       0   .init       
+     uvector61                                 FDB8       2       2       0   .init       
+     uvector60                                 FDBA       2       2       0   .init       
+     uvector59                                 FDBC       2       2       0   .init       
+     uvector58                                 FDBE       2       2       0   .init       
+     uvector57                                 FDC0       2       2       0   .init       
+     uvector56                                 FDC2       2       2       0   .init       
+     uvector55                                 FDC4       2       2       0   .init       
+     uvector54                                 FDC6       2       2       0   .init       
+     uvector53                                 FDC8       2       2       0   .init       
+     uvector52                                 FDCA       2       2       0   .init       
+     uvector51                                 FDCC       2       2       0   .init       
+     uvector50                                 FDCE       2       2       0   .init       
+     uvector49                                 FDD0       2       2       0   .init       
+     uvector48                                 FDD2       2       2       0   .init       
+     uvector47                                 FDD4       2       2       0   .init       
+     uvector46                                 FDD6       2       2       0   .init       
+     uvector45                                 FDD8       2       2       0   .init       
+     uvector44                                 FDDA       2       2       0   .init       
+     uvector43                                 FDDC       2       2       0   .init       
+     uvector42                                 FDDE       2       2       0   .init       
+     uvector41                                 FDE0       2       2       0   .init       
+     uvector40                                 FDE2       2       2       0   .init       
+     uvector39                                 FDE4       2       2       0   .init       
+     uvector38                                 FDE6       2       2       0   .init       
+     uvector37                                 FDE8       2       2       0   .init       
+     uvector36                                 FDEA       2       2       0   .init       
+     uvector35                                 FDEC       2       2       0   .init       
+     uvector34                                 FDEE       2       2       0   .init       
+     uvector33                                 FDF0       2       2       0   .init       
+     uvector32                                 FDF2       2       2       0   .init       
+     uvector31                                 FDF4       2       2       0   .init       
+     uvector30                                 FDF6       2       2       0   .init       
+     uvector29                                 FDF8       2       2       0   .init       
+     uvector28                                 FDFA       2       2       0   .init       
+     uvector27                                 FDFC       2       2       0   .init       
+     uvector26                                 FDFE       2       2       0   .init       
+     uvector25                                 FE00       2       2       0   .init       
+     uvector24                                 FE02       2       2       0   .init       
+     uvector23                                 FE04       2       2       0   .init       
+     uvector22                                 FE06       2       2       0   .init       
+     uvector21                                 FE08       4       4       0   .init       
+     uvector19                                 FE0C       2       2       0   .init       
+     uvector18                                 FE0E       2       2       0   .init       
+     uvector17                                 FE10       2       2       0   .init       
+     uvector16                                 FE12       2       2       0   .init       
+     uvector15                                 FE14       2       2       0   .init       
+     uvector14                                 FE16       2       2       0   .init       
+     uvector13                                 FE18       2       2       0   .init       
+     uvector12                                 FE1A       2       2       0   .init       
+     uvector11                                 FE1C       2       2       0   .init       
+     uvector10                                 FE1E       2       2       0   .init       
+     uvector09                                 FE20       2       2       0   .init       
+     uvector08                                 FE22       2       2       0   .init       
+     uvector07                                 FE24       2       2       0   .init       
+     uvector06                                 FE26       2       2       0   .init       
+     uvector05                                 FE28       4       4       0   .init       
+     uvector03                                 FE2C       4       4       0   .init       
+     uvector01                                 FE30       4       4       0   .init       
+     ISRHandler                                FE34       C      12       0   .init       
+     BadVector                                 FE40       9       9       0   .init       
+     VAR00052                                  FEF8       2       2       0   .text       
+     VAR00053                                  FEFA       2       2       0   .text       
+     VAR00054                                  FEFC       2       2       0   .text       
+     VAR00055                                  FEFE       2       2       0   .text       
+     VAR00056                                  FF00       2       2       0   .text       
+     VAR00057                                  FF02       2       2       0   .text       
+     VAR00058                                  FF04       2       2       0   .text       
+     VAR00059                                  FF06       2       2       0   .text       
+     VAR00060                                  FF08       2       2       0   .text       
+     VAR00061                                  FF0A       1       1       0   .text       
+     VAR00062                                  FF0B       1       1       0   .text       
+     VAR00063                                  FF0C       1       1       0   .text       
+     VAR00064                                  FF0D       1       1       0   .text       
+     VAR00065                                  FF0E       1       1       0   .text       
+     VAR00066                                  FF0F       1       1       0   .text       
+     vector63                                  FF80       2       2       0   .text       
+     vector62                                  FF82       2       2       0   .text       
+     vector61                                  FF84       2       2       0   .text       
+     vector60                                  FF86       2       2       0   .text       
+     vector59                                  FF88       2       2       0   .text       
+     vector58                                  FF8A       2       2       0   .text       
+     vector57                                  FF8C       2       2       0   .text       
+     vector56                                  FF8E       2       2       0   .text       
+     vector55                                  FF90       2       2       0   .text       
+     vector54                                  FF92       2       2       0   .text       
+     vector53                                  FF94       2       2       0   .text       
+     vector52                                  FF96       2       2       0   .text       
+     vector51                                  FF98       2       2       0   .text       
+     vector50                                  FF9A       2       2       0   .text       
+     vector49                                  FF9C       2       2       0   .text       
+     vector48                                  FF9E       2       2       0   .text       
+     vector47                                  FFA0       2       2       0   .text       
+     vector46                                  FFA2       2       2       0   .text       
+     vector45                                  FFA4       2       2       0   .text       
+     vector44                                  FFA6       2       2       0   .text       
+     vector43                                  FFA8       2       2       0   .text       
+     vector42                                  FFAA       2       2       0   .text       
+     vector41                                  FFAC       2       2       0   .text       
+     vector40                                  FFAE       2       2       0   .text       
+     vector39                                  FFB0       2       2       0   .text       
+     vector38                                  FFB2       2       2       0   .text       
+     vector37                                  FFB4       2       2       0   .text       
+     vector36                                  FFB6       2       2       0   .text       
+     vector35                                  FFB8       2       2       0   .text       
+     vector34                                  FFBA       2       2       0   .text       
+     vector33                                  FFBC       2       2       0   .text       
+     vector32                                  FFBE       2       2       0   .text       
+     vector31                                  FFC0       2       2       0   .text       
+     vector30                                  FFC2       2       2       0   .text       
+     vector29                                  FFC4       2       2       0   .text       
+     vector28                                  FFC6       2       2       0   .text       
+     vector27                                  FFC8       2       2       0   .text       
+     vector26                                  FFCA       2       2       0   .text       
+     vector25                                  FFCC       2       2       0   .text       
+     vector24                                  FFCE       2       2       0   .text       
+     vector23                                  FFD0       2       2       0   .text       
+     vector22                                  FFD2       2       2       0   .text       
+     vector21                                  FFD4       2       2       0   .text       
+     vector20                                  FFD6       2       2       0   .text       
+     vector19                                  FFD8       2       2       0   .text       
+     vector18                                  FFDA       2       2       0   .text       
+     vector17                                  FFDC       2       2       0   .text       
+     vector16                                  FFDE       2       2       0   .text       
+     vector15                                  FFE0       2       2       0   .text       
+     vector14                                  FFE2       2       2       0   .text       
+     vector13                                  FFE4       2       2       0   .text       
+     vector12                                  FFE6       2       2       0   .text       
+     vector11                                  FFE8       2       2       0   .text       
+     vector10                                  FFEA       2       2       0   .text       
+     vector09                                  FFEC       2       2       0   .text       
+     vector08                                  FFEE       2       2       0   .text       
+     vector07                                  FFF0       2       2       0   .text       
+     vector06                                  FFF2       2       2       0   .text       
+     vector05                                  FFF4       2       2       0   .text       
+     vector04                                  FFF6       2       2       0   .text       
+     vector03                                  FFF8       2       2       0   .text       
+     vector02                                  FFFA       2       2       0   .text       
+     vector01                                  FFFC       2       2       0   .text       
+     vector00                                  FFFE       2       2       1   .text       
+
+*********************************************************************************************
+UNUSED-OBJECTS SECTION
+---------------------------------------------------------------------------------------------
+
+*********************************************************************************************
+COPYDOWN SECTION
+---------------------------------------------------------------------------------------------
+
+*********************************************************************************************
+OBJECT-DEPENDENCIES SECTION
+---------------------------------------------------------------------------------------------
+
+*********************************************************************************************
+DEPENDENCY TREE
+*********************************************************************************************
+ _ORG00001           
+   
+*********************************************************************************************
+STATISTIC SECTION
+---------------------------------------------------------------------------------------------
+
+ExeFile:
+--------
+Number of blocks to be downloaded: 4
+Total size of all blocks to be downloaded: 1776
+

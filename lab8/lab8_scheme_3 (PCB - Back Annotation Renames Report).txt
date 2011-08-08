@@ -1,0 +1,17 @@
+Back Annotation Renames Report
+------------------------------
+
+Report File    : C:\Users\aaron\Dropbox\EE445L\lab8\lab8_scheme_3 (PCB - Back Annotation Renames Report).txt
+Report Written : Sunday, March 27, 2011
+Design Path    : C:\Users\aaron\Dropbox\EE445L\lab8\lab8_scheme_3.pcb
+Design Title   : 
+Created        : 3/27/2011 9:48:09 PM
+Last Saved     : 3/27/2011 9:49:15 PM
+Editing Time   : 7 min
+Units          : mil (precision 0)
+
+Outstanding PCB renames awaiting back annotation to the Schematics design.
+
+Rename Component from "U10" to "U1".
+
+End Of Report.

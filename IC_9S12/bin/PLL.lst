@@ -1,0 +1,79 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.40 Build 10020, Jan 21 2010
+
+    1:  /*************************PLL.C***************************
+    2:  *   boosts the CPU clock to 24 MHz                       *
+    3:  *                                                        *
+    4:  *   Created by Theodore Deden on 20 January 2004.        *
+    5:  *   Modified by Theodore Deden on 9 February 2004.       *
+    6:  *   Last Modified by Jonathan Valvano 2/9/04.            *
+    7:  *                                                        *
+    8:  *   Distributed underthe provisions of the GNU GPL ver 2 *
+    9:  *   Copying, redistributing, modifying is encouraged.    *
+   10:  *                                                        *
+   11:  *********************************************************/
+   12:  
+   13:  #include <hidef.h>         /* common defines and macros */
+   14:  #include <mc9s12c32.h>     /* derivative information */
+   15:  
+   16:  //********* PLL_Init ****************
+   17:  // Set PLL clock to 24 MHz, and switch 9S12 to run at this rate
+   18:  // Inputs: none
+   19:  // Outputs: none
+   20:  // Errors: will hang if PLL does not stabilize 
+   21:  void PLL_Init(void){  
+*** EVALUATION ***
+
+Function: PLL_Init
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\PLL.C
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\PLL.C.o" -WmsgSd1106
+
+   22:    SYNR = 0x02;
+  0000 ccd102       [2]     LDD   #53506
+  0003 5b00         [2]     STAB  _SYNR
+   23:    REFDV = 0x00;
+  0005 790000       [3]     CLR   _REFDV
+   24:    
+   25:    /*PLLCLK = 2 * OSCCLK * (SYNR + 1) / (REFDV + 1)
+   26:  	Values above give PLLCLK of 24 MHz with 8 MHz crystal. 
+   27:  	(OSCCLK is Crystal Clock Frequency)                    */
+   28:    
+   29:    CLKSEL = 0x00;
+  0008 790000       [3]     CLR   _CLKSEL
+   30:    
+   31:    /*Meaning for CLKSEL:
+   32:    Bit 7: PLLSEL = 0 Keep using OSCCLK until we are ready to switch to PLLCLK
+   33:    Bit 6: PSTP   = 0 Do not need to go to Pseudo-Stop Mode
+   34:    Bit 5: SYSWAI = 0 In wait mode system clocks stop.
+   35:    But 4: ROAWAI = 0 Do not reduce oscillator amplitude in wait mode.
+   36:    Bit 3: PLLWAI = 0 Do not turn off PLL in wait mode
+   37:    Bit 2: CWAI	= 0 Do not stop the core during wait mode
+   38:    Bit 1: RTIWAI = 0 Do not stop the RTI in wait mode
+   39:    Bit 0: COPWAI = 0 Do not stop the COP in wait mode
+   40:    */
+   41:    
+   42:    
+   43:    PLLCTL = 0xD1;
+  000b 5a00         [2]     STAA  _PLLCTL
+   44:    
+   45:    /*Meaning for PLLCTL:
+   46:    Bit 7: CME   = 1; Clock monitor enable - reset if bad clock when set
+   47:    Bit 6: PLLON = 1; PLL On bit
+   48:    Bit 5: AUTO  = 0; No automatic control of bandwidth, manual through ACQ
+   49:    But 4: ACQ   = 1; 1 for high bandwidth filter (acquisition); 0 for low (tracking)
+   50:    Bit 3:            (Not Used by 9s12c32)
+   51:    Bit 2: PRE   = 0; RTI stops during Pseudo Stop Mode
+   52:    Bit 1: PCE   = 0; COP diabled during Pseudo STOP mode
+   53:    Bit 0: SCME  = 1; Crystal Clock Failure -> Self Clock mode NOT reset.
+   54:    
+   55:    */
+   56:    
+   57:    while((CRGFLG&0x08) == 0){ 	  // Wait for PLLCLK to stabilize.
+  000d 4f0008fc     [4]     BRCLR _CRGFLG,#8,*+0 ;abs = 000d
+   58:    }  
+   59:    CLKSEL_PLLSEL = 1;  // Switch to PLL clock
+  0011 4c0080       [4]     BSET  _CLKSEL,#128
+   60:  }
+  0014 3d           [5]     RTS   
+   61:  
+   62:  

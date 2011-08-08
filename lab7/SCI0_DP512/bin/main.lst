@@ -1,0 +1,129 @@
+ANSI-C/cC++ Compiler for HC12 V-5.0.35 Build 8093, Apr  3 2008
+
+    1:  // filename ******** main.C ************** 
+    2:  // Busy-wait SCI0 driver for the 9S12DP512,
+    3:  // Jonathan W. Valvano 8/10/09
+    4:  
+    5:  //  This example accompanies the books
+    6:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+    7:  //        Thompson, copyright (c) 2006,
+    8:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+    9:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   10:  
+   11:  // Copyright 2009 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   12:  //    You may use, edit, run or distribute this file 
+   13:  //    as long as the above copyright notice remains 
+   14:  
+   15:  // how to run programs that use the SCI port
+   16:  // 1) connect SCI0 of 9S12DP512 to PC's COM port, 
+   17:  //     set 9S12DP512 to LOAD mode
+   18:  //     reset 9S12DP512
+   19:  // 2) execute Project->Debug (compiles and downloads code to 9S12DP512)
+   20:  // 3) quit MW debugger once programming complete 
+   21:  //    quitting the debugger will release the COM port
+   22:  // 4) start a terminal program (like HyperTerminal)
+   23:  //    specify proper COM port, 115200 bits/sec, no flow control
+   24:  // 5) set to RUN mode and hit reset
+   25:  // 6) when done, quit terminal program
+   26:  //    quitting the terminal program will release the COM port
+   27:  //     set 9S12DP512 to LOAD mode
+   28:  //     reset 9S12DP512
+   29:  
+   30:  #include <hidef.h>      /* common defines and macros */
+   31:  #include <mc9s12dp512.h>     /* derivative information */
+   32:  #pragma LINK_INFO DERIVATIVE "mc9s12dp512"
+   33:  #include "SCI0.h"
+   34:  #include "PLL.h"
+   35:  
+   36:  
+   37:  //---------------------OutCRLF---------------------
+   38:  // Output a CR,LF to SCI to go to a new line
+   39:  // Input: none
+   40:  // Output: none
+   41:  void OutCRLF(void){
+
+Function: OutCRLF
+Source  : D:\EE345L\9S12DP512\SCI0_DP512\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\9S12DP512\SCI0_DP512;D:\EE345L\9S12DP512\SCI0_DP512\bin;D:\EE345L\9S12DP512\SCI0_DP512\prm;D:\EE345L\9S12DP512\SCI0_DP512\cmd;D:\EE345L\9S12DP512\SCI0_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\SCI0_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\SCI0_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\SCI0_DP512\SCI0_DP512_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+   42:    SCI0_OutChar(CR);
+  0000 c60d         [1]     LDAB  #13
+  0002 160000       [4]     JSR   SCI0_OutChar
+   43:    SCI0_OutChar(LF);
+  0005 c60a         [1]     LDAB  #10
+  0007 160000       [4]     JSR   SCI0_OutChar
+   44:    PTP_PTP7 ^= 1;
+  000a f60000       [3]     LDAB  _PTP
+  000d c880         [1]     EORB  #128
+  000f 7b0000       [3]     STAB  _PTP
+   45:  }
+  0012 3d           [5]     RTS   
+   46:  
+   47:  char string[20];  // global to assist in debugging  
+   48:  unsigned short n;  
+   49:  void main(void) {		
+
+Function: main
+Source  : D:\EE345L\9S12DP512\SCI0_DP512\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\9S12DP512\SCI0_DP512;D:\EE345L\9S12DP512\SCI0_DP512\bin;D:\EE345L\9S12DP512\SCI0_DP512\prm;D:\EE345L\9S12DP512\SCI0_DP512\cmd;D:\EE345L\9S12DP512\SCI0_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\SCI0_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\SCI0_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\SCI0_DP512\SCI0_DP512_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+   50:    DDRP |= 0x80;     // PortP bit 7 is output to LED
+  0000 1c000080     [4]     BSET  _DDRP,#128
+   51:    PLL_Init();       // running at 24 MHz
+  0004 160000       [4]     JSR   PLL_Init
+   52:    SCI0_Init(115200);	// fastest standard baud rate on run mode 9S12DP512
+  0007 86c2         [1]     LDAA  #194
+  0009 c7           [1]     CLRB  
+  000a ce0001       [2]     LDX   #1
+  000d 160000       [4]     JSR   SCI0_Init
+   53:    asm cli
+  0010 10ef         [1]     CLI   
+   54:    SCI0_OutString("TechArts DP512, SCI demo 8/10/09 -JWV"); OutCRLF();
+  0012 cc0000       [2]     LDD   #"TechArts DP512, SCI demo 8/10/09 -JWV"
+  0015 160000       [4]     JSR   SCI0_OutString
+  0018 0700         [4]     BSR   OutCRLF
+   55:    for(;;) {
+   56:      SCI0_OutString("InString: "); 
+  001a cc0000       [2]     LDD   #"InString: "
+  001d 160000       [4]     JSR   SCI0_OutString
+   57:      SCI0_InString(string,19);   
+  0020 cc0000       [2]     LDD   #string
+  0023 3b           [2]     PSHD  
+  0024 c613         [1]     LDAB  #19
+  0026 87           [1]     CLRA  
+  0027 160000       [4]     JSR   SCI0_InString
+  002a 3a           [3]     PULD  
+   58:      SCI0_OutString(" OutString="); SCI0_OutString(string); OutCRLF();
+  002b cc0000       [2]     LDD   #" OutString="
+  002e 160000       [4]     JSR   SCI0_OutString
+  0031 cc0000       [2]     LDD   #string
+  0034 160000       [4]     JSR   SCI0_OutString
+  0037 0700         [4]     BSR   OutCRLF
+   59:      
+   60:      SCI0_OutString("InUDec: ");  n=SCI0_InUDec(); 
+  0039 cc0000       [2]     LDD   #"InUDec: "
+  003c 160000       [4]     JSR   SCI0_OutString
+  003f 160000       [4]     JSR   SCI0_InUDec
+  0042 7c0000       [3]     STD   n
+   61:      SCI0_OutString(" OutUDec="); SCI0_OutUDec(n); OutCRLF();
+  0045 cc0000       [2]     LDD   #" OutUDec="
+  0048 160000       [4]     JSR   SCI0_OutString
+  004b fc0000       [3]     LDD   n
+  004e 160000       [4]     JSR   SCI0_OutUDec
+  0051 0700         [4]     BSR   OutCRLF
+   62:       
+   63:      SCI0_OutString("InUHex: ");  n=SCI0_InUHex(); 
+  0053 cc0000       [2]     LDD   #"InUHex: "
+  0056 160000       [4]     JSR   SCI0_OutString
+  0059 160000       [4]     JSR   SCI0_InUHex
+  005c 7c0000       [3]     STD   n
+   64:      SCI0_OutString(" OutUHex="); SCI0_OutUHex(n); OutCRLF();
+  005f cc0000       [2]     LDD   #" OutUHex="
+  0062 160000       [4]     JSR   SCI0_OutString
+  0065 fc0000       [3]     LDD   n
+  0068 160000       [4]     JSR   SCI0_OutUHex
+  006b 20ab         [3]     BRA   *-83 ;abs = 0018
+   65:    }
+   66:  
+   67:  }
+   68:  

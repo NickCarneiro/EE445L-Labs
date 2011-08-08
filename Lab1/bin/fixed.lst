@@ -1,0 +1,177 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  //******FIXED.C********
+    2:  //contains implementations of functions that output fixed point numbers
+    3:  //with different precisions and resolutions
+    4:  
+    5:  #include "fixed.h"
+    6:  #include <math.h>
+    7:  #include <stdio.h>
+    8:  #include <string.h>
+    9:  #include <stdlib.h>
+   10:  
+   11:  char buffer[11];
+   12:  
+   13:  //---------------------Fixed_uDecOut2--------------------- 
+   14:  // create a fixed point number string with precision=65535
+   15:  // and resolution=1/100, ranging from 0 to 65534
+   16:  // Input: number contains an unsigned short to be converted into fixed point   
+   17:  // Output: pointer to the beginning of a string containing the fixed point number
+   18:  char* Fixed_uDecOut2(unsigned short number){
+*** EVALUATION ***
+
+Function: Fixed_uDecOut2
+Source  : C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\Sources\fixed.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\bin;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\prm;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\cmd;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\bin" -Env"TEXTPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\Lab1_Data\HCS12_Serial_Monitor\ObjectCode\fixed.c.o"
+
+  0000 3b           [2]     PSHD  
+   19:    unsigned short dec_part, frac_part;        //hold decimal part and fractional part
+   20:    
+   21:    if (number > 65534){                       //error condition
+  0001 8cfffe       [2]     CPD   #65534
+  0004 2305         [3/1]   BLS   *+7 ;abs = 000b
+   22:      return "***.**"; 
+  0006 cc0000       [2]     LDD   #"***.**"
+  0009 2020         [3]     BRA   *+34 ;abs = 002b
+   23:    }
+   24:    
+   25:    dec_part = number / 100;                      //calculate decimal part (quotient)
+  000b ce0064       [2]     LDX   #100
+  000e 1810         [12]    IDIV  
+   26:    frac_part = number % 100;                     //calculate fractional part (remainder)
+  0010 ec80         [3]     LDD   0,SP
+  0012 b756         [1]     TFR   X,Y
+  0014 ce0064       [2]     LDX   #100
+  0017 1810         [12]    IDIV  
+   27:    sprintf(buffer,"%d.%.2d",dec_part,frac_part); //put together fixed point number string
+  0019 3b           [2]     PSHD  
+  001a 35           [2]     PSHY  
+  001b cc0000       [2]     LDD   #"%d.%.2d"
+  001e 3b           [2]     PSHD  
+  001f cc0000       [2]     LDD   #buffer
+  0022 3b           [2]     PSHD  
+  0023 160000       [4]     JSR   sprintf
+  0026 1b88         [2]     LEAS  8,SP
+   28:    return buffer;
+  0028 cc0000       [2]     LDD   #buffer
+   29:  }
+  002b 30           [3]     PULX  
+  002c 3d           [5]     RTS   
+   30:  
+   31:  //---------------------Fixed_sDecOut3--------------------- 
+   32:  // create a fixed point number string with precision=19999
+   33:  // and resolution=1/1000, ranging from -9999 to 9999
+   34:  // Input: number contains an unsigned short to be converted into fixed point   
+   35:  // Output: pointer to the beginning of a string containing the fixed point number
+   36:  char* Fixed_sDecOut3(signed short number){
+*** EVALUATION ***
+
+Function: Fixed_sDecOut3
+Source  : C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\Sources\fixed.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\bin;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\prm;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\cmd;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\bin" -Env"TEXTPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\Lab1_Data\HCS12_Serial_Monitor\ObjectCode\fixed.c.o"
+
+  0000 6caa         [2]     STD   6,-SP
+   37:    unsigned short dec_part, frac_part;        //hold decimal and fractional parts
+   38:    
+   39:    if((number < -9999) || (number > 9999)){   //error conditions
+  0002 8cd8f1       [2]     CPD   #55537
+  0005 2d05         [3/1]   BLT   *+7 ;abs = 000c
+  0007 8c270f       [2]     CPD   #9999
+  000a 2f05         [3/1]   BLE   *+7 ;abs = 0011
+   40:      return "*.***";
+  000c cc0000       [2]     LDD   #"*.***"
+  000f 2037         [3]     BRA   *+57 ;abs = 0048
+   41:    }
+   42:    
+   43:    dec_part = abs(number) / 1000;                    //calculate decimal part (quotient)
+  0011 160000       [4]     JSR   abs
+  0014 ce03e8       [2]     LDX   #1000
+  0017 1815         [12]    IDIVS 
+  0019 6e82         [2]     STX   2,SP
+   44:    frac_part = abs((int) number) % 1000;             //calculate fractional part (remainder)
+  001b ec80         [3]     LDD   0,SP
+  001d 160000       [4]     JSR   abs
+  0020 ce03e8       [2]     LDX   #1000
+  0023 1815         [12]    IDIVS 
+  0025 6c84         [2]     STD   4,SP
+   45:    if ( number < 0 ){
+  0027 ee80         [3]     LDX   0,SP
+  0029 2c09         [3/1]   BGE   *+11 ;abs = 0034
+   46:      sprintf(buffer,"-%d.%.3d",dec_part, frac_part); //negative number case
+  002b 3b           [2]     PSHD  
+  002c ec84         [3]     LDD   4,SP
+  002e 3b           [2]     PSHD  
+  002f cc0000       [2]     LDD   #"-%d.%.3d"
+   47:    }else{
+  0032 2007         [3]     BRA   *+9 ;abs = 003b
+   48:      sprintf(buffer,"%d.%.3d",dec_part, frac_part);  //positive number case  
+  0034 3b           [2]     PSHD  
+  0035 ec84         [3]     LDD   4,SP
+  0037 3b           [2]     PSHD  
+  0038 cc0000       [2]     LDD   #"%d.%.3d"
+  003b 3b           [2]     PSHD  
+  003c ce0000       [2]     LDX   #buffer
+  003f 34           [2]     PSHX  
+  0040 160000       [4]     JSR   sprintf
+  0043 1b88         [2]     LEAS  8,SP
+   49:    }
+   50:    return buffer;
+  0045 cc0000       [2]     LDD   #buffer
+   51:  }
+  0048 1b86         [2]     LEAS  6,SP
+  004a 3d           [5]     RTS   
+   52:  
+   53:  //---------------------Fixed_uBinOut8--------------------- 
+   54:  // create a fixed point number string with precision=65535
+   55:  // and resolution=1/256, ranging from 0 to 255.99
+   56:  // Input: number contains an unsigned short to be converted into fixed point   
+   57:  // Output: pointer to the beginning of a string containing the fixed point number
+   58:  char* Fixed_uBinOut8(unsigned short number){
+*** EVALUATION ***
+
+Function: Fixed_uBinOut8
+Source  : C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\Sources\fixed.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\bin;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\prm;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\cmd;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\bin" -Env"TEXTPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\Lab1_Data\HCS12_Serial_Monitor\ObjectCode\fixed.c.o"
+
+  0000 3b           [2]     PSHD  
+   59:    unsigned short dec_part, frac_part;         //hold decimal and fractional parts
+   60:    
+   61:    if(number > 65534){                         //error condition
+  0001 8cfffe       [2]     CPD   #65534
+  0004 2305         [3/1]   BLS   *+7 ;abs = 000b
+   62:      return "***.**";
+  0006 cc0000       [2]     LDD   #"***.**"
+  0009 2022         [3]     BRA   *+36 ;abs = 002d
+   63:    }
+   64:    
+   65:    dec_part = (number / 256);                      //calculate decimal part (quotient)
+  000b b701         [1]     TFR   A,B
+  000d 87           [1]     CLRA  
+   66:    frac_part = ((number % 256) * 100) / 256;       //calculate fractional part (remainder)
+  000e b745         [1]     TFR   D,X
+  0010 ec80         [3]     LDD   0,SP
+  0012 87           [1]     CLRA  
+  0013 b746         [1]     TFR   D,Y
+  0015 c664         [1]     LDAB  #100
+  0017 13           [3]     EMUL  
+  0018 b701         [1]     TFR   A,B
+  001a 87           [1]     CLRA  
+   67:    sprintf(buffer,"%d.%.2d",dec_part, frac_part);  //put together fixed point number string
+  001b 3b           [2]     PSHD  
+  001c 34           [2]     PSHX  
+  001d cc0000       [2]     LDD   #"%d.%.2d"
+  0020 3b           [2]     PSHD  
+  0021 cc0000       [2]     LDD   #buffer
+  0024 3b           [2]     PSHD  
+  0025 160000       [4]     JSR   sprintf
+  0028 1b88         [2]     LEAS  8,SP
+   68:    
+   69:    return buffer;
+  002a cc0000       [2]     LDD   #buffer
+   70:  }
+  002d 30           [3]     PULX  
+  002e 3d           [5]     RTS   
+   71:  
+   72:  
+   73:  

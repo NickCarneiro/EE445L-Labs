@@ -1,0 +1,450 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  // filename  ***************  LCD.C ****************************** 
+    2:  // LCD Display (HD44780) on Port H for the 9S12DP512   
+    3:  // Jonathan W. Valvano 9/18/09
+    4:  
+    5:  //  This example accompanies the books
+    6:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+    7:  //        Thompson, copyright (c) 2006,
+    8:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+    9:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   10:  
+   11:  // Copyright 2009 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   12:  //    You may use, edit, run or distribute this file 
+   13:  //    as long as the above copyright notice remains 
+   14:  
+   15:  /*   
+   16:    size is 1*16 
+   17:    if do not need to read busy, then you can tie R/W=ground 
+   18:    ground = pin 1    Vss
+   19:    power  = pin 2    Vdd   +5V
+   20:    ground = pin 3    Vlc   grounded for highest contrast
+   21:    PH4    = pin 4    RS    (1 for data, 0 for control/status)
+   22:    PH5    = pin 5    R/W   (1 for read, 0 for write)
+   23:    PH6    = pin 6    E     (enable)
+   24:    PH3    = pin 14   DB7   (4-bit data)
+   25:    PH2    = pin 13   DB6
+   26:    PH1    = pin 12   DB5
+   27:    PH0    = pin 11   DB4
+   28:  16 characters are configured as 2 rows of 8
+   29:  addr  00 01 02 03 04 05 06 07 40 41 42 43 44 45 46 47
+   30:  */
+   31:  
+   32:  #include <mc9s12dp512.h>     /* derivative information */
+   33:  #include "lcd.h"
+   34:  #include "timer.h"
+   35:  
+   36:  static unsigned short OpenFlag=0;
+   37:  
+   38:  
+   39:    
+   40:  //---------------------outCsrNibble---------------------
+   41:  // sends one command code to the LCD control/status
+   42:  // Input: command is 4-bit function to execute
+   43:  // Output: none
+   44:  static void outCsrNibble(unsigned char command){
+*** EVALUATION ***
+
+Function: outCsrNibble
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\Sources\lcd.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\Lab 10 Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\xbee_proj_Rx_Data\HCS12_Serial_Monitor\ObjectCode\lcd.c.o" -WmsgSd1106
+
+  0000 37           [2]     PSHB  
+   45:    PTH = (PTH&0x80)+(command&0x0F);    // nibble, E=0, RS=0
+  0001 f60000       [3]     LDAB  _PTH
+  0004 c480         [1]     ANDB  #128
+  0006 32           [3]     PULA  
+  0007 840f         [1]     ANDA  #15
+  0009 1806         [2]     ABA   
+  000b 7a0000       [3]     STAA  _PTH
+   46:    PTH |= 0x40;             // E goes 0,1
+  000e 1c000040     [4]     BSET  _PTH,#64
+   47:    asm nop
+  0012 a7           [1]     NOP   
+   48:    asm nop                  // 5 cycles wide = 208ns
+  0013 a7           [1]     NOP   
+   49:    PTH &= ~0x40;            // E goes 1,0
+  0014 1d000040     [4]     BCLR  _PTH,#64
+   50:  }
+  0018 3d           [5]     RTS   
+   51:  
+   52:  //---------------------outCsr---------------------
+   53:  // sends one command code to the LCD control/status
+   54:  // Input: command is 8-bit function to execute
+   55:  // Output: none
+   56:  static void outCsr(unsigned char command){
+*** EVALUATION ***
+
+Function: outCsr
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\Sources\lcd.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\Lab 10 Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\xbee_proj_Rx_Data\HCS12_Serial_Monitor\ObjectCode\lcd.c.o" -WmsgSd1106
+
+  0000 37           [2]     PSHB  
+   57:    outCsrNibble(command>>4);   // ms nibble, E=0, RS=0
+  0001 54           [1]     LSRB  
+  0002 54           [1]     LSRB  
+  0003 54           [1]     LSRB  
+  0004 54           [1]     LSRB  
+  0005 0700         [4]     BSR   outCsrNibble
+   58:    outCsrNibble(command);      // ls nibble, E=0, RS=0
+  0007 e680         [3]     LDAB  0,SP
+  0009 0700         [4]     BSR   outCsrNibble
+   59:    Wait(2160);                  // blind cycle 90 us Wait
+  000b cc0870       [2]     LDD   #2160
+  000e 160000       [4]     JSR   Wait
+   60:  }
+  0011 32           [3]     PULA  
+  0012 3d           [5]     RTS   
+   61:  
+   62:  //---------------------LCD_Clear---------------------
+   63:  // clear the LCD display, send cursor to home
+   64:  // Input: none
+   65:  // Output: true if successful
+   66:  short LCD_Clear(void){
+*** EVALUATION ***
+
+Function: LCD_Clear
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\Sources\lcd.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\Lab 10 Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\xbee_proj_Rx_Data\HCS12_Serial_Monitor\ObjectCode\lcd.c.o" -WmsgSd1106
+
+   67:    if(OpenFlag==0){
+  0000 fc0000       [3]     LDD   OpenFlag
+  0003 2601         [3/1]   BNE   *+3 ;abs = 0006
+   68:      return 0;  // not open
+  0005 3d           [5]     RTS   
+   69:    }
+   70:    outCsr(0x01);        // Clear Display
+  0006 c601         [1]     LDAB  #1
+  0008 0700         [4]     BSR   outCsr
+   71:    Wait(39360);          // 1.64ms Wait
+  000a cc99c0       [2]     LDD   #39360
+  000d 160000       [4]     JSR   Wait
+   72:    outCsr(0x02);        // Cursor to home
+  0010 c602         [1]     LDAB  #2
+  0012 0700         [4]     BSR   outCsr
+   73:    Wait(39360);          // 1.64ms Wait
+  0014 cc99c0       [2]     LDD   #39360
+  0017 160000       [4]     JSR   Wait
+   74:    return 1;		         // success
+  001a c601         [1]     LDAB  #1
+  001c 87           [1]     CLRA  
+   75:  }
+  001d 3d           [5]     RTS   
+   76:  #define LCDINC 2
+   77:  #define LCDDEC 0
+   78:  #define LCDSHIFT 1
+   79:  #define LCDNOSHIFT 0
+   80:  #define LCDCURSOR 2
+   81:  #define LCDNOCURSOR 0
+   82:  #define LCDBLINK 1
+   83:  #define LCDNOBLINK 0
+   84:  #define LCDSCROLL 8
+   85:  #define LCDNOSCROLL 0
+   86:  #define LCDLEFT 0
+   87:  #define LCDRIGHT 4
+   88:  #define LCD2LINE 8
+   89:  #define LCD1LINE 0
+   90:  #define LCD10DOT 4
+   91:  #define LCD7DOT 0
+   92:  
+   93:  //---------------------LCD_Open---------------------
+   94:  // initialize the LCD display, called once at beginning
+   95:  // Input: none
+   96:  // Output: true if successful
+   97:  short LCD_Open(void){
+*** EVALUATION ***
+
+Function: LCD_Open
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\Sources\lcd.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\Lab 10 Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\xbee_proj_Rx_Data\HCS12_Serial_Monitor\ObjectCode\lcd.c.o" -WmsgSd1106
+
+   98:    if(OpenFlag){
+  0000 fc0000       [3]     LDD   OpenFlag
+  0003 2703         [3/1]   BEQ   *+5 ;abs = 0008
+   99:      return 0;      // error if already open
+  0005 c7           [1]     CLRB  
+  0006 87           [1]     CLRA  
+  0007 3d           [5]     RTS   
+  100:    }
+  101:    DDRH |= 0x7F;    // PH6-0 output to LCD
+  0008 1c00007f     [4]     BSET  _DDRH,#127
+  102:    PTH &= ~0x20;    // PH5=R/W=0 means write
+  000c 1d000020     [4]     BCLR  _PTH,#32
+  103:  /* Bottom three bits of TSCR2 (PR2,PR1,PR0) determine TCNT period
+  104:      divide  FastMode(24MHz)    Slow Mode (8MHz)
+  105:  000   1     42ns  TOF  2.73ms  125ns TOF 8.192ms
+  106:  001   2     84ns  TOF  5.46ms  250ns TOF 16.384ms 
+  107:  010   4    167ns  TOF  10.9ms  500ns TOF 32.768ms   
+  108:  011   8    333ns  TOF  21.8ms 	 1us TOF 65.536ms
+  109:  100  16    667ns  TOF  43.7ms 	 2us TOF 131.072ms
+  110:  101  32   1.33us  TOF  87.4ms		 4us TOF 262.144ns
+  111:  110  64   2.67us  TOF 174.8ms    8us TOF 524.288ms
+  112:  111 128   5.33us  TOF 349.5ms   16us TOF 1.048576s */ 
+  113:  // Be careful, TSCR1 and TSCR2 maybe set in other rituals
+  114:    Wait1ms(20);        // to allow LCD powerup
+  0010 c614         [1]     LDAB  #20
+  0012 87           [1]     CLRA  
+  0013 160000       [4]     JSR   Wait1ms
+  115:    outCsrNibble(0x03); // (DL=1 8-bit mode)
+  0016 c603         [1]     LDAB  #3
+  0018 0700         [4]     BSR   outCsrNibble
+  116:    Wait1ms(5);         //  blind cycle 5ms Wait
+  001a c605         [1]     LDAB  #5
+  001c 87           [1]     CLRA  
+  001d 160000       [4]     JSR   Wait1ms
+  117:    outCsrNibble(0x03); // (DL=1 8-bit mode)
+  0020 c603         [1]     LDAB  #3
+  0022 0700         [4]     BSR   outCsrNibble
+  118:    Wait(2400);          // blind cycle 100us Wait
+  0024 cc0960       [2]     LDD   #2400
+  0027 160000       [4]     JSR   Wait
+  119:    outCsrNibble(0x03); // (DL=1 8-bit mode)
+  002a c603         [1]     LDAB  #3
+  002c 071b         [4]     BSR   *+29 ;abs = 0049
+  120:    Wait(2400);          //  blind cycle 100us Wait (not called for, but do it anyway)
+  121:    outCsrNibble(0x02); // (DL=0 4-bit mode)
+  002e c602         [1]     LDAB  #2
+  0030 0717         [4]     BSR   *+25 ;abs = 0049
+  122:    Wait(2400);          // blind cycle 100 us Wait
+  123:  /* Entry Mode Set 0,0,0,0,0,1,I/D,S
+  124:       I/D=1 for increment cursor move direction
+  125:          =0 for decrement cursor move direction
+  126:       S  =1 for display shift
+  127:          =0 for no display shift	 */
+  128:    outCsr(0x04+LCDINC+LCDNOSHIFT);        // I/D=1 Increment, S=0 no displayshift
+  0032 c606         [1]     LDAB  #6
+  0034 0700         [4]     BSR   outCsr
+  129:  /* Display On/Off Control 0,0,0,0,1,D,C,B
+  130:       D  =1 for display on
+  131:          =0 for display off
+  132:       C  =1 for cursor on
+  133:          =0 for cursor off
+  134:       B  =1 for blink of cursor position character
+  135:          =0 for no blink	 */
+  136:    outCsr(0x0C+LCDNOCURSOR+LCDNOBLINK);   // D=1 displayon, C=0 cursoroff, B=0 blink off
+  0036 c60c         [1]     LDAB  #12
+  0038 0700         [4]     BSR   outCsr
+  137:  /* Cursor/Display Shift  0,0,0,1,S/C,R/L,*,*
+  138:       S/C=1 for display shift
+  139:          =0 for cursor movement
+  140:       R/L=1 for shift to left
+  141:          =0 for shift to right	 */
+  142:    outCsr(0x10+LCDNOSCROLL+LCDRIGHT);   // S/C=0 cursormove, R/L=1 shiftright
+  003a c614         [1]     LDAB  #20
+  003c 0700         [4]     BSR   outCsr
+  143:  /* Function Set   0,0,1,DL,N,F,*,*
+  144:       DL=1 for 8 bit
+  145:         =0 for 4 bit
+  146:       N =1 for 2 lines
+  147:         =0 for 1 line
+  148:       F =1 for 5 by 10 dots
+  149:         =0 for 5 by 7 dots */
+  150:    outCsr(0x20+LCD2LINE+LCD7DOT);   // DL=0 4bit, N=1 2 line, F=0 5by7 dots
+  003e c628         [1]     LDAB  #40
+  0040 0700         [4]     BSR   outCsr
+  151:    OpenFlag = 1;         // device open
+  0042 c601         [1]     LDAB  #1
+  0044 87           [1]     CLRA  
+  0045 7c0000       [3]     STD   OpenFlag
+  152:    return 1;   // clear display
+  153:  }
+  0048 3d           [5]     RTS   
+  0049 160000       [4]     JSR   outCsrNibble
+  004c cc0960       [2]     LDD   #2400
+  004f 060000       [3]     JMP   Wait
+  154:  
+  155:  //---------------------LCD_OutChar---------------------
+  156:  // sends one ASCII to the LCD display
+  157:  // Input: letter is ASCII code
+  158:  // Output: true if successful
+  159:  short LCD_OutChar(unsigned char letter){
+*** EVALUATION ***
+
+Function: LCD_OutChar
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\Sources\lcd.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\Lab 10 Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\xbee_proj_Rx_Data\HCS12_Serial_Monitor\ObjectCode\lcd.c.o" -WmsgSd1106
+
+  0000 37           [2]     PSHB  
+  160:    if(OpenFlag==0){
+  0001 fc0000       [3]     LDD   OpenFlag
+  0004 2602         [3/1]   BNE   *+4 ;abs = 0008
+  161:      return 0;  // not open
+  0006 202d         [3]     BRA   *+47 ;abs = 0035
+  162:    }
+  163:    PTH = (PTH&0x80)+(0x10+(0x0F&(letter>>4)));   // ms nibble, E=0, RS=1
+  0008 f60000       [3]     LDAB  _PTH
+  000b c480         [1]     ANDB  #128
+  000d a680         [3]     LDAA  0,SP
+  000f 44           [1]     LSRA  
+  0010 44           [1]     LSRA  
+  0011 44           [1]     LSRA  
+  0012 44           [1]     LSRA  
+  0013 0723         [4]     BSR   *+37 ;abs = 0038
+  164:    PTH |= 0x40;       // E goes 0,1
+  165:    asm nop
+  0015 a7           [1]     NOP   
+  166:    asm nop            // 5 cycles wide = 208ns
+  0016 a7           [1]     NOP   
+  167:    PTH &= ~0x40;      // E goes 1,0
+  0017 1d000040     [4]     BCLR  _PTH,#64
+  168:    PTH = (PTH&0x80)+(0x10+(letter&0x0F));        // ls nibble, E=0, RS=1
+  001b f60000       [3]     LDAB  _PTH
+  001e c480         [1]     ANDB  #128
+  0020 a680         [3]     LDAA  0,SP
+  0022 840f         [1]     ANDA  #15
+  0024 0712         [4]     BSR   *+20 ;abs = 0038
+  169:    PTH |= 0x40;       // E goes 0,1
+  170:    asm nop
+  0026 a7           [1]     NOP   
+  171:    asm nop            // 5 cycles wide = 208ns
+  0027 a7           [1]     NOP   
+  172:    PTH &= ~0x40;      // E goes 1,0
+  0028 1d000040     [4]     BCLR  _PTH,#64
+  173:    Wait(2160);         // 90 us Wait
+  002c cc0870       [2]     LDD   #2160
+  002f 160000       [4]     JSR   Wait
+  174:    return 1;	         // success
+  0032 c601         [1]     LDAB  #1
+  0034 87           [1]     CLRA  
+  175:  }
+  0035 1b81         [2]     LEAS  1,SP
+  0037 3d           [5]     RTS   
+  0038 8b10         [1]     ADDA  #16
+  003a 1806         [2]     ABA   
+  003c 7a0000       [3]     STAA  _PTH
+  003f 1c000040     [4]     BSET  _PTH,#64
+  0043 3d           [5]     RTS   
+  176:  
+  177:  //---------------------LCD_OutString--------------
+  178:  // Display String
+  179:  // Input: pointer to NULL-terminationed ASCII string 
+  180:  // Output: true if successful
+  181:  short LCD_OutString(char *pt){ 
+*** EVALUATION ***
+
+Function: LCD_OutString
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\Sources\lcd.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\Lab 10 Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\xbee_proj_Rx_Data\HCS12_Serial_Monitor\ObjectCode\lcd.c.o" -WmsgSd1106
+
+  0000 3b           [2]     PSHD  
+  182:    if(OpenFlag==0){
+  0001 fc0000       [3]     LDD   OpenFlag
+  0004 260f         [3/1]   BNE   *+17 ;abs = 0015
+  183:      return 0;  // not open
+  0006 2005         [3]     BRA   *+7 ;abs = 000d
+  184:    }
+  185:    while(*pt){
+  186:      if(LCD_OutChar((unsigned char)*pt)==0){
+  0008 0700         [4]     BSR   LCD_OutChar
+  000a 046403       [3]     TBNE  D,*+6 ;abs = 0010
+  187:        return 0;
+  000d c7           [1]     CLRB  
+  000e 200d         [3]     BRA   *+15 ;abs = 001d
+  188:      }
+  189:      pt++;
+  0010 ee80         [3]     LDX   0,SP
+  0012 08           [1]     INX   
+  0013 6e80         [2]     STX   0,SP
+  0015 ee80         [3]     LDX   0,SP
+  0017 e600         [3]     LDAB  0,X
+  0019 26ed         [3/1]   BNE   *-17 ;abs = 0008
+  190:    }
+  191:    return 1;	  // success
+  001b c601         [1]     LDAB  #1
+  001d 87           [1]     CLRA  
+  192:  }
+  001e 30           [3]     PULX  
+  001f 3d           [5]     RTS   
+  193:  
+  194:  //-----------------------LCD_GoTo-----------------------
+  195:  //Move cursor (set display address) 
+  196:  //Input: row={1,2}, column={1,2,...8}
+  197:  //Output: true if successful
+  198:  //errors: it will check for legal address
+  199:  short LCD_GoTo(unsigned char row, unsigned char column){ 
+*** EVALUATION ***
+
+Function: LCD_GoTo
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\Sources\lcd.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\Lab 10 Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\xbee_proj_Rx_Data\HCS12_Serial_Monitor\ObjectCode\lcd.c.o" -WmsgSd1106
+
+  0000 37           [2]     PSHB  
+  200:    unsigned char position = 0x00;
+  201:    if((row == 0 || row > 2) || (column == 0 || column > 9)){
+  0001 e683         [3]     LDAB  3,SP
+  0003 270c         [3/1]   BEQ   *+14 ;abs = 0011
+  0005 c102         [1]     CMPB  #2
+  0007 2208         [3/1]   BHI   *+10 ;abs = 0011
+  0009 a680         [3]     LDAA  0,SP
+  000b 2704         [3/1]   BEQ   *+6 ;abs = 0011
+  000d 8109         [1]     CMPA  #9
+  000f 2303         [3/1]   BLS   *+5 ;abs = 0014
+  202:      return 0;
+  0011 c7           [1]     CLRB  
+  0012 200e         [3]     BRA   *+16 ;abs = 0022
+  203:    }
+  204:    row = (0x40*(row-1)) + 0x80;             //row= 0x80 or 0xC0
+  0014 8640         [1]     LDAA  #64
+  0016 12           [1]     MUL   
+  0017 cb40         [1]     ADDB  #64
+  205:    column -= 1;                             //0<=column<=7
+  0019 6380         [3]     DEC   0,SP
+  206:    position = row + column;
+  001b eb80         [3]     ADDB  0,SP
+  207:    outCsr(position);
+  001d 160000       [4]     JSR   outCsr
+  208:    return 1;                                  //success
+  0020 c601         [1]     LDAB  #1
+  0022 87           [1]     CLRA  
+  209:  }
+  0023 1b81         [2]     LEAS  1,SP
+  0025 3d           [5]     RTS   
+  210:  
+  211:  
+  212:  #define CR 13 // \r
+  213:  #define TAB 9 // \n
+  214:  #define LF 10 // \r
+  215:  //---------------------TERMIO_PutChar---------------------
+  216:  //CR and LF both clear LCD display
+  217:  //TAB goes to the next line of the LCD
+  218:  //Other cases send ASCII to LCD display
+  219:  short TERMIO_PutChar(unsigned char letter){
+*** EVALUATION ***
+
+Function: TERMIO_PutChar
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\Sources\lcd.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\Lab 10 Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Rx\xbee_proj_Rx_Data\HCS12_Serial_Monitor\ObjectCode\lcd.c.o" -WmsgSd1106
+
+  220:    if((letter == CR) || (letter == LF)) { 
+  0000 c10d         [1]     CMPB  #13
+  0002 2704         [3/1]   BEQ   *+6 ;abs = 0008
+  0004 c10a         [1]     CMPB  #10
+  0006 2605         [3/1]   BNE   *+7 ;abs = 000d
+  221:      LCD_Clear(); 
+  0008 160000       [4]     JSR   LCD_Clear
+  222:    }
+  000b 2010         [3]     BRA   *+18 ;abs = 001d
+  223:    else if(letter == TAB) {
+  000d c109         [1]     CMPB  #9
+  000f 2609         [3/1]   BNE   *+11 ;abs = 001a
+  224:      LCD_GoTo(1,1);
+  0011 c601         [1]     LDAB  #1
+  0013 37           [2]     PSHB  
+  0014 0700         [4]     BSR   LCD_GoTo
+  0016 1b81         [2]     LEAS  1,SP
+  225:    }
+  0018 2003         [3]     BRA   *+5 ;abs = 001d
+  226:    else {
+  227:      LCD_OutChar(letter); 
+  001a 160000       [4]     JSR   LCD_OutChar
+  228:    }
+  229:    return 1;
+  001d c601         [1]     LDAB  #1
+  001f 87           [1]     CLRA  
+  230:  }
+  0020 3d           [5]     RTS   
+  231:  
+  232:  
+  233:  

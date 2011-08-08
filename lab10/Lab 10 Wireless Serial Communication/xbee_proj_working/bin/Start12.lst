@@ -1,0 +1,524 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  /*****************************************************
+    2:        start12.c - standard startup code
+    3:     The startup code may be optimized to special user requests
+    4:   ----------------------------------------------------
+    5:     Copyright (c) Metrowerks, Basel, Switzerland
+    6:                 All rights reserved
+    7:  
+    8:  Note: ROM libraries are not implemented in this startup code
+    9:  Note: C++ destructors of global objects are NOT yet supported in the HIWARE Object File Format.
+   10:        To use this feature, please build your application with the ELF object file format.
+   11:   *****************************************************/
+   12:  /* these macros remove some unused fields in the startup descriptor */
+   13:  #define __NO_FLAGS_OFFSET       /* we do not need the flags field in the startup data descriptor */
+   14:  #define __NO_MAIN_OFFSET        /* we do not need the main field in the startup data descriptor */
+   15:  #define __NO_STACKOFFSET_OFFSET /* we do not need the stackOffset field in the startup data descriptor */
+   16:  
+   17:  /*#define __BANKED_COPY_DOWN : allow to allocate .copy in flash area */
+   18:  #if defined(__BANKED_COPY_DOWN) && (!defined(__HCS12X__) || !defined(__ELF_OBJECT_FILE_FORMAT__))
+   19:  #error /* the __BANKED_COPY_DOWN switch is only supported for the HCS12X with ELF */
+   20:         /* (and not for the HC12, HCS12 or for the HIWARE object file format) */
+   21:  #endif
+   22:  
+   23:  #include "hidef.h"
+   24:  #include "start12.h"
+   25:  
+   26:  /***************************************************************************/
+   27:  /* Macros to control how the startup code handles the COP:                 */
+   28:  /* #define _DO_FEED_COP_  : do feed the COP                                */
+   29:  /* #define _DO_ENABLE_COP_: do enable the COP                              */
+   30:  /* #define _DO_DISABLE_COP_: disable the COP                               */
+   31:  /* Without defining any of these, the startup code does NOT handle the COP */
+   32:  /***************************************************************************/
+   33:  /* __ONLY_INIT_SP define:                                                  */
+   34:  /* This define selects an shorter version of the startup code              */
+   35:  /* which only loads the stack pointer and directly afterwards calls        */
+   36:  /* main. This version does however NOT initialized global variables        */
+   37:  /* (So this version is not ANSI compliant!)                                */
+   38:  /***************************************************************************/
+   39:  /* __FAR_DATA define:                                                      */
+   40:  /* By default, the startup code only supports to initialize the default    */
+   41:  /* kind of memory. If some memory is allocated far in the small or banked  */
+   42:  /* memory model, then the startup code only supports to initialize this    */
+   43:  /* memory blocks if __FAR_DATA is defined. If __FAR_DATA is not defined,   */
+   44:  /* then the linker will issue a message like                               */
+   45:  /* "L1128: Cutting value _Range beg data member from 0xF01000 to 0x1000"   */
+   46:  /* and this startup code writes to the cutted address                      */
+   47:  /***************************************************************************/
+   48:  /* __BANKED_COPY_DOWN define:                                              */
+   49:  /* by default, the startup code assumes that the startup data structure    */
+   50:  /* _startupData, the zero out areas and the .copy section are all          */
+   51:  /* allocated in NON_BANKED memory. Especially the .copy section can be     */
+   52:  /* huge if there are many or huge RAM areas to initialize.                 */  
+   53:  /* For the HCS12X, which also copies the XGATE RAM located code via .copy  */
+   54:  /* section, the startup code supports to allocate .copy in a banked flash  */
+   55:  /* The placement of .copy in the prm file has to be adapted when adding or */
+   56:  /* removing the this macro.                                                */
+   57:  /* Note: This macro is only supported for the HCS12X and when using ELF    */
+   58:  /***************************************************************************/
+   59:  
+   60:  #ifdef __cplusplus
+   61:  #define __EXTERN_C  extern "C"
+   62:  #else
+   63:  #define __EXTERN_C
+   64:  #endif
+   65:  
+   66:  /*lint -estring(961,"only preprocessor statements and comments before '#include'") , MISRA 19.1 ADV, non_bank.sgm and default.sgm each contain a conditionally compiled CODE_SEG pragma */
+   67:  
+   68:  __EXTERN_C void main(void); /* prototype of main function */
+   69:  
+   70:  #ifndef __ONLY_INIT_SP
+   71:  #pragma DATA_SEG __NEAR_SEG STARTUP_DATA /* _startupData can be accessed using 16 bit accesses. */
+   72:  /* This is needed because it contains the stack top, and without stack, far data cannot be accessed */
+   73:  struct _tagStartup _startupData;  /*   read-only: */
+   74:                                    /*   _startupData is allocated in ROM and */
+   75:                                    /*   initialized by the linker */
+   76:  #pragma DATA_SEG DEFAULT
+   77:  #endif /* __ONLY_INIT_SP */
+   78:  
+   79:  #if defined(FAR_DATA) && (!defined(__HCS12X__) || defined(__BANKED_COPY_DOWN))
+   80:  /*lint -e451 non_bank.sgm contains a conditionally compiled CODE_SEG pragma */
+   81:  #include "non_bank.sgm"
+   82:  /*lint +e451 */
+   83:  
+   84:  /* the init function must be in non banked memory if banked variables are used */
+   85:  /* because _SET_PAGE is called, which may change any page register. */
+   86:  
+   87:  /*lint -esym(752,_SET_PAGE) , symbol '_SET_PAGE' is referenced in HLI */
+   88:  __EXTERN_C void _SET_PAGE(void);  /* the inline assembler needs a prototype */
+   89:                                    /* this is a runtime routine with a special */
+   90:                                    /* calling convention, do not use it in c code! */
+   91:  #else
+   92:  /*lint -e451 default.sgm contains a conditionally compiled CODE_SEG pragma */
+   93:  #include "default.sgm"
+   94:  /*lint +e451 */
+   95:  #endif /* defined(FAR_DATA) && (!defined(__HCS12X__) || defined(__BANKED_COPY_DOWN)) */
+   96:  
+   97:  
+   98:  /* define value and bits for Windef Register */
+   99:  #ifdef HC812A4
+  100:  #define WINDEF (*(volatile unsigned char*) 0x37)
+  101:  #if defined( __BANKED__) || defined(__LARGE__) || defined(__PPAGE__)
+  102:  #define __ENABLE_PPAGE__ 0x40
+  103:  #else
+  104:  #define __ENABLE_PPAGE__ 0x0
+  105:  #endif
+  106:  #if defined(__DPAGE__)
+  107:  #define __ENABLE_DPAGE__ 0x80
+  108:  #else
+  109:  #define __ENABLE_DPAGE__ 0x0
+  110:  #endif
+  111:  #if defined(__EPAGE__)
+  112:  #define __ENABLE_EPAGE__ 0x20
+  113:  #else
+  114:  #define __ENABLE_EPAGE__ 0x0
+  115:  #endif
+  116:  #endif  /* HC812A4 */
+  117:  
+  118:  #ifdef _HCS12_SERIALMON
+  119:        /* for Monitor based software remap the RAM & EEPROM to adhere
+  120:           to EB386. Edit RAM and EEPROM sections in PRM file to match these. */
+  121:  #define ___INITRM      (*(volatile unsigned char *) 0x0010)
+  122:  #define ___INITRG      (*(volatile unsigned char *) 0x0011)
+  123:  #define ___INITEE      (*(volatile unsigned char *) 0x0012)
+  124:  #endif
+  125:  
+  126:  #if defined(_DO_FEED_COP_)
+  127:  #define __FEED_COP_IN_HLI()  } asm movb #0x55, _COP_RST_ADR; asm movb #0xAA, _COP_RST_ADR; asm {
+  128:  #else
+  129:  #define __FEED_COP_IN_HLI() /* do nothing */
+  130:  #endif
+  131:  
+  132:  #ifndef __ONLY_INIT_SP
+  133:  #if (!defined(FAR_DATA) || defined(__HCS12X__)) && (defined( __BANKED__) || defined(__LARGE__) || defined(__BANKED_COPY_DOWN))
+  134:  static void __far Init(void)
+  135:  #else
+  136:  static void Init(void)
+  137:  #endif
+  138:   {
+*** EVALUATION ***
+
+Function: Init
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources\Start12.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\prm;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\xbee_proj_working_Data\HCS12_Serial_Monitor\ObjectCode\Start12.c.o
+
+  139:  /* purpose:     1) zero out RAM-areas where data is allocated   */
+  140:  /*              2) copy initialization data from ROM to RAM     */
+  141:  /*              3) call global constructors in C++              */
+  142:  /*   called from: _Startup, LibInits                            */
+  143:     asm {
+  144:  ZeroOut:
+  145:  #if defined(__HIWARE_OBJECT_FILE_FORMAT__) && defined(__LARGE__)
+  146:               LDX   _startupData.pZeroOut:1  ; in the large memory model in the HIWARE format, pZeroOut is a 24 bit pointer
+  147:  #else
+  148:               LDX   _startupData.pZeroOut    ; *pZeroOut
+  0000 fe0000       [3]     LDX   _startupData:2
+  149:  #endif
+  150:               LDY   _startupData.nofZeroOuts ; nofZeroOuts
+  0003 fd0000       [3]     LDY   _startupData
+  151:               BEQ   CopyDown                 ; if nothing to zero out
+  0006 270e         [3/1]   BEQ   *+16 ;abs = 0016
+  152:  
+  153:  NextZeroOut: PSHY                           ; save nofZeroOuts
+  0008 35           [2]     PSHY  
+  154:  #if defined(FAR_DATA)
+  155:               LDAB  1,X+                     ; load page of destination address
+  156:               LDY   2,X+                     ; load offset of destination address
+  157:  #if defined(__HCS12X__)
+  158:               STAB  __GPAGE_ADR__
+  159:  #else /* defined(__HCS12X__) */
+  160:               __PIC_JSR(_SET_PAGE)           ; sets the page in the correct page register
+  161:  #endif /* defined(__HCS12X__) */
+  162:  #else   /* FAR_DATA */
+  163:               LDY   2,X+                     ; start address and advance *pZeroOut (X = X+4)
+  0009 ed31         [3]     LDY   2,X+
+  164:  #endif  /* FAR_DATA */
+  165:  
+  166:  #if defined(__HCS12X__) && defined(FAR_DATA)
+  167:               PSHX
+  168:               LDX   0,X                      ; byte count
+  169:  #if defined(__OPTIMIZE_FOR_SIZE__)
+  170:               CLRA
+  171:  NextWord:    GSTAA 1,Y+                     ; clear memory byte
+  172:               __FEED_COP_IN_HLI()            ; feed the COP if necessary /*lint !e505 !e522 asm code */
+  173:               DBNE  X, NextWord              ; dec byte count
+  174:  #else
+  175:               LDD #0
+  176:               LSRX
+  177:               BEQ   LoopClrW1                ; do we copy more than 1 byte?
+  178:  NextWord:    GSTD 2,Y+                      ; clear memory word
+  179:               __FEED_COP_IN_HLI()            ; feed the COP if necessary /*lint !e505 !e522 asm code */
+  180:               DBNE  X, NextWord              ; dec word count
+  181:  LoopClrW1:
+  182:               BCC   LastClr                  ; handle last byte
+  183:               GSTAA 1,Y+											; handle last byte
+  184:  LastClr:
+  185:  #endif
+  186:               PULX
+  187:               LEAX  2,X
+  188:  #elif defined(__OPTIMIZE_FOR_SIZE__)               /* -os, default */
+  189:               LDD   2,X+                     ; byte count
+  000b ec31         [3]     LDD   2,X+
+  190:  NextWord:    CLR   1,Y+                     ; clear memory byte
+  000d 6970         [2]     CLR   1,Y+
+  191:               __FEED_COP_IN_HLI()            ; feed the COP if necessary /*lint !e505 !e522 asm code */
+  192:               DBNE  D, NextWord              ; dec byte count
+  000f 0434fb       [3]     DBNE  D,*-2 ;abs = 000d
+  193:  #else /* __OPTIMIZE_FOR_TIME__ */
+  194:               LDD   2,X+                     ; byte count
+  195:               LSRD                           ; /2 and save bit 0 in the carry
+  196:               BEQ   LoopClrW1                ; do we copy more than 1 byte?
+  197:               PSHX
+  198:               LDX   #0
+  199:  LoopClrW:    STX   2,Y+                     ; Word-Clear
+  200:               __FEED_COP_IN_HLI()            ; feed the COP if necessary /*lint !e505 !e522 asm code */
+  201:               DBNE  D, LoopClrW
+  202:               PULX
+  203:  LoopClrW1:
+  204:               BCC   LastClr                  ; handle last byte
+  205:               CLR   1,Y+
+  206:  LastClr:
+  207:  #endif /* __OPTIMIZE_FOR_SIZE__/__OPTIMIZE_FOR_TIME__ */
+  208:               PULY                           ; restore nofZeroOuts
+  0012 31           [3]     PULY  
+  209:               DEY                            ; dec nofZeroOuts
+  0013 03           [1]     DEY   
+  210:               BNE  NextZeroOut
+  0014 26f2         [3/1]   BNE   *-12 ;abs = 0008
+  211:  CopyDown:
+  212:  #if defined(__BANKED_COPY_DOWN)
+  213:               LDAA  _startupData.toCopyDownBeg:0 ; get PAGE address of .copy section
+  214:               STAA	 __PPAGE_ADR__          ; set PPAGE address
+  215:               LDX   _startupData.toCopyDownBeg:1 ; load address of copy down desc.
+  216:  #elif defined(__ELF_OBJECT_FILE_FORMAT__)
+  217:               LDX   _startupData.toCopyDownBeg ; load address of copy down desc.
+  0016 fe0000       [3]     LDX   _startupData:4
+  218:  #else
+  219:               LDX   _startupData.toCopyDownBeg:2 ; load address of copy down desc.
+  220:  #endif
+  221:  NextBlock:
+  222:               LDD   2,X+                     ; size of init-data -> D
+  0019 ec31         [3]     LDD   2,X+
+  223:               BEQ   funcInits                ; end of copy down desc.
+  001b 270b         [3/1]   BEQ   *+13 ;abs = 0028
+  224:  #ifdef FAR_DATA
+  225:               PSHD                           ; save counter
+  226:               LDAB  1,X+                     ; load destination page
+  227:               LDY   2,X+                     ; destination address
+  228:  #if defined(__HCS12X__)
+  229:               STAB  __GPAGE_ADR__
+  230:  #else  /* __HCS12X__ */
+  231:               __PIC_JSR(_SET_PAGE)           ; sets the destinations page register
+  232:  #endif /* __HCS12X__ */
+  233:               PULD                           ; restore counter
+  234:  #else  /* FAR_DATA */
+  235:               LDY   2,X+                     ; load destination address
+  001d ed31         [3]     LDY   2,X+
+  236:  #endif /* FAR_DATA */
+  237:  
+  238:  #if defined(__HCS12X__) && defined(FAR_DATA)
+  239:  #if defined(__OPTIMIZE_FOR_SIZE__)               /* -os, default */
+  240:  Copy:        PSHA
+  241:               LDAA  1,X+
+  242:               GSTAA  1,Y+                    ; move a byte from ROM to the data area
+  243:               PULA
+  244:               __FEED_COP_IN_HLI()            ; feed the COP if necessary /*lint !e505 !e522 asm code */
+  245:               DBNE  D,Copy                   ; copy-byte loop
+  246:  #else
+  247:               LSRD                           ; /2 and save bit 0 in the carry
+  248:               BEQ    Copy1                   ; do we copy more than 1 byte?
+  249:  
+  250:  Copy:        PSHD
+  251:               LDD   2,X+
+  252:               GSTD  2,Y+                     ; move a word from ROM to the data area
+  253:               PULD
+  254:               __FEED_COP_IN_HLI()            ; feed the COP if necessary /*lint !e505 !e522 asm code */
+  255:               DBNE  D,Copy                   ; copy-word loop
+  256:  Copy1:
+  257:               BCC   NextBlock                ; handle last byte?
+  258:               LDAA  1,X+
+  259:               GSTAA  1,Y+                    ; move a byte from ROM to the data area
+  260:  #endif
+  261:  #elif defined(__OPTIMIZE_FOR_SIZE__)               /* -os, default */
+  262:  Copy:        MOVB  1,X+,1,Y+                ; move a byte from ROM to the data area
+  001f 180a3070     [5]     MOVB  1,X+,1,Y+
+  263:               __FEED_COP_IN_HLI()            ; feed the COP if necessary /*lint !e505 !e522 asm code */
+  264:               DBNE  D,Copy                   ; copy-byte loop
+  0023 0434f9       [3]     DBNE  D,*-4 ;abs = 001f
+  265:  #else /* __OPTIMIZE_FOR_TIME__ */
+  266:               LSRD                           ; /2 and save bit 0 in the carry
+  267:               BEQ   Copy1                    ; do we copy more than 1 byte?
+  268:  Copy:        MOVW  2,X+,2,Y+                ; move a word from ROM to the data area
+  269:               __FEED_COP_IN_HLI()            ; feed the COP if necessary /*lint !e505 !e522 asm code */
+  270:               DBNE  D,Copy                   ; copy-word loop
+  271:  Copy1:
+  272:               BCC   NextBlock                ; handle last byte?
+  273:               MOVB  1,X+,1,Y+                ; copy the last byte
+  274:  #endif /* __OPTIMIZE_FOR_SIZE__/__OPTIMIZE_FOR_TIME__ */
+  275:               BRA   NextBlock
+  0026 20f1         [3]     BRA   *-13 ;abs = 0019
+  276:  funcInits:                                  ; call of global construtors is only in c++ necessary
+  277:  #if defined(__cplusplus)
+  278:  #if defined(__ELF_OBJECT_FILE_FORMAT__)
+  279:  #if defined( __BANKED__) || defined(__LARGE__)
+  280:               LDY   _startupData.nofInitBodies; load number of cpp.
+  281:               BEQ   done                     ; if cppcount == 0, goto done
+  282:               LDX   _startupData.initBodies  ; load address of first module to initialize
+  283:  nextInit:
+  284:               LEAX   3,X                     ; increment to next init
+  285:               PSHX                           ; save address of next function to initialize
+  286:               PSHY                           ; save cpp counter
+  287:               CALL  [-3,X]                   ; use double indirect call to load the page register also
+  288:               PULY                           ; restore cpp counter
+  289:               PULX                           ; restore actual address
+  290:               DEY                            ; decrement cpp counter
+  291:               BNE    nextInit
+  292:  #else  /* defined( __BANKED__) || defined(__LARGE__) */
+  293:  
+  294:               LDD   _startupData.nofInitBodies; load number of cpp.
+  295:               BEQ   done                     ; if cppcount == 0, goto done
+  296:               LDX   _startupData.initBodies  ; load address of first module to initialize
+  297:  nextInit:
+  298:               LDY   2,X+                     ; load address of first module to initialize
+  299:               PSHD
+  300:               PSHX                           ; save actual address
+  301:               JSR   0,Y                      ; call initialization function
+  302:               PULX                           ; restore actual address
+  303:               PULD                           ; restore cpp counter
+  304:               DBNE D, nextInit
+  305:  #endif /* defined( __BANKED__) || defined(__LARGE__) */
+  306:  #else /* __ELF_OBJECT_FILE_FORMAT__  */
+  307:               LDX   _startupData.mInits      ; load address of first module to initialize
+  308:  #if defined( __BANKED__) || defined(__LARGE__)
+  309:  nextInit:    LDY   3,X+                     ; load address of initialization function
+  310:               BEQ   done                     ; stop when address  == 0
+  311:                                              ; in common environments the offset of a function is never 0, so this test could be avoided
+  312:  #ifdef __InitFunctionsMayHaveOffset0__
+  313:               BRCLR -1,X, done, 0xff         ; stop when address  == 0
+  314:  #endif  /* __InitFunctionsMayHaveOffset0__ */
+  315:               PSHX                           ; save address of next function to initialize
+  316:               CALL  [-3,X]                   ; use double indirect call to load the page register also
+  317:  #else  /* defined( __BANKED__) || defined(__LARGE__) */
+  318:  nextInit:
+  319:               LDY   2,X+                     ; load address of first module to initialize
+  320:               BEQ   done                     ; stop when address of function == 0
+  321:               PSHX                           ; save actual address
+  322:               JSR   0,Y                      ; call initialization function
+  323:  #endif /* defined( __BANKED__) || defined(__LARGE__) */
+  324:               PULX                           ; restore actual address
+  325:               BRA   nextInit
+  326:  #endif  /* __ELF_OBJECT_FILE_FORMAT__  */
+  327:  done:
+  328:  #endif /* __cplusplus */
+  329:     }
+  330:  }
+  0028 3d           [5]     RTS   
+  331:  #endif /* __ONLY_INIT_SP */
+  332:  
+  333:  #if defined( __ELF_OBJECT_FILE_FORMAT__) && defined(__cplusplus ) && 0 /* the call to main does not support to return anymore */
+  334:  
+  335:  #if !defined(FAR_DATA) && (defined( __BANKED__) || defined(__LARGE__))
+  336:  static void __far Fini(void)
+  337:  #else
+  338:  static void Fini(void)
+  339:  #endif
+  340:  {
+  341:  /* purpose:     1) call global destructors in C++ */
+  342:     asm {
+  343:  #if defined( __BANKED__) || defined(__LARGE__)
+  344:  
+  345:               LDY   _startupData.nofFiniBodies; load number of cpp.
+  346:               BEQ   done                     ; if cppcount == 0, goto done
+  347:               LDX   _startupData.finiBodies  ; load address of first module to finalize
+  348:  nextInit2:
+  349:               LEAX   3,X                     ; increment to next init
+  350:               PSHX                           ; save address of next function to finalize
+  351:               PSHY                           ; save cpp counter
+  352:               CALL  [-3,X]                   ; use double indirect call to load the page register also
+  353:               PULY                           ; restore cpp counter
+  354:               PULX                           ; restore actual address
+  355:               DEY                            ; decrement cpp counter
+  356:               BNE    nextInit2
+  357:  #else  /* defined( __BANKED__) || defined(__LARGE__) */
+  358:  
+  359:               LDD   _startupData.nofFiniBodies; load number of cpp.
+  360:               BEQ   done                     ; if cppcount == 0, goto done
+  361:               LDX   _startupData.finiBodies  ; load address of first module to finalize
+  362:  nextInit2:
+  363:               LDY   2,X+                     ; load address of first module to finalize
+  364:               PSHD
+  365:               PSHX                           ; save actual address
+  366:               JSR   0,Y                      ; call finalize function
+  367:               PULX                           ; restore actual address
+  368:               PULD                           ; restore cpp counter
+  369:               DBNE D, nextInit2
+  370:  #endif /* defined(__BANKED__) || defined(__LARGE__) */
+  371:  done:;
+  372:     }
+  373:  }
+  374:  #endif
+  375:  
+  376:  /*lint -e451 non_bank.sgm contains a conditionally compiled CODE_SEG pragma */
+  377:  #include "non_bank.sgm"
+  378:  /*lint +e451 */
+  379:  
+  380:  #pragma MESSAGE DISABLE C12053 /* Stack-pointer change not in debugging-information */
+  381:  #pragma NO_FRAME
+  382:  #pragma NO_ENTRY
+  383:  #if !defined(__SMALL__)
+  384:  #pragma NO_EXIT
+  385:  #endif
+  386:  
+  387:  /* The function _Startup must be called in order to initialize global variables and to call main */
+  388:  /* You can adapt this function or call it from your startup code to implement a different startup */
+  389:  /* functionality. */
+  390:  
+  391:  /* You should also setup the needed IO registers as WINDEF (HC12A4 only) or the COP registers to run */
+  392:  /* on hardware */
+  393:  
+  394:  /* to set the reset vector several ways are possible : */
+  395:  /* 1. define the function with "interrupt 0" as done below in the first case */
+  396:  /* 2. add the following line to your prm file : VECTOR ADDRESS 0xfffe _Startup */
+  397:  /* of course, even more posibilities exists */
+  398:  /* the reset vector must be set so that the application has a defined entry point */
+  399:  
+  400:  #if defined(__SET_RESET_VECTOR__)
+  401:  __EXTERN_C void __interrupt 0 _Startup(void) {
+  402:  #else
+  403:  __EXTERN_C void _Startup(void) {
+*** EVALUATION ***
+
+Function: _Startup
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources\Start12.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\prm;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\xbee_proj_working_Data\HCS12_Serial_Monitor\ObjectCode\Start12.c.o -WmsgSd12053
+
+  404:  #endif
+  405:  /*  purpose:    1)  initialize the stack
+  406:                  2)  initialize the RAM, copy down init data etc (Init)
+  407:                  3)  call main;
+  408:      parameters: NONE
+  409:      called from: _PRESTART-code generated by the Linker
+  410:                   or directly referenced by the reset vector */
+  411:  
+  412:     /* initialize the stack pointer */
+  413:     /*lint -e{960} , MISRA 14.3 REQ, macro INIT_SP_FROM_STARTUP_DESC() expands to HLI code */ 
+  414:     /*lint -e{522} , MISRA 14.2 REQ, macro INIT_SP_FROM_STARTUP_DESC() expands to HLI code */    
+  415:     INIT_SP_FROM_STARTUP_DESC(); /* HLI macro definition in hidef.h */
+  0000 cf0000       [2]     LDS   #__SEG_END_SSTACK
+  416:  #if defined(_HCS12_SERIALMON)
+  417:     /* for Monitor based software remap the RAM & EEPROM to adhere
+  418:        to EB386. Edit RAM and EEPROM sections in PRM file to match these. */
+  419:     ___INITRG = 0x00;  /* lock registers block to 0x0000 */
+  0003 790011       [3]     CLR   17
+  420:     ___INITRM = 0x39;  /* lock Ram to end at 0x3FFF */
+  0006 cc0939       [2]     LDD   #2361
+  0009 5b10         [2]     STAB  16
+  421:     ___INITEE = 0x09;  /* lock EEPROM block to end at 0x0fff */
+  000b 5a12         [2]     STAA  18
+  422:  #endif
+  423:  
+  424:     /* Here user defined code could be inserted, the stack could be used */
+  425:  #if defined(_DO_DISABLE_COP_)
+  426:     _DISABLE_COP();
+  427:  #endif
+  428:  
+  429:     /* Example : Set up WinDef Register to allow Paging */
+  430:  #ifdef HC812A4 /* HC12 A4 derivative needs WINDEF to configure which pages are available */
+  431:  #if  (__ENABLE_EPAGE__ != 0 ||  __ENABLE_DPAGE__ != 0 || __ENABLE_PPAGE__ != 0)
+  432:     WINDEF= __ENABLE_EPAGE__ | __ENABLE_DPAGE__  | __ENABLE_PPAGE__;
+  433:  #endif
+  434:  #endif
+  435:  
+  436:  #if (defined(__MAP_RAM__) || defined(__MAP_FLASH__) || defined(__MAP_EXTERNAL__)) && !defined(__DO_SET_MMCTL1__)
+  437:  #define __DO_SET_MMCTL1__
+  438:  #endif
+  439:  
+  440:  
+  441:  #if defined(__DO_SET_MMCTL1__)
+  442:    /* Set the MMCTL1 byte. Please use for HCS12XE and change the bits according   */
+  443:    /* to your configuration.                                                      */
+  444:    /* Note: MMCTL1 is write once therefore please adapt this initialization here. */
+  445:    /* This has to be done prior to the call to Init.                              */
+  446:  #define _MMCTL1_ADR (0x00000013)
+  447:  #define _MMCTL1_BIT_TGMRAMON (1<<7)  /* EEE Tag RAM and FTM SCRATCH RAM visible in the memory map */
+  448:  #define _MMCTL1_BIT_EEEIFRON (1<<5)  /* EEE IFR visible in the memory map                         */
+  449:  #define _MMCTL1_BIT_PGMIFRON (1<<4)  /* Program IFR visible in the memory map                     */
+  450:  #define _MMCTL1_BIT_RAMHM    (1<<3)  /* RAM only in the higher half of the memory map             */
+  451:  #define _MMCTL1_BIT_EROMON   (1<<2)  /* Enables emulated Flash or ROM memory in the memory map    */
+  452:  #define _MMCTL1_BIT_ROMHM    (1<<1)  /* FLASH or ROM only in higher Half of Memory Map            */
+  453:  #define _MMCTL1_BIT_ROMON    (1<<0)  /* Enable FLASH or ROM in the memory map                     */
+  454:  
+  455:  #define _MMCTL1_SET(value)   ((*(volatile unsigned char*)_MMCTL1_ADR)= (value))
+  456:  
+  457:  #if defined(__MAP_FLASH__)
+  458:    _MMCTL1_SET(_MMCTL1_BIT_ROMON | _MMCTL1_BIT_EROMON);
+  459:  #elif defined(__MAP_EXTERNAL__)
+  460:    _MMCTL1_SET(_MMCTL1_BIT_ROMON | _MMCTL1_BIT_EROMON | _MMCTL1_BIT_ROMHM);
+  461:  #else /* RAM */
+  462:    _MMCTL1_SET(_MMCTL1_BIT_ROMON | _MMCTL1_BIT_EROMON | _MMCTL1_BIT_RAMHM | _MMCTL1_BIT_ROMHM);
+  463:  #endif    
+  464:  #endif
+  465:  
+  466:  #ifndef __ONLY_INIT_SP
+  467:     /*lint -e{522} , MISRA 14.2 REQ, function Init() contains HLI only */
+  468:     Init(); /* zero out, copy down, call constructors */
+  000d 0700         [4]     BSR   Init
+  469:  #endif
+  470:  
+  471:     /* Here user defined code could be inserted, all global variables are initilized */
+  472:  #if defined(_DO_ENABLE_COP_)
+  473:     _ENABLE_COP(1);
+  474:  #endif
+  475:  
+  476:     /* call main() */
+  477:     main();
+  000f 060000       [3]     JMP   main
+  478:  }
+  479:  
+  480:  /*lint --e{766} , non_bank.sgm is not a regular header file, it contains a conditionally compiled CODE_SEG pragma */
+  481:  /*lint +estring(961,"only preprocessor statements and comments before '#include'") */
+  482:  /*lint +e451 */
+  483:  

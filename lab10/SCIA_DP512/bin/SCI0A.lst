@@ -1,0 +1,612 @@
+ANSI-C/cC++ Compiler for HC12 V-5.0.35 Build 8093, Apr  3 2008
+
+    1:  // filename  ***************  SCI0.C ****************************** 
+    2:  // Interrupting I/O routines to 9S12DP512 serial port   
+    3:  // Jonathan W. Valvano 9/2/09
+    4:  
+    5:  //  This example accompanies the books
+    6:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+    7:  //        Thompson, copyright (c) 2006,
+    8:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+    9:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   10:  
+   11:  // Copyright 2009 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   12:  //    You may use, edit, run or distribute this file 
+   13:  //    as long as the above copyright notice remains 
+   14:  // Modified by EE345L students Charlie Gough && Matt Hawk
+   15:  // Modified by EE345M students Agustinus Darmawan + Mingjie Qiu
+   16:   
+   17:  #include <mc9s12dp512.h>     /* derivative information */
+   18:  #include "SCI0A.h"
+   19:  #include "RxFifo.h"  
+   20:  #include "TxFifo.h"  
+   21:  #define RDRF 0x20   // Receive Data Register Full Bit
+   22:  #define TDRE 0x80   // Transmit Data Register Empty Bit
+   23:  unsigned short RxHistogram[RXFIFOSIZE]; // collected before put
+   24:  unsigned short TxHistogram[TXFIFOSIZE]; // collected before put
+   25:  
+   26:  //-------------------------SCI0_Init------------------------
+   27:  // Initialize Serial port SCI0
+   28:  // Input: baudRate is tha baud rate in bits/sec
+   29:  // Output: none
+   30:  // assumes a module clock frequency of 24 MHz
+   31:  void SCI0_Init(unsigned long baudRate){
+
+Function: SCI0_Init
+Source  : D:\EE345L\9S12DP512\SCIA_DP512\Sources\SCI0A.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\9S12DP512\SCIA_DP512;D:\EE345L\9S12DP512\SCIA_DP512\bin;D:\EE345L\9S12DP512\SCIA_DP512\prm;D:\EE345L\9S12DP512\SCIA_DP512\cmd;D:\EE345L\9S12DP512\SCIA_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\SCIA_DP512\SCIA_DP512_Data\HCS12_Serial_Monitor\ObjectCode\SCI0A.C.o -WmsgSd1106
+
+  0000 6caa         [2]     STD   6,-SP
+  0002 34           [2]     PSHX  
+   32:  unsigned long br;
+   33:    RxFifo_Init();
+  0003 160000       [4]     JSR   RxFifo_Init
+   34:    TxFifo_Init();
+  0006 160000       [4]     JSR   TxFifo_Init
+   35:    SCI0BDH = 0;   
+  0009 790000       [3]     CLR   _SCI0BD
+   36:    br=(1500000+baudRate/2)/baudRate; // MCLK/(16*baudRate) 
+  000c ee82         [3]     LDX   2,SP
+  000e ec80         [3]     LDD   0,SP
+  0010 49           [1]     LSRD  
+  0011 b7c5         [1]     EXG   D,X
+  0013 46           [1]     RORA  
+  0014 56           [1]     RORB  
+  0015 c3e360       [2]     ADDD  #58208
+  0018 b7c5         [1]     EXG   D,X
+  001a c916         [1]     ADCB  #22
+  001c 8900         [1]     ADCA  #0
+  001e ed82         [3]     LDY   2,SP
+  0020 35           [2]     PSHY  
+  0021 ed82         [3]     LDY   2,SP
+  0023 35           [2]     PSHY  
+  0024 b7c5         [1]     EXG   D,X
+  0026 160000       [4]     JSR   _LDIVU
+  0029 6c86         [2]     STD   6,SP
+  002b 6e84         [2]     STX   4,SP
+   37:    SCI0BDL= (unsigned char) br; 
+  002d e687         [3]     LDAB  7,SP
+  002f 5b00         [2]     STAB  _SCI0BD:1
+   38:    SCI0CR1 = 0;
+  0031 790000       [3]     CLR   _SCI0CR1
+   39:  /* bit value meaning
+   40:      7   0    LOOPS, no looping, normal
+   41:      6   0    WOMS, normal high/low outputs
+   42:      5   0    RSRC, not appliable with LOOPS=0
+   43:      4   0    M, 1 start, 8 data, 1 stop
+   44:      3   0    WAKE, wake by idle (not applicable)
+   45:      2   0    ILT, short idle time (not applicable)
+   46:      1   0    PE, no parity
+   47:      0   0    PT, parity type (not applicable with PE=0) */ 
+   48:    SCI0CR2 = 0x2C; 
+  0034 c62c         [1]     LDAB  #44
+  0036 5b00         [2]     STAB  _SCI0CR2
+   49:  /* bit value meaning
+   50:      7   0    TIE, no transmit interrupts on TDRE
+   51:      6   0    TCIE, no transmit interrupts on TC
+   52:      5   1    RIE, no receive interrupts on RDRF
+   53:      4   0    ILIE, no interrupts on idle
+   54:      3   1    TE, enable transmitter
+   55:      2   1    RE, enable receiver
+   56:      1   0    RWU, no receiver wakeup
+   57:      0   0    SBK, no send break */ 
+   58:  }
+  0038 1b88         [2]     LEAS  8,SP
+  003a 3d           [5]     RTS   
+   59:      
+   60:  //-------------------------SCI0_InChar------------------------
+   61:  // Wait for new serial port input, interrupt synchronization
+   62:  // The input is not echoed
+   63:  // Input: none
+   64:  // Output: ASCII code for key typed
+   65:  char SCI0_InChar(void){ 
+
+Function: SCI0_InChar
+Source  : D:\EE345L\9S12DP512\SCIA_DP512\Sources\SCI0A.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\9S12DP512\SCIA_DP512;D:\EE345L\9S12DP512\SCIA_DP512\bin;D:\EE345L\9S12DP512\SCIA_DP512\prm;D:\EE345L\9S12DP512\SCIA_DP512\cmd;D:\EE345L\9S12DP512\SCIA_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\SCIA_DP512\SCIA_DP512_Data\HCS12_Serial_Monitor\ObjectCode\SCI0A.C.o -WmsgSd1106
+
+  0000 36           [2]     PSHA  
+   66:  char letter;
+   67:    while (RxFifo_Get(&letter) == 0){};
+  0001 b774         [1]     TFR   SP,D
+  0003 160000       [4]     JSR   RxFifo_Get
+  0006 0454f8       [3]     TBEQ  D,*-5 ;abs = 0001
+   68:    return(letter);
+  0009 e680         [3]     LDAB  0,SP
+   69:  }
+  000b 32           [3]     PULA  
+  000c 3d           [5]     RTS   
+   70:  
+   71:  
+   72:  //-------------------------SCI0_OutChar------------------------
+   73:  // Wait for fifo to have room, output 8-bit to serial port
+   74:  // interrupt synchronization
+   75:  // Input: 8-bit data to be transferred
+   76:  // Output: none
+   77:  void SCI0_OutChar(char data){
+
+Function: SCI0_OutChar
+Source  : D:\EE345L\9S12DP512\SCIA_DP512\Sources\SCI0A.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\9S12DP512\SCIA_DP512;D:\EE345L\9S12DP512\SCIA_DP512\bin;D:\EE345L\9S12DP512\SCIA_DP512\prm;D:\EE345L\9S12DP512\SCIA_DP512\cmd;D:\EE345L\9S12DP512\SCIA_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\SCIA_DP512\SCIA_DP512_Data\HCS12_Serial_Monitor\ObjectCode\SCI0A.C.o -WmsgSd1106
+
+  0000 37           [2]     PSHB  
+   78:    TxHistogram[TxFifo_Size()]++;    // analysis of FIFO 
+  0001 160000       [4]     JSR   TxFifo_Size
+  0004 59           [1]     LSLD  
+  0005 b745         [1]     TFR   D,X
+  0007 ede20000     [4]     LDY   TxHistogram,X
+  000b 02           [1]     INY   
+  000c 6de20000     [3]     STY   TxHistogram,X
+   79:    while (TxFifo_Put(data) == 0){}; // spin if TxFifo is full
+  0010 e680         [3]     LDAB  0,SP
+  0012 160000       [4]     JSR   TxFifo_Put
+  0015 0454f8       [3]     TBEQ  D,*-5 ;abs = 0010
+   80:    SCI0CR2 = 0xAC; /* arm TDRE */
+  0018 c6ac         [1]     LDAB  #172
+  001a 5b00         [2]     STAB  _SCI0CR2
+   81:  }
+  001c 32           [3]     PULA  
+  001d 3d           [5]     RTS   
+   82:      
+   83:  //-------------------------SCI0_InStatus--------------------------
+   84:  // Checks if new input is ready, TRUE if new input is ready
+   85:  // Input: none
+   86:  // Output: TRUE if a call to InChar will return right away with data
+   87:  //         FALSE if a call to InChar will wait for input
+   88:  char SCI0_InStatus(void){  
+
+Function: SCI0_InStatus
+Source  : D:\EE345L\9S12DP512\SCIA_DP512\Sources\SCI0A.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\9S12DP512\SCIA_DP512;D:\EE345L\9S12DP512\SCIA_DP512\bin;D:\EE345L\9S12DP512\SCIA_DP512\prm;D:\EE345L\9S12DP512\SCIA_DP512\cmd;D:\EE345L\9S12DP512\SCIA_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\SCIA_DP512\SCIA_DP512_Data\HCS12_Serial_Monitor\ObjectCode\SCI0A.C.o -WmsgSd1106
+
+   89:    return((char) RxFifo_Status());
+  0000 160000       [4]     JSR   RxFifo_Status
+   90:  }
+  0003 3d           [5]     RTS   
+   91:  
+   92:  //-----------------------SCI0_OutStatus----------------------------
+   93:  // Checks if there is room in the FIFO, 
+   94:  // TRUE if a call to OutChar will not spin
+   95:  char SCI0_OutStatus(void){
+
+Function: SCI0_OutStatus
+Source  : D:\EE345L\9S12DP512\SCIA_DP512\Sources\SCI0A.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\9S12DP512\SCIA_DP512;D:\EE345L\9S12DP512\SCIA_DP512\bin;D:\EE345L\9S12DP512\SCIA_DP512\prm;D:\EE345L\9S12DP512\SCIA_DP512\cmd;D:\EE345L\9S12DP512\SCIA_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\SCIA_DP512\SCIA_DP512_Data\HCS12_Serial_Monitor\ObjectCode\SCI0A.C.o -WmsgSd1106
+
+   96:    return((char) TxFifo_Status());
+  0000 160000       [4]     JSR   TxFifo_Status
+   97:  }
+  0003 3d           [5]     RTS   
+   98:  
+   99:  /*---------------------Sci0Handler---------------------------*/
+  100:  // RDRF set on new receive data
+  101:  // TDRE set on an empty transmit data register
+  102:  interrupt 20 void Sci0Handler(void){ char data; 
+
+Function: Sci0Handler
+Source  : D:\EE345L\9S12DP512\SCIA_DP512\Sources\SCI0A.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\9S12DP512\SCIA_DP512;D:\EE345L\9S12DP512\SCIA_DP512\bin;D:\EE345L\9S12DP512\SCIA_DP512\prm;D:\EE345L\9S12DP512\SCIA_DP512\cmd;D:\EE345L\9S12DP512\SCIA_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\SCIA_DP512\SCIA_DP512_Data\HCS12_Serial_Monitor\ObjectCode\SCI0A.C.o -WmsgSd1106
+
+  0000 36           [2]     PSHA  
+  103:    if(SCI0SR1 & RDRF){ 
+  0001 4f002014     [4]     BRCLR _SCI0SR1,#32,*+24 ;abs = 0019
+  104:      RxHistogram[RxFifo_Size()]++;
+  0005 160000       [4]     JSR   RxFifo_Size
+  0008 59           [1]     LSLD  
+  0009 b745         [1]     TFR   D,X
+  000b ede20000     [4]     LDY   RxHistogram,X
+  000f 02           [1]     INY   
+  0010 6de20000     [3]     STY   RxHistogram,X
+  105:      RxFifo_Put(SCI0DRL); // clears RDRF
+  0014 d600         [3]     LDAB  _SCI0DRL
+  0016 160000       [4]     JSR   RxFifo_Put
+  106:    }
+  107:    if((SCI0CR2&0x80)&&(SCI0SR1&TDRE)){
+  0019 4f008016     [4]     BRCLR _SCI0CR2,#128,*+26 ;abs = 0033
+  001d 4f008012     [4]     BRCLR _SCI0SR1,#128,*+22 ;abs = 0033
+  108:      if(TxFifo_Get(&data)){
+  0021 b774         [1]     TFR   SP,D
+  0023 160000       [4]     JSR   TxFifo_Get
+  0026 044406       [3]     TBEQ  D,*+9 ;abs = 002f
+  109:        SCI0DRL = data;   // clears TDRE
+  0029 e680         [3]     LDAB  0,SP
+  002b 5b00         [2]     STAB  _SCI0DRL
+  110:      }
+  002d 2004         [3]     BRA   *+6 ;abs = 0033
+  111:      else{
+  112:        SCI0CR2 = 0x2c;   // disarm TDRE
+  002f c62c         [1]     LDAB  #44
+  0031 5b00         [2]     STAB  _SCI0CR2
+  113:      }
+  114:    } 
+  115:  }
+  0033 32           [3]     PULA  
+  0034 0b           [8]     RTI   
+  116:  
+  117:  //-------------------------SCI0_OutString------------------------
+  118:  // Output String (NULL termination), busy-waiting synchronization
+  119:  // Input: pointer to a NULL-terminated string to be transferred
+  120:  // Output: none
+  121:  void SCI0_OutString(char *pt){
+
+Function: SCI0_OutString
+Source  : D:\EE345L\9S12DP512\SCIA_DP512\Sources\SCI0A.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\9S12DP512\SCIA_DP512;D:\EE345L\9S12DP512\SCIA_DP512\bin;D:\EE345L\9S12DP512\SCIA_DP512\prm;D:\EE345L\9S12DP512\SCIA_DP512\cmd;D:\EE345L\9S12DP512\SCIA_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\SCIA_DP512\SCIA_DP512_Data\HCS12_Serial_Monitor\ObjectCode\SCI0A.C.o -WmsgSd1106
+
+  122:    while(*pt){
+  0000 b745         [1]     TFR   D,X
+  0002 2005         [3]     BRA   *+7 ;abs = 0009
+  123:      SCI0_OutChar(*pt);
+  0004 34           [2]     PSHX  
+  0005 0700         [4]     BSR   SCI0_OutChar
+  124:      pt++;
+  0007 30           [3]     PULX  
+  0008 08           [1]     INX   
+  0009 e600         [3]     LDAB  0,X
+  000b 26f7         [3/1]   BNE   *-7 ;abs = 0004
+  125:    }
+  126:  }
+  000d 3d           [5]     RTS   
+  127:  
+  128:  //----------------------SCI0_InUDec-------------------------------
+  129:  // InUDec accepts ASCII input in unsigned decimal format
+  130:  //     and converts to a 16 bit unsigned number
+  131:  //     valid range is 0 to 65535
+  132:  // Input: none
+  133:  // Output: 16-bit unsigned number
+  134:  // If you enter a number above 65535, it will truncate without an error
+  135:  // Backspace will remove last digit typed
+  136:  unsigned short SCI0_InUDec(void){	
+
+Function: SCI0_InUDec
+Source  : D:\EE345L\9S12DP512\SCIA_DP512\Sources\SCI0A.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\9S12DP512\SCIA_DP512;D:\EE345L\9S12DP512\SCIA_DP512\bin;D:\EE345L\9S12DP512\SCIA_DP512\prm;D:\EE345L\9S12DP512\SCIA_DP512\cmd;D:\EE345L\9S12DP512\SCIA_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\SCIA_DP512\SCIA_DP512_Data\HCS12_Serial_Monitor\ObjectCode\SCI0A.C.o -WmsgSd1106
+
+  0000 1b9b         [2]     LEAS  -5,SP
+  137:  unsigned short number=0, length=0;
+  0002 c7           [1]     CLRB  
+  0003 87           [1]     CLRA  
+  0004 6c83         [2]     STD   3,SP
+  0006 6c81         [2]     STD   1,SP
+  138:  char character;
+  139:    character = SCI0_InChar();	
+  140:    while(character != CR){ // accepts until <enter> is typed
+  0008 203b         [3]     BRA   *+61 ;abs = 0045
+  141:  // The next line checks that the input is a digit, 0-9.
+  142:  // If the character is not 0-9, it is ignored and not echoed
+  143:      if((character>='0') && (character<='9')) {
+  000a c030         [1]     SUBB  #48
+  000c c109         [1]     CMPB  #9
+  000e 2218         [3/1]   BHI   *+26 ;abs = 0028
+  144:        number = 10*number+(character-'0');   // this line overflows if above 65535
+  0010 e680         [3]     LDAB  0,SP
+  0012 b714         [1]     SEX   B,D
+  0014 830030       [2]     SUBD  #48
+  0017 b745         [1]     TFR   D,X
+  0019 c60a         [1]     LDAB  #10
+  001b 87           [1]     CLRA  
+  001c ed83         [3]     LDY   3,SP
+  001e 13           [3]     EMUL  
+  001f 1ae6         [2]     LEAX  D,X
+  0021 6e83         [2]     STX   3,SP
+  145:        length++;
+  0023 ee81         [3]     LDX   1,SP
+  0025 08           [1]     INX   
+  146:        SCI0_OutChar(character);
+  147:      } 
+  0026 2016         [3]     BRA   *+24 ;abs = 003e
+  148:  // If the input is a backspace, then the return number is
+  149:  // changed and a backspace is outputted to the screen
+  150:      else if((character==BS) && length){
+  0028 e680         [3]     LDAB  0,SP
+  002a c108         [1]     CMPB  #8
+  002c 2617         [3/1]   BNE   *+25 ;abs = 0045
+  002e ee81         [3]     LDX   1,SP
+  0030 2713         [3/1]   BEQ   *+21 ;abs = 0045
+  151:        number /= 10;
+  0032 ec83         [3]     LDD   3,SP
+  0034 ce000a       [2]     LDX   #10
+  0037 1810         [12]    IDIV  
+  0039 6e83         [2]     STX   3,SP
+  152:        length--;
+  003b ee81         [3]     LDX   1,SP
+  003d 09           [1]     DEX   
+  003e 6e81         [2]     STX   1,SP
+  153:        SCI0_OutChar(character);
+  0040 e680         [3]     LDAB  0,SP
+  0042 160000       [4]     JSR   SCI0_OutChar
+  154:      }
+  155:      character = SCI0_InChar();	
+  0045 160000       [4]     JSR   SCI0_InChar
+  0048 6b80         [2]     STAB  0,SP
+  004a c10d         [1]     CMPB  #13
+  004c 26bc         [3/1]   BNE   *-66 ;abs = 000a
+  156:    }
+  157:    return number;
+  004e ec83         [3]     LDD   3,SP
+  158:  }
+  0050 1b85         [2]     LEAS  5,SP
+  0052 3d           [5]     RTS   
+  159:  
+  160:  
+  161:  //-----------------------SCI0_OutUDec-----------------------
+  162:  // Output a 16-bit number in unsigned decimal format
+  163:  // Input: 16-bit number to be transferred
+  164:  // Output: none
+  165:  // Variable format 1-5 digits with no space before or after
+  166:  void SCI0_OutUDec(unsigned short n){
+
+Function: SCI0_OutUDec
+Source  : D:\EE345L\9S12DP512\SCIA_DP512\Sources\SCI0A.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\9S12DP512\SCIA_DP512;D:\EE345L\9S12DP512\SCIA_DP512\bin;D:\EE345L\9S12DP512\SCIA_DP512\prm;D:\EE345L\9S12DP512\SCIA_DP512\cmd;D:\EE345L\9S12DP512\SCIA_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\SCIA_DP512\SCIA_DP512_Data\HCS12_Serial_Monitor\ObjectCode\SCI0A.C.o -WmsgSd1106
+
+  0000 3b           [2]     PSHD  
+  167:  // This function uses recursion to convert decimal number
+  168:  //   of unspecified length as an ASCII string 
+  169:    if(n >= 10){
+  0001 8c000a       [2]     CPD   #10
+  0004 2512         [3/1]   BCS   *+20 ;abs = 0018
+  170:      SCI0_OutUDec(n/10);
+  0006 ce000a       [2]     LDX   #10
+  0009 1810         [12]    IDIV  
+  000b b754         [1]     TFR   X,D
+  000d 0700         [4]     BSR   SCI0_OutUDec
+  171:      n = n%10;
+  000f ec80         [3]     LDD   0,SP
+  0011 ce000a       [2]     LDX   #10
+  0014 1810         [12]    IDIV  
+  0016 6c80         [2]     STD   0,SP
+  172:    }
+  173:    SCI0_OutChar(n+'0'); /* n is between 0 and 9 */
+  0018 e681         [3]     LDAB  1,SP
+  001a cb30         [1]     ADDB  #48
+  001c 160000       [4]     JSR   SCI0_OutChar
+  174:  }
+  001f 3a           [3]     PULD  
+  0020 3d           [5]     RTS   
+  175:  
+  176:  
+  177:  
+  178:  //---------------------SCI0_InUHex----------------------------------------
+  179:  // Accepts ASCII input in unsigned hexadecimal (base 16) format
+  180:  // Input: none
+  181:  // Output: 16-bit unsigned number
+  182:  // No '$' or '0x' need be entered, just the 1 to 4 hex digits
+  183:  // It will convert lower case a-f to uppercase A-F
+  184:  //     and converts to a 16 bit unsigned number
+  185:  //     value range is 0 to FFFF
+  186:  // If you enter a number above FFFF, it will truncate without an error
+  187:  // Backspace will remove last digit typed
+  188:  unsigned short SCI0_InUHex(void){	
+
+Function: SCI0_InUHex
+Source  : D:\EE345L\9S12DP512\SCIA_DP512\Sources\SCI0A.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\9S12DP512\SCIA_DP512;D:\EE345L\9S12DP512\SCIA_DP512\bin;D:\EE345L\9S12DP512\SCIA_DP512\prm;D:\EE345L\9S12DP512\SCIA_DP512\cmd;D:\EE345L\9S12DP512\SCIA_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\SCIA_DP512\SCIA_DP512_Data\HCS12_Serial_Monitor\ObjectCode\SCI0A.C.o -WmsgSd1106
+
+  0000 1b99         [2]     LEAS  -7,SP
+  189:  unsigned short number=0, digit, length=0;
+  0002 c7           [1]     CLRB  
+  0003 87           [1]     CLRA  
+  0004 6c83         [2]     STD   3,SP
+  0006 6c85         [2]     STD   5,SP
+  190:  char character;
+  191:    character = SCI0_InChar();
+  192:    while(character != CR){	
+  0008 2068         [3]     BRA   *+106 ;abs = 0072
+  193:      digit = 0x10; // assume bad
+  000a c610         [1]     LDAB  #16
+  000c 87           [1]     CLRA  
+  000d 6c81         [2]     STD   1,SP
+  194:      if((character>='0') && (character<='9')){
+  000f e680         [3]     LDAB  0,SP
+  0011 c030         [1]     SUBB  #48
+  0013 c109         [1]     CMPB  #9
+  0015 2209         [3/1]   BHI   *+11 ;abs = 0020
+  195:        digit = character-'0';
+  0017 e680         [3]     LDAB  0,SP
+  0019 b715         [1]     SEX   B,X
+  001b 1ae1d0       [2]     LEAX  -48,X
+  196:      }
+  001e 2020         [3]     BRA   *+34 ;abs = 0040
+  197:      else if((character>='A') && (character<='F')){ 
+  0020 e680         [3]     LDAB  0,SP
+  0022 c041         [1]     SUBB  #65
+  0024 c105         [1]     CMPB  #5
+  0026 2209         [3/1]   BHI   *+11 ;abs = 0031
+  198:        digit = (character-'A')+0xA;
+  0028 e680         [3]     LDAB  0,SP
+  002a b715         [1]     SEX   B,X
+  002c 1ae1c9       [2]     LEAX  -55,X
+  199:      }
+  002f 200f         [3]     BRA   *+17 ;abs = 0040
+  200:      else if((character>='a') && (character<='f')){ 
+  0031 e680         [3]     LDAB  0,SP
+  0033 c061         [1]     SUBB  #97
+  0035 c105         [1]     CMPB  #5
+  0037 2209         [3/1]   BHI   *+11 ;abs = 0042
+  201:        digit = (character-'a')+0xA;
+  0039 e680         [3]     LDAB  0,SP
+  003b b715         [1]     SEX   B,X
+  003d 1ae1a9       [2]     LEAX  -87,X
+  0040 6e81         [2]     STX   1,SP
+  202:      }
+  203:  // If the character is not 0-9 or A-F, it is ignored and not echoed
+  204:      if(digit <= 0xF){	
+  0042 ec81         [3]     LDD   1,SP
+  0044 8c000f       [2]     CPD   #15
+  0047 220f         [3/1]   BHI   *+17 ;abs = 0058
+  205:        number = number*0x10+digit;
+  0049 ec83         [3]     LDD   3,SP
+  004b 59           [1]     LSLD  
+  004c 59           [1]     LSLD  
+  004d 59           [1]     LSLD  
+  004e 59           [1]     LSLD  
+  004f e381         [3]     ADDD  1,SP
+  0051 6c83         [2]     STD   3,SP
+  206:        length++;
+  0053 ee85         [3]     LDX   5,SP
+  0055 08           [1]     INX   
+  207:        SCI0_OutChar(character);
+  208:      }
+  0056 2013         [3]     BRA   *+21 ;abs = 006b
+  209:  // Backspace outputted and return value changed if a backspace is inputted
+  210:      else if((character==BS) && length){
+  0058 e680         [3]     LDAB  0,SP
+  005a c108         [1]     CMPB  #8
+  005c 2614         [3/1]   BNE   *+22 ;abs = 0072
+  005e ee85         [3]     LDX   5,SP
+  0060 2710         [3/1]   BEQ   *+18 ;abs = 0072
+  211:        number /= 0x10;
+  0062 ec83         [3]     LDD   3,SP
+  0064 49           [1]     LSRD  
+  0065 49           [1]     LSRD  
+  0066 49           [1]     LSRD  
+  0067 49           [1]     LSRD  
+  0068 6c83         [2]     STD   3,SP
+  212:        length--;
+  006a 09           [1]     DEX   
+  006b 6e85         [2]     STX   5,SP
+  213:        SCI0_OutChar(character);
+  006d e680         [3]     LDAB  0,SP
+  006f 160000       [4]     JSR   SCI0_OutChar
+  214:      }
+  215:      character = SCI0_InChar();
+  0072 160000       [4]     JSR   SCI0_InChar
+  0075 6b80         [2]     STAB  0,SP
+  0077 c10d         [1]     CMPB  #13
+  0079 268f         [3/1]   BNE   *-111 ;abs = 000a
+  216:    }
+  217:    return number;
+  007b ec83         [3]     LDD   3,SP
+  218:  }
+  007d 1b87         [2]     LEAS  7,SP
+  007f 3d           [5]     RTS   
+  219:  
+  220:  //--------------------------SCI0_OutUHex----------------------------
+  221:  // Output a 16 bit number in unsigned hexadecimal format
+  222:  // Input: 16-bit number to be transferred
+  223:  // Output: none
+  224:  // Variable format 1 to 4 digits with no space before or after
+  225:  void SCI0_OutUHex(unsigned short number){
+
+Function: SCI0_OutUHex
+Source  : D:\EE345L\9S12DP512\SCIA_DP512\Sources\SCI0A.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\9S12DP512\SCIA_DP512;D:\EE345L\9S12DP512\SCIA_DP512\bin;D:\EE345L\9S12DP512\SCIA_DP512\prm;D:\EE345L\9S12DP512\SCIA_DP512\cmd;D:\EE345L\9S12DP512\SCIA_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\SCIA_DP512\SCIA_DP512_Data\HCS12_Serial_Monitor\ObjectCode\SCI0A.C.o -WmsgSd1106
+
+  0000 3b           [2]     PSHD  
+  226:  // This function uses recursion to convert the number of 
+  227:  //   unspecified length as an ASCII string
+  228:    if(number >= 0x10){
+  0001 8c0010       [2]     CPD   #16
+  0004 250f         [3/1]   BCS   *+17 ;abs = 0015
+  229:      SCI0_OutUHex(number/0x10);
+  0006 49           [1]     LSRD  
+  0007 49           [1]     LSRD  
+  0008 49           [1]     LSRD  
+  0009 49           [1]     LSRD  
+  000a 0700         [4]     BSR   SCI0_OutUHex
+  230:      SCI0_OutUHex(number%0x10);
+  000c ec80         [3]     LDD   0,SP
+  000e c40f         [1]     ANDB  #15
+  0010 87           [1]     CLRA  
+  0011 0700         [4]     BSR   SCI0_OutUHex
+  231:    }
+  0013 2012         [3]     BRA   *+20 ;abs = 0027
+  232:    else{
+  233:      if(number < 0xA){
+  0015 8c000a       [2]     CPD   #10
+  0018 2406         [3/1]   BCC   *+8 ;abs = 0020
+  234:        SCI0_OutChar(number+'0');
+  001a e681         [3]     LDAB  1,SP
+  001c cb30         [1]     ADDB  #48
+  235:       }
+  001e 2004         [3]     BRA   *+6 ;abs = 0024
+  236:      else{
+  237:        SCI0_OutChar((number-0x0A)+'A');
+  0020 e681         [3]     LDAB  1,SP
+  0022 cb37         [1]     ADDB  #55
+  0024 160000       [4]     JSR   SCI0_OutChar
+  238:      }
+  239:    }
+  240:  }
+  0027 3a           [3]     PULD  
+  0028 3d           [5]     RTS   
+  241:  
+  242:  //------------------------SCI0_InString------------------------
+  243:  // Accepts ASCII characters from the serial port
+  244:  //    and adds them to a string until <enter> is typed 
+  245:  //    or until max length of the string is reached.  
+  246:  // It echoes each character as it is inputted.  
+  247:  // If a backspace is inputted, the string is modified 
+  248:  //    and the backspace is echoed
+  249:  // terminates the string with a null character
+  250:  // uses busy-waiting synchronization on RDRF
+  251:  // Input: pointer to empty buffer, size of buffer
+  252:  // Output: Null terminated string
+  253:  // -- Modified by Agustinus Darmawan + Mingjie Qiu --
+  254:  void SCI0_InString(char *bufPt, unsigned short max) {	
+
+Function: SCI0_InString
+Source  : D:\EE345L\9S12DP512\SCIA_DP512\Sources\SCI0A.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\9S12DP512\SCIA_DP512;D:\EE345L\9S12DP512\SCIA_DP512\bin;D:\EE345L\9S12DP512\SCIA_DP512\prm;D:\EE345L\9S12DP512\SCIA_DP512\cmd;D:\EE345L\9S12DP512\SCIA_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\SCIA_DP512\SCIA_DP512_Data\HCS12_Serial_Monitor\ObjectCode\SCI0A.C.o -WmsgSd1106
+
+  0000 6cab         [2]     STD   5,-SP
+  255:  int length=0;
+  0002 c7           [1]     CLRB  
+  0003 87           [1]     CLRA  
+  0004 6c82         [2]     STD   2,SP
+  256:  char character;
+  257:    character = SCI0_InChar();
+  258:    while(character != CR){
+  0006 202b         [3]     BRA   *+45 ;abs = 0033
+  259:      if(character == BS){
+  0008 c108         [1]     CMPB  #8
+  000a 2613         [3/1]   BNE   *+21 ;abs = 001f
+  260:        if(length){
+  000c ee82         [3]     LDX   2,SP
+  000e 2723         [3/1]   BEQ   *+37 ;abs = 0033
+  261:          bufPt--;
+  0010 ed87         [3]     LDY   7,SP
+  0012 03           [1]     DEY   
+  0013 6d87         [2]     STY   7,SP
+  262:          length--;
+  0015 09           [1]     DEX   
+  0016 6e82         [2]     STX   2,SP
+  263:          SCI0_OutChar(BS);
+  0018 c608         [1]     LDAB  #8
+  001a 160000       [4]     JSR   SCI0_OutChar
+  264:        }
+  265:      }
+  001d 2014         [3]     BRA   *+22 ;abs = 0033
+  266:      else if(length < max){
+  001f ee82         [3]     LDX   2,SP
+  0021 ae80         [3]     CPX   0,SP
+  0023 240e         [3/1]   BCC   *+16 ;abs = 0033
+  267:        *bufPt = character;
+  0025 ee87         [3]     LDX   7,SP
+  0027 6b30         [2]     STAB  1,X+
+  268:        bufPt++;
+  0029 6e87         [2]     STX   7,SP
+  269:        length++; 
+  002b ee82         [3]     LDX   2,SP
+  002d 08           [1]     INX   
+  002e 6e82         [2]     STX   2,SP
+  270:        SCI0_OutChar(character);
+  0030 160000       [4]     JSR   SCI0_OutChar
+  271:      }
+  272:      character = SCI0_InChar();
+  0033 160000       [4]     JSR   SCI0_InChar
+  0036 6b84         [2]     STAB  4,SP
+  0038 c10d         [1]     CMPB  #13
+  003a 26cc         [3/1]   BNE   *-50 ;abs = 0008
+  273:    }
+  274:    *bufPt = 0;
+  003c ee87         [3]     LDX   7,SP
+  003e 6900         [2]     CLR   0,X
+  275:  }
+  0040 1b85         [2]     LEAS  5,SP
+  0042 3d           [5]     RTS   
+  276:  
+  277:  
+  278:  
+  279:  

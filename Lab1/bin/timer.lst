@@ -1,0 +1,72 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.40 Build 10020, Jan 21 2010
+
+    1:  //**********Timer Functions*******
+    2:  #include "timer.h"
+    3:  #include <MC9S12DP512.h>
+    4:  
+    5:  void Timer_Init(void){
+*** EVALUATION ***
+
+Function: Timer_Init
+Source  : F:\EE445L\Lab1\Sources\timer.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=F:\EE445L\Lab1;F:\EE445L\Lab1\bin;F:\EE445L\Lab1\prm;F:\EE445L\Lab1\cmd;F:\EE445L\Lab1\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -EnvOBJPATH=F:\EE445L\Lab1\bin -EnvTEXTPATH=F:\EE445L\Lab1\bin -Lasm=%n.lst -Ms -ObjN=F:\EE445L\Lab1\Lab1_Data\HCS12_Serial_Monitor\ObjectCode\timer.c.o -WmsgSd1106
+
+    6:    
+    7:      TSCR1 = 0x80; //enable TCNT
+  0000 cc0780       [2]     LDD   #1920
+  0003 5b00         [2]     STAB  _TSCR1
+    8:      TSCR2 = 0x07; 
+  0005 5a00         [2]     STAA  _TSCR2
+    9:  }
+  0007 3d           [5]     RTS   
+   10:  
+   11:  void Timer_Wait(unsigned short cycles){
+*** EVALUATION ***
+
+Function: Timer_Wait
+Source  : F:\EE445L\Lab1\Sources\timer.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=F:\EE445L\Lab1;F:\EE445L\Lab1\bin;F:\EE445L\Lab1\prm;F:\EE445L\Lab1\cmd;F:\EE445L\Lab1\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -EnvOBJPATH=F:\EE445L\Lab1\bin -EnvTEXTPATH=F:\EE445L\Lab1\bin -Lasm=%n.lst -Ms -ObjN=F:\EE445L\Lab1\Lab1_Data\HCS12_Serial_Monitor\ObjectCode\timer.c.o -WmsgSd1106
+
+  0000 6cac         [2]     STD   4,-SP
+   12:    
+   13:    unsigned short startTime = TCNT;
+  0002 dc00         [3]     LDD   _TCNT
+  0004 6c82         [2]     STD   2,SP
+   14:    while ((TCNT - startTime) <= cycles){}
+  0006 dc00         [3]     LDD   _TCNT
+  0008 a382         [3]     SUBD  2,SP
+  000a ac80         [3]     CPD   0,SP
+  000c 23f8         [3/1]   BLS   *-6 ;abs = 0006
+   15:  }
+  000e 1b84         [2]     LEAS  4,SP
+  0010 3d           [5]     RTS   
+   16:  
+   17:  void Timer_Wait_onems(unsigned short delay){
+*** EVALUATION ***
+
+Function: Timer_Wait_onems
+Source  : F:\EE445L\Lab1\Sources\timer.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=F:\EE445L\Lab1;F:\EE445L\Lab1\bin;F:\EE445L\Lab1\prm;F:\EE445L\Lab1\cmd;F:\EE445L\Lab1\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -EnvOBJPATH=F:\EE445L\Lab1\bin -EnvTEXTPATH=F:\EE445L\Lab1\bin -Lasm=%n.lst -Ms -ObjN=F:\EE445L\Lab1\Lab1_Data\HCS12_Serial_Monitor\ObjectCode\timer.c.o -WmsgSd1106
+
+  0000 3b           [2]     PSHD  
+   18:    
+   19:    unsigned short i;
+   20:    
+   21:    for (i = 0 ; i < delay ; i++){
+  0001 ce0000       [2]     LDX   #0
+  0004 2008         [3]     BRA   *+10 ;abs = 000e
+   22:      Timer_Wait(188);
+  0006 c6bc         [1]     LDAB  #188
+  0008 87           [1]     CLRA  
+  0009 34           [2]     PSHX  
+  000a 0700         [4]     BSR   Timer_Wait
+  000c 30           [3]     PULX  
+  000d 08           [1]     INX   
+  000e ae80         [3]     CPX   0,SP
+  0010 25f4         [3/1]   BCS   *-10 ;abs = 0006
+   23:    }
+   24:  }
+  0012 3a           [3]     PULD  
+  0013 3d           [5]     RTS   
+   25:  

@@ -1,0 +1,430 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  // filename ******** Main.C ************** 
+    2:  // This example illustrates the output compare interrupts, 
+    3:  // 9S12DP512
+    4:  // Jonathan W. Valvano 9/7/09
+    5:  
+    6:  //  This example accompanies the books
+    7:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+    8:  //        Thompson, copyright (c) 2006,
+    9:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+   10:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   11:  
+   12:  // Copyright 2009 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   13:  // You may use, edit, run or distribute this file 
+   14:  //    as long as the above copyright notices remain
+   15:  
+   16:  
+   17:  #include <hidef.h>      /* common defines and macros */
+   18:  #include <mc9s12dp512.h>     /* derivative information */
+   19:  #include <stdio.h>
+   20:  #include "lcd.h"
+   21:  #pragma LINK_INFO DERIVATIVE "mc9s12dp512"
+   22:  
+   23:  #define WAVE_PERIOD 3400
+   24:  
+   25:  void main2(void);
+   26:  void PLL_Init(void);
+   27:  
+   28:  unsigned short static volatile Count0;   //count oc0 interrupts
+   29:  unsigned short main_loc = 0;             //main lcd location
+   30:  unsigned short interrupt_loc = 0;        //interrupt lcd location
+   31:  unsigned short hour = 12, minute = 0, second = 0, mili_sec_count = 0;   //time counters
+   32:  unsigned short al_minute = 0, al_hour = 12, alarm_set = 0, secret_alarm = 0;    //alarm time counters
+   33:  unsigned short timeNow = 0;
+   34:  
+   35:  
+   36:  interrupt 8 void TOC0handler(void){ // executes at 100 Hz 
+*** EVALUATION ***
+
+Function: TOC0handler
+Source  : C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\prm;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\cmd;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin -EnvTEXTPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+   37:    TFLG1 = 0x01;         // acknowledge OC0
+  0000 c601         [1]     LDAB  #1
+  0002 5b00         [2]     STAB  _TFLG1
+   38:    Count0++;
+  0004 fe0000       [3]     LDX   Count0
+  0007 08           [1]     INX   
+  0008 7e0000       [3]     STX   Count0
+   39:    TC0 = TC0+WAVE_PERIOD;      // 10 ms
+  000b dc00         [3]     LDD   _TC0
+  000d c30d48       [2]     ADDD  #3400
+  0010 5c00         [2]     STD   _TC0
+   40:    PTT ^= 0x80;
+  0012 f60000       [3]     LDAB  _PTT
+  0015 c880         [1]     EORB  #128
+  0017 7b0000       [3]     STAB  _PTT
+   41:  }
+  001a 0b           [8]     RTI   
+   42:  
+   43:  //---------------------OC_Init0---------------------
+   44:  // arm output compare 0 for 100Hz periodic interrupt
+   45:  // Input: none
+   46:  // Output: none 
+   47:  void OC_Init0(){
+*** EVALUATION ***
+
+Function: OC_Init0
+Source  : C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\prm;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\cmd;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin -EnvTEXTPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+   48:    Count0 = 0;     // debugging monitor
+  0000 c7           [1]     CLRB  
+  0001 87           [1]     CLRA  
+  0002 7c0000       [3]     STD   Count0
+   49:    DDRT |= 0x01;   // debugging monitor
+  0005 1c000001     [4]     BSET  _DDRT,#1
+   50:    TIOS |= 0x01;   // activate TC0 as output compare
+  0009 4c0001       [4]     BSET  _TIOS,#1
+   51:    //TIE  |= 0x01;   // arm OC0    to be armed conditionally
+   52:    //TSCR1 = 0x80;   // Enable TCNT, 24MHz boot mode, 8MHz in run mode
+   53:    //TSCR2 = 0x03;   // divide by 8 TCNT prescale, TOI disarm            //timer set in lcd init
+   54:    //PACTL = 0;      // timer prescale used for TCNT
+   55:  /* Bottom three bits of TSCR2 (PR2,PR1,PR0) set TCNT period
+   56:      divide  FastMode(24MHz)    Slow Mode (8MHz)
+   57:  000   1     42ns  TOF  2.73ms  125ns TOF  8.192ms
+   58:  001   2     84ns  TOF  5.46ms  250ns TOF 16.384ms 
+   59:  010   4    167ns  TOF  10.9ms  500ns TOF 32.768ms     
+   60:  011   8    333ns  TOF  21.8ms    1us TOF 65.536ms
+   61:  100  16    667ns  TOF  43.7ms    2us TOF 131.072ms
+   62:  101  32   1.33us  TOF  87.4ms    4us TOF 262.144ns
+   63:  110  64   2.67us  TOF 174.8ms    8us TOF 524.288ms
+   64:  111 128   5.33us  TOF 349.5ms   16us TOF 1.048576s */
+   65:    TC0    = TCNT+50; // first interrupt right away
+  000c de00         [3]     LDX   _TCNT
+  000e 1ae032       [2]     LEAX  50,X
+  0011 5e00         [2]     STX   _TC0
+   66:  }
+  0013 3d           [5]     RTS   
+   67:  
+   68:  unsigned short static volatile Count3;
+   69:  interrupt 11 void TOC3handler(void){ // executes at 1000 Hz 
+*** EVALUATION ***
+
+Function: TOC3handler
+Source  : C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\prm;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\cmd;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin -EnvTEXTPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+   70:    TFLG1 = 0x08;         // acknowledge OC3
+  0000 c608         [1]     LDAB  #8
+  0002 5b00         [2]     STAB  _TFLG1
+   71:    Count3++;
+  0004 fe0000       [3]     LDX   Count3
+  0007 08           [1]     INX   
+  0008 7e0000       [3]     STX   Count3
+   72:    TC3 = TC3+1500;       // 1 ms
+  000b dc00         [3]     LDD   _TC3
+  000d c305dc       [2]     ADDD  #1500
+  0010 5c00         [2]     STD   _TC3
+   73:    //PTT ^= 0x08;          // debugging monitor
+   74:    
+   75:    mili_sec_count = (mili_sec_count + 1) % 1000;   //count milisecs
+  0012 fc0000       [3]     LDD   mili_sec_count
+  0015 c30001       [2]     ADDD  #1
+  0018 ce03e8       [2]     LDX   #1000
+  001b 1810         [12]    IDIV  
+  001d 7c0000       [3]     STD   mili_sec_count
+   76:    if (mili_sec_count == 0){
+  0020 263f         [3/1]   BNE   *+65 ;abs = 0061
+   77:      second++;       //1000 mili_secs into seconds
+  0022 fe0000       [3]     LDX   second
+  0025 08           [1]     INX   
+  0026 7e0000       [3]     STX   second
+   78:      PTP ^= 0x80; // flash LED
+  0029 f60000       [3]     LDAB  _PTP
+  002c c880         [1]     EORB  #128
+  002e 7b0000       [3]     STAB  _PTP
+   79:      if ( second == 60 ){
+  0031 8e003c       [2]     CPX   #60
+  0034 2610         [3/1]   BNE   *+18 ;abs = 0046
+   80:        minute++;    //60 seconds into minutes
+  0036 fe0000       [3]     LDX   minute
+  0039 08           [1]     INX   
+  003a 7e0000       [3]     STX   minute
+   81:        second = 0;
+  003d c7           [1]     CLRB  
+  003e 87           [1]     CLRA  
+  003f 7c0000       [3]     STD   second
+   82:        secret_alarm = 1;
+  0042 52           [1]     INCB  
+  0043 7c0000       [3]     STD   secret_alarm
+   83:      }
+   84:      if ( minute == 60 ){
+  0046 fc0000       [3]     LDD   minute
+  0049 8c003c       [2]     CPD   #60
+  004c 2613         [3/1]   BNE   *+21 ;abs = 0061
+   85:        hour = (hour % 12) + 1;   //60 minutes into hour
+  004e fc0000       [3]     LDD   hour
+  0051 ce000c       [2]     LDX   #12
+  0054 1810         [12]    IDIV  
+  0056 c30001       [2]     ADDD  #1
+  0059 7c0000       [3]     STD   hour
+   86:        minute = 0;
+  005c c7           [1]     CLRB  
+  005d 87           [1]     CLRA  
+  005e 7c0000       [3]     STD   minute
+   87:      }
+   88:    }
+   89:      
+   90:  }
+  0061 0b           [8]     RTI   
+   91:  
+   92:  //---------------------OC_Init3---------------------
+   93:  // arm output compare 3 for 1000Hz periodic interrupt
+   94:  // Input: none    assumes another ritual enabled the TCNT
+   95:  // Output: none 
+   96:  void OC_Init3(){
+*** EVALUATION ***
+
+Function: OC_Init3
+Source  : C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\prm;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\cmd;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin -EnvTEXTPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+   97:    Count3 = 0;      // debugging monitor      
+  0000 c7           [1]     CLRB  
+  0001 87           [1]     CLRA  
+  0002 7c0000       [3]     STD   Count3
+   98:    //DDRT |= 0x08;    // debugging monitor
+   99:    TIOS |= 0x08;    // activate TC3 as output compare
+  0005 4c0008       [4]     BSET  _TIOS,#8
+  100:    TIE  |= 0x08;    // arm OC3
+  0008 4c0008       [4]     BSET  _TIE,#8
+  101:    TC3   = TCNT+50; // first interrupt right away
+  000b de00         [3]     LDX   _TCNT
+  000d 1ae032       [2]     LEAX  50,X
+  0010 5e00         [2]     STX   _TC3
+  102:  }
+  0012 3d           [5]     RTS   
+  103:  
+  104:  //---------------------OC_Init2---------------------
+  105:  // arm output compare 3 for 1000Hz periodic interrupt
+  106:  // Input: none    assumes another ritual enabled the TCNT
+  107:  // Output: none 
+  108:  void OC_Init2(){
+*** EVALUATION ***
+
+Function: OC_Init2
+Source  : C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\prm;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\cmd;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin -EnvTEXTPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+  109:    Count3 = 0;      // debugging monitor      
+  0000 c7           [1]     CLRB  
+  0001 87           [1]     CLRA  
+  0002 7c0000       [3]     STD   Count3
+  110:    //DDRT |= 0x08;    // debugging monitor
+  111:    TIOS |= 0x04;    // activate TC2 as output compare
+  0005 4c0004       [4]     BSET  _TIOS,#4
+  112:    TIE  |= 0x04;    // arm OC2
+  0008 4c0004       [4]     BSET  _TIE,#4
+  113:    TC2   = TCNT+1500; // first interrupt right away
+  000b dc00         [3]     LDD   _TCNT
+  000d c305dc       [2]     ADDD  #1500
+  0010 5c00         [2]     STD   _TC2
+  114:  }
+  0012 3d           [5]     RTS   
+  115:  
+  116:  interrupt 10 void TOC2handler(void){ // executes at 100 Hz 
+*** EVALUATION ***
+
+Function: TOC2handler
+Source  : C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\prm;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\cmd;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin -EnvTEXTPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+  117:    TFLG1 = 0x04;         // acknowledge OC0
+  0000 c604         [1]     LDAB  #4
+  0002 5b00         [2]     STAB  _TFLG1
+  118:    TC2 = TC2+1500;      // 10 ms
+  0004 dc00         [3]     LDD   _TC2
+  0006 c305dc       [2]     ADDD  #1500
+  0009 5c00         [2]     STD   _TC2
+  119:    //PTT ^= 0x01;          // debugging monitor
+  120:    mili_sec_count = (mili_sec_count + 1) % 500;   //count milisecs
+  000b fc0000       [3]     LDD   mili_sec_count
+  000e c30001       [2]     ADDD  #1
+  0011 ce01f4       [2]     LDX   #500
+  0014 1810         [12]    IDIV  
+  0016 7c0000       [3]     STD   mili_sec_count
+  121:    if (mili_sec_count == 0){
+  0019 2628         [3/1]   BNE   *+42 ;abs = 0043
+  122:      LCD_GoTo(2,interrupt_loc);
+  001b c602         [1]     LDAB  #2
+  001d 87           [1]     CLRA  
+  001e 3b           [2]     PSHD  
+  001f fc0000       [3]     LDD   interrupt_loc
+  0022 160000       [4]     JSR   LCD_GoTo
+  123:      printf("b");
+  0025 cc0000       [2]     LDD   #"b"
+  0028 6c80         [2]     STD   0,SP
+  002a 160000       [4]     JSR   printf
+  124:      interrupt_loc = (interrupt_loc + 1) % 8;
+  002d f60000       [3]     LDAB  interrupt_loc:1
+  0030 52           [1]     INCB  
+  0031 c407         [1]     ANDB  #7
+  0033 87           [1]     CLRA  
+  0034 7c0000       [3]     STD   interrupt_loc
+  125:      LCD_GoTo(1,main_loc);
+  0037 c601         [1]     LDAB  #1
+  0039 6c80         [2]     STD   0,SP
+  003b fc0000       [3]     LDD   main_loc
+  003e 160000       [4]     JSR   LCD_GoTo
+  0041 1b82         [2]     LEAS  2,SP
+  126:    }
+  127:    //PTT ^= 0x80;
+  128:  }
+  0043 0b           [8]     RTI   
+  129:  
+  130:  void main2(void) {
+*** EVALUATION ***
+
+Function: main2
+Source  : C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\prm;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\cmd;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin -EnvTEXTPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+  131:    PLL_Init();
+  0000 160000       [4]     JSR   PLL_Init
+  132:    LCD_Init();
+  0003 160000       [4]     JSR   LCD_Init
+  133:    OC_Init2();
+  0006 0700         [4]     BSR   OC_Init2
+  134:    TIE  |= 0x04;
+  0008 4c0004       [4]     BSET  _TIE,#4
+  135:    LCD_Clear();
+  000b 160000       [4]     JSR   LCD_Clear
+  136:    
+  137:    DDRP |= 0x80;  // LED
+  000e 1c000080     [4]     BSET  _DDRP,#128
+  138:    asm cli
+  0012 10ef         [1]     CLI   
+  139:  
+  140:    while(1) {
+  141:      PTP ^= 0x80; // flash LED
+  0014 f60000       [3]     LDAB  _PTP
+  0017 c880         [1]     EORB  #128
+  0019 7b0000       [3]     STAB  _PTP
+  142:      printf("a");   //output a on first line
+  001c cc0000       [2]     LDD   #"a"
+  001f 3b           [2]     PSHD  
+  0020 160000       [4]     JSR   printf
+  0023 3a           [3]     PULD  
+  143:      main_loc = (main_loc + 1) % 8;  //update location on main line
+  0024 f60000       [3]     LDAB  main_loc:1
+  0027 52           [1]     INCB  
+  0028 c407         [1]     ANDB  #7
+  002a 87           [1]     CLRA  
+  002b 7c0000       [3]     STD   main_loc
+  144:      Timer_Wait_1ms(500);
+  002e c6f4         [1]     LDAB  #244
+  0030 42           [1]     INCA  
+  0031 160000       [4]     JSR   Timer_Wait_1ms
+  145:      if ( main_loc == 0 )
+  0034 fc0000       [3]     LDD   main_loc
+  0037 26db         [3/1]   BNE   *-35 ;abs = 0014
+  146:        LCD_GoTo(1,1);    //wrap around
+  0039 c601         [1]     LDAB  #1
+  003b 87           [1]     CLRA  
+  003c 3b           [2]     PSHD  
+  003d 160000       [4]     JSR   LCD_GoTo
+  0040 1b82         [2]     LEAS  2,SP
+  0042 20d0         [3]     BRA   *-46 ;abs = 0014
+  147:    } 
+  148:  }
+  149:  
+  150:  #define ALARM_STOP (PTP & 0x10)
+  151:  #define TIME_CHANGE (PTP & 0x04)
+  152:  #define ALARM_CHANGE (PTP & 0x08)
+  153:  #define HOUR_CHANGE (PTP & 0x01)
+  154:  #define MIN_CHANGE (PTP & 0x02)
+  155:  #define ALARM_ARM (PTP & 0x20)          //button definitions
+  156:  #define ALARM_TRIGGER ((al_hour == hour) && (al_minute == minute) && (alarm_set == 1) && (secret_alarm == 1))  //alarm condition    
+  157:  
+  158:   
+  159:  void main(void){
+*** EVALUATION ***
+
+Function: main
+Source  : C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\prm;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\cmd;C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin -EnvTEXTPATH=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\Owner\Dropbox\EE445L\Lab3\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+  160:  
+  161:    PLL_Init();
+  0000 160000       [4]     JSR   PLL_Init
+  162:    //LCD_Init();
+  163:    //OC_Init3();
+  164:    //OC_Init0();
+  165:    //LCD_Clear();
+  166:    //DDRT |= 0xC0;
+  167:    //DDRP &= 0xE0;
+  168:    //DDRP |= 0x80;
+  169:    DDRT &= ~0x01;
+  0003 1d000001     [4]     BCLR  _DDRT,#1
+  170:    DDRP |= 0x01;
+  0007 1c000001     [4]     BSET  _DDRP,#1
+  171:    asm cli
+  000b 10ef         [1]     CLI   
+  172:    while(1){
+  173:    if (PTT_PTT0 == 1){
+  000d 1f0000010d   [5]     BRCLR _PTT,#1,*+18 ;abs = 001f
+  174:      while(PTT_PTT0 == 1);
+  0012 1e000001fb   [5]     BRSET _PTT,#1,*+0 ;abs = 0012
+  175:      PTP_PTP0 ^= 1; 
+  0017 f60000       [3]     LDAB  _PTP
+  001a c801         [1]     EORB  #1
+  001c 7b0000       [3]     STAB  _PTP
+  001f 20ec         [3]     BRA   *-18 ;abs = 000d
+  176:    }
+  177:    
+  178:      /*timeNow = TCNT - 9;
+  179:      printf("\n%2u:%.2u:%.2u", hour, minute, second);  //print time
+  180:      timeNow = TCNT - timeNow;
+  181:      
+  182:      if(ALARM_STOP || !ALARM_TRIGGER){
+  183:        //PTT &= ~0x80; //turn off alarm
+  184:        TIE  &= ~0x01;  //unarm interrupt, turning off the alarm
+  185:        secret_alarm = 0; //allows for alarm to be set but not go off after turned off
+  186:      }
+  187:      
+  188:      if(ALARM_ARM){
+  189:        while(ALARM_ARM);
+  190:        alarm_set = 1 - alarm_set;  //toggle alarm_set
+  191:        secret_alarm = 1;           //arm secret alarm
+  192:        PTT ^= 0x40;                //toggle LED
+  193:      }
+  194:      
+  195:      while(TIME_CHANGE){         //change the time
+  196:        printf("\n%2u:%.2u:%.2u", hour, minute, second);  //print time
+  197:  
+  198:        if(HOUR_CHANGE){
+  199:          while(HOUR_CHANGE);
+  200:          hour = (hour % 12) + 1;   //increment hour
+  201:        }
+  202:        
+  203:        if(MIN_CHANGE){
+  204:          while(MIN_CHANGE);
+  205:          minute = (minute + 1) % 60; //increment minute
+  206:        }
+  207:      }
+  208:      
+  209:      while(ALARM_CHANGE){        //change the alarm time
+  210:        printf("\n%2u:%.2u:%.2u", al_hour, al_minute, second);   //echo alarm time
+  211:        if(HOUR_CHANGE){
+  212:          while(HOUR_CHANGE);
+  213:          al_hour = (al_hour % 12) + 1;   //increment hour
+  214:        }
+  215:        
+  216:        if(MIN_CHANGE){
+  217:          while(MIN_CHANGE);
+  218:          al_minute = (al_minute + 1) % 60; //increment minute
+  219:        }
+  220:      }
+  221:      
+  222:      if(ALARM_TRIGGER){
+  223:        //PTT |= 0x80;       //give power to alarm speaker
+  224:        TIE  |= 0x01;   //turn on interrupt sounding the alarm
+  225:      }  */
+  226:    }
+  227:    return;
+  228:  }

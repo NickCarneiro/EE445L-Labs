@@ -1,0 +1,107 @@
+Design Rule Check Report
+------------------------
+
+Report File    : C:\Users\Denis\My Dropbox\EE445L\lab6\real_stuff\Lab6h_artistStarter (PCB - Design Rule Check Report).txt
+Report Written : Sunday, March 06, 2011
+Design Path    : C:\Users\Denis\My Dropbox\EE445L\lab6\real_stuff\Lab6h_artistStarter.pcb
+Design Title   : 
+Created        : 9/11/2009 4:58:24 PM
+Last Saved     : 3/5/2011 8:20:17 PM
+Editing Time   : 1879 min
+Units          : mil (precision 0)
+
+Results
+-------
+
+Track to Pad Error (T-P) between (602 -718) and (602 -700) on Layer "Top Copper".
+    Error between Component Pad U1.49 (Net 'VDD2') and Track (Net 'GND'), Gap is 8 needs to be 10.
+Track to Pad Error (T-P) at (621 -667) on Layer "Top Copper".
+    Error between Component Pad U1.51 and Track (Net 'GND'), Gap is 0 needs to be 10.
+Track to Pad Error (T-P) between (627 -657) and (628 -659) on Layer "Top Copper".
+    Error between Component Pad U1.52 and Track (Net 'GND'), Gap is 0 needs to be 10.
+Track to Pad Error (T-P) between (627 -488) and (627 -476) on Layer "Top Copper".
+    Error between Component Pad U1.58 and Track (Net 'VCC'), Gap is 6 needs to be 10.
+Track to Pad Error (T-P) between (485 -336) and (475 -336) on Layer "Top Copper".
+    Error between Component Pad U1.62 (Net 'GND') and Track (Net 'PS0'), Gap is 5 needs to be 10.
+Track to Pad Error (T-P) between (459 -336) and (450 -336) on Layer "Top Copper".
+    Error between Component Pad U1.63 (Net 'PS0') and Track (Net 'PS1'), Gap is 4 needs to be 10.
+Track to Pad Error (T-P) between (152 -336) and (142 -327) on Layer "Top Copper".
+    Error between Component Pad U1.75 and Track (Net 'GND'), Gap is 6 needs to be 10.
+Track to Pad Error (T-P) between (-77 -488) and (-77 -475) on Layer "Top Copper".
+    Error between Component Pad U1.3 (Net 'Stop_button_0') and Track (Net 'Rewind_button_0'), Gap is 8 needs to be 10.
+Track to Pad Error (T-P) between (-77 -513) and (-77 -500) on Layer "Top Copper".
+    Error between Component Pad U1.4 (Net 'Play_button_0') and Track (Net 'Stop_button_0'), Gap is 8 needs to be 10.
+Track to Pad Error (T-P) between (-56 -539) and (-56 -525) on Layer "Top Copper".
+    Error between Component Pad U1.5 and Track (Net 'Play_button_0'), Gap is 9 needs to be 10.
+Track to Pad Error (T-P) between (216 1474) and (225 1474) on Layer "Top Copper".
+    Error between Component Pad U3.7 and Track (Net 'PS1'), Gap is 5 needs to be 10.
+Track to Pad Error (T-P) between (-412 1746) and (-412 1736) on Layer "Bottom Copper".
+    Error between Component Pad U3.16 (Net 'VCC') and Track (Net 'GND'), Gap is 0 needs to be 10.
+Track to Track Error (T-T) at (-831 1580) on Layer "Top Copper".
+    Error between Track (Net 'VCC') and Track (Net 'GND'), Gap is 0 needs to be 10.
+Track to Track Error (T-T) between (493 -361) and (475 -352) on Layer "Top Copper".
+    Error between Track (Net 'GND') and Track (Net 'PS0'), Gap is 7 needs to be 10.
+Track to Track Error (T-T) between (493 -361) and (475 -352) on Layer "Top Copper".
+    Error between Track (Net 'GND') and Track (Net 'PS0'), Gap is 9 needs to be 10.
+Track to Track Error (T-T) at (-1075 789) on Layer "Top Copper".
+    Error between Track (Net 'GND') and Track (Net 'RESET'), Gap is 0 needs to be 10.
+Track to Track Error (T-T) between (450 -352) and (467 -361) on Layer "Top Copper".
+    Error between Track (Net 'PS1') and Track (Net 'PS0'), Gap is 9 needs to be 10.
+Track to Via Error (T-V) between (250 -288) and (263 -288) on Layer "Top Copper".
+    Error between Via (Net 'SS') and Track (Net 'MOSI'), Gap is 8 needs to be 10.
+Gap in Net "VCC" between (98,-289) and (98,-201) 
+    VCC.
+Gap in Net "VCC" between (109,-361) and (602,-444) 
+    VCC.
+Gap in Net "VCC" between (602,-444) and (602,-470) 
+    VCC.
+Gap in Net "VCC" between (602,-470) and (518,-1015) 
+    VCC.
+Gap in Net "VCC" between (493,-1015) and (237,-1015) 
+    VCC.
+Gap in Net "VCC" between (602,-444) and (710,391) 
+    VCC.
+Gap in Net "VCC" between (710,391) and (925,986) 
+    VCC.
+Gap in Net "VCC" between (861,-514) and (1850,-1014) 
+    VCC.
+Gap in Net "VCC" between (1850,-1014) and (2225,-1676) 
+    VCC.
+Gap in Net "GND" between (1963,-1238) and (2340,-804) 
+    GND.
+Gap in Net "GND" between (2340,-804) and (2350,-464) 
+    GND.
+Gap in Net "GND" between (518,-361) and (1010,391) 
+    GND.
+Gap in Net "GND" between (1010,391) and (1175,586) 
+    GND.
+Gap in Net "GND" between (1175,586) and (1440,691) 
+    GND.
+
+Number of errors found : 32
+
+Settings
+--------
+
+Spacings
+    Tracks                             Yes
+    Pads and Vias                      Yes
+    Shapes                             Yes
+    Text                               Yes
+    Board                              Yes
+    Drills                             Yes
+    Components                         No
+
+Manufacturing
+    Min Drill Hole Size                Yes
+    Min Track Width                    Yes
+    Min Annular Ring                   Yes
+    Drill Breakout                     Yes
+
+Nets
+    Net Completion                     Yes
+    Dangling Tracks                    Yes
+    Net Track Length Differences       No
+
+
+End Of Report.

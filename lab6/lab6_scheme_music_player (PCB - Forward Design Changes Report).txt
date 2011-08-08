@@ -1,0 +1,16 @@
+Forward Design Changes Report
+-----------------------------
+
+Report File    : C:\Users\aaron\Dropbox\EE445L\lab6\lab6_scheme_music_player (PCB - Forward Design Changes Report).txt
+Report Written : Wednesday, March 02, 2011
+Design Path    : C:\Users\aaron\Dropbox\EE445L\lab6\lab6_scheme_music_player.pcb
+Design Title   : 
+Created        : 3/2/2011 9:46:57 PM
+Last Saved     : 3/2/2011 9:58:11 PM
+Editing Time   : 12 min
+Units          : mil (precision 0)
+
+The designs are the same, so no design changes to forward.
+
+
+End Of Report.

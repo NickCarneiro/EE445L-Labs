@@ -1,0 +1,18 @@
+Back Annotation Report
+----------------------
+
+Report File    : C:\Users\aaron\Dropbox\EE445L\lab8\lab8_scheme_3 (PCB - Back Annotation Report).txt
+Report Written : Sunday, March 27, 2011
+Design Path    : C:\Users\aaron\Dropbox\EE445L\lab8\lab8_scheme_3.pcb
+Design Title   : 
+Created        : 3/27/2011 9:48:09 PM
+Last Saved     : 3/27/2011 9:49:15 PM
+Editing Time   : 6 min
+Units          : mil (precision 0)
+
+Back Annotate renames from PCB "C:\Users\aaron\Dropbox\EE445L\lab8\lab8_scheme_3.pcb" to Schematic "C:\Users\aaron\Dropbox\EE445L\lab8\lab8_scheme_3.sch".
+
+Error: Could not find  Component " U10".
+
+
+End Of Report.

@@ -1,0 +1,255 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  //**********DAC.C************
+    2:  
+    3:  #include <mc9s12dp512.h>
+    4:  #include "dac.h"
+    5:  #include "music.h"
+    6:  #include "timer.h"
+    7:  #include "switches.h"
+    8:  
+    9:  void Debug_Profile(unsigned short thePlace);
+   10:  
+   11:  //pitch constants
+   12:  #define E_FREQUENCY 568
+   13:  #define G_FREQUENCY 479
+   14:  #define G_SHARP_FREQUENCY 451
+   15:  #define C_SHARP_FREQUENCY 676
+   16:  #define G_SHARP_PRIME_FREQUENCY 451*2
+   17:  #define D_FREQUENCY 638
+   18:  #define C_FREQUENCY 716
+   19:  #define B_FREQUENCY 760
+   20:  #define F_SHARP_FREQUENCY 507
+   21:  #define A_FREQUENCY 426
+   22:  #define F_FREQUENCY 537
+   23:  
+   24:  //sine wave array structure
+   25:  /*unsigned short voltage_ladder [] = {
+   26:    1024,  1219,  1407,  1580,  1731,
+   27:    1855,  1948,  2005,  2024,  2005,
+   28:    1948,  1855,  1731,  1580,  1407,
+   29:    1219,  1024,  829,   641,   468,
+   30:    317,   193,   100,   43,    24,
+   31:    43,    100,   193,   317,   468,
+   32:    641,   829
+   33:  };*/
+   34:  unsigned short voltage_ladder [] = {
+   35:  1007,
+   36:  1088,
+   37:  1156,
+   38:  1194,
+   39:  1067,
+   40:  789,
+   41:  303,
+   42:  99,
+   43:  789,
+   44:  1510,
+   45:  1476,
+   46:  1173,
+   47:  1067,
+   48:  1037,
+   49:  1084,
+   50:  1062,
+   51:  1011,
+   52:  1015,
+   53:  1045,
+   54:  1062,
+   55:  1011,
+   56:  1011,
+   57:  1058,
+   58:  1113,
+   59:  1084,
+   60:  1075,
+   61:  1079,
+   62:  1105,
+   63:  1088,
+   64:  1049,
+   65:  1015,
+   66:  1045
+   67:  };
+   68:  unsigned short DAC_Data = 0;
+   69:  unsigned short volt_index = 0;
+   70:  unsigned char Note;
+   71:  //unsigned char volt_change = TRUE;
+   72:  extern Envelope envelope[];
+   73:  extern unsigned short note_index;
+   74:  
+   75:  //array accessed in interrupt to output certain pitches
+   76:  unsigned short frequency_array [] = {
+   77:    100000,E_FREQUENCY,G_FREQUENCY,D_FREQUENCY,C_FREQUENCY,B_FREQUENCY,F_SHARP_FREQUENCY, A_FREQUENCY, F_FREQUENCY, C_SHARP_FREQUENCY, G_SHARP_FREQUENCY, G_SHARP_PRIME_FREQUENCY
+   78:  };
+   79:  
+   80:  //--------DAC_Init------
+   81:  // initialized the DAC
+   82:  // inputs: none
+   83:  // outputs: none
+   84:  void DAC_Init(void){
+*** EVALUATION ***
+
+Function: DAC_Init
+Source  : C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources\dac.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\dac.c.o -WmsgSd1106
+
+   85:    DDRS |= 0xE0;   //PS5-7 are output
+  0000 1c0000e0     [4]     BSET  _DDRS,#224
+   86:    //DDRS &= ~0x10;  //PS4 is input
+   87:    SPI0CR1 = 0x5C;
+  0004 c65c         [1]     LDAB  #92
+  0006 5b00         [2]     STAB  _SPI0CR1
+   88:    SPI0CR2 = 0x00;
+  0008 790000       [3]     CLR   _SPI0CR2
+   89:    SPI0BR = 0x00;
+  000b 790000       [3]     CLR   _SPI0BR
+   90:    PTS_PTS7 = 1;
+  000e 1c000080     [4]     BSET  _PTS,#128
+   91:  }
+  0012 3d           [5]     RTS   
+   92:  
+   93:  //---------------------OC_Init0---------------------
+   94:  // arm output compare 0 for 100Hz periodic interrupt
+   95:  // Input: none
+   96:  // Output: none 
+   97:  void OC_Init0(){
+*** EVALUATION ***
+
+Function: OC_Init0
+Source  : C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources\dac.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\dac.c.o -WmsgSd1106
+
+   98:    TIOS |= 0x01;   // activate TC0 as output compare
+  0000 4c0001       [4]     BSET  _TIOS,#1
+   99:    TC0 = TCNT + envelope[2].Duration; // first interrupt right away
+  0003 fc0000       [3]     LDD   envelope:6
+  0006 d300         [3]     ADDD  _TCNT
+  0008 5c00         [2]     STD   _TC0
+  100:  }
+  000a 3d           [5]     RTS   
+  101:  
+  102:  //--------Send------
+  103:  // Sends data to the DAC 
+  104:  // inputs: data/command
+  105:  // outputs: none
+  106:  void Send(unsigned char code){
+*** EVALUATION ***
+
+Function: Send
+Source  : C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources\dac.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\dac.c.o -WmsgSd1106
+
+  0000 37           [2]     PSHB  
+  107:    unsigned char dummy_var;
+  108:    while((!(SPI0SR & 0x20)));  //wait SPTEF
+  0001 4f0020fc     [4]     BRCLR _SPI0SR,#32,*+0 ;abs = 0001
+  109:    SPI0DR = code;
+  0005 e680         [3]     LDAB  0,SP
+  0007 5b00         [2]     STAB  _SPI0DR
+  110:    while((!(SPI0SR & 0x80)));  //wait SPIF
+  0009 4f0080fc     [4]     BRCLR _SPI0SR,#128,*+0 ;abs = 0009
+  111:    dummy_var = SPI0DR;
+  000d d600         [3]     LDAB  _SPI0DR
+  112:  }
+  000f 32           [3]     PULA  
+  0010 3d           [5]     RTS   
+  113:                  
+  114:  unsigned char old_note = 0;
+  115:  unsigned short thingy = 256;
+  116:                  
+  117:  //--------DAC_Out------
+  118:  // outputs to the DAC
+  119:  // inputs: none
+  120:  // outputs: none
+  121:  void DAC_Out(unsigned char output_note){
+*** EVALUATION ***
+
+Function: DAC_Out
+Source  : C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources\dac.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\dac.c.o -WmsgSd1106
+
+  0000 37           [2]     PSHB  
+  122:    Note = output_note;
+  0001 7b0000       [3]     STAB  Note
+  123:    PTS_PTS7 = 0;
+  0004 1d000080     [4]     BCLR  _PTS,#128
+  124:    Send(0x09);
+  0008 c609         [1]     LDAB  #9
+  000a 0700         [4]     BSR   Send
+  125:    Send((char) thingy >> 8);//(voltage_ladder[volt_index] >> 8));
+  000c c7           [1]     CLRB  
+  000d 0700         [4]     BSR   Send
+  126:    Send(0x09);
+  000f c609         [1]     LDAB  #9
+  0011 0700         [4]     BSR   Send
+  127:    Send((char) thingy);//voltage_ladder[volt_index]);
+  0013 f60000       [3]     LDAB  thingy:1
+  0016 0700         [4]     BSR   Send
+  128:    PTS_PTS7 = 1;
+  0018 1c000080     [4]     BSET  _PTS,#128
+  129:    if(old_note != output_note){
+  001c f60000       [3]     LDAB  old_note
+  001f e180         [3]     CMPB  0,SP
+  0021 270b         [3/1]   BEQ   *+13 ;abs = 002e
+  130:      Debug_Profile(2);
+  0023 c602         [1]     LDAB  #2
+  0025 87           [1]     CLRA  
+  0026 160000       [4]     JSR   Debug_Profile
+  131:      old_note = output_note;
+  0029 e680         [3]     LDAB  0,SP
+  002b 7b0000       [3]     STAB  old_note
+  132:    }
+  133:  }                  
+  002e 32           [3]     PULA  
+  002f 3d           [5]     RTS   
+  134:  
+  135:  static unsigned short counter = 320;
+  136:  interrupt 8 void TOC0handler(void){ // executes at 100 Hz 
+*** EVALUATION ***
+
+Function: TOC0handler
+Source  : C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources\dac.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\dac.c.o -WmsgSd1106
+
+  137:    TFLG1 = 0x01;                     // acknowledge OC0
+  0000 c601         [1]     LDAB  #1
+  0002 5b00         [2]     STAB  _TFLG1
+  138:    //PTP ^= 0x80;
+  139:    TC0 = TC0 + frequency_array[Note];
+  0004 f60000       [3]     LDAB  Note
+  0007 87           [1]     CLRA  
+  0008 59           [1]     LSLD  
+  0009 b745         [1]     TFR   D,X
+  000b dc00         [3]     LDD   _TC0
+  000d e3e20000     [4]     ADDD  frequency_array,X
+  0011 5c00         [2]     STD   _TC0
+  140:    
+  141:    if (Note != 0){
+  0013 f60000       [3]     LDAB  Note
+  0016 271f         [3/1]   BEQ   *+33 ;abs = 0037
+  142:      volt_index = (volt_index + 1) & 0x1F;
+  0018 f60000       [3]     LDAB  volt_index:1
+  001b 52           [1]     INCB  
+  001c c41f         [1]     ANDB  #31
+  001e 87           [1]     CLRA  
+  001f 7c0000       [3]     STD   volt_index
+  143:      if(counter == 0){
+  0022 fe0000       [3]     LDX   counter
+  0025 260c         [3/1]   BNE   *+14 ;abs = 0033
+  144:        Debug_Profile(1);
+  0027 c601         [1]     LDAB  #1
+  0029 160000       [4]     JSR   Debug_Profile
+  145:        counter = 320;
+  002c cc0140       [2]     LDD   #320
+  002f 7c0000       [3]     STD   counter
+  146:      } else{
+  0032 0b           [8]     RTI   
+  147:        counter--;
+  0033 09           [1]     DEX   
+  0034 7e0000       [3]     STX   counter
+  148:      }
+  149:      //volt_change = TRUE;
+  150:      //DAC_Data = voltage_ladder[volt_index]; 
+  151:    }
+  152:    
+  153:    return;
+  154:  }
+  0037 0b           [8]     RTI   

@@ -1,0 +1,16 @@
+Design Consistency Status Report
+--------------------------------
+
+Report File    : C:\Users\aaron\Dropbox\EE445L\lab8\workable_items\lab8_scheme_workable (PCB - Design Consistency Status Report).txt
+Report Written : Monday, April 04, 2011
+Design Path    : C:\Users\aaron\Dropbox\EE445L\lab8\workable_items\lab8_scheme_workable.pcb
+Design Title   : 
+Created        : 3/27/2011 9:48:09 PM
+Last Saved     : 4/4/2011 4:27:42 AM
+Editing Time   : 822 min
+Units          : inches (precision 3)
+
+Checking integrity of Schematic "C:\Users\aaron\Dropbox\EE445L\lab8\workable_items\lab8_scheme_workable.sch" with PCB "C:\Users\aaron\Dropbox\EE445L\lab8\workable_items\lab8_scheme_workable.pcb".
+
+
+End Of Report.

@@ -1,0 +1,282 @@
+ANSI-C/cC++ Compiler for HC12 V-5.0.35 Build 8093, Apr  3 2008
+
+    1:  // filename *************RxFifo.c********
+    2:  // Pointer implementation of the receive FIFO
+    3:  // Jonathan W. Valvano 8/9/09
+    4:  
+    5:  //  This example accompanies the books
+    6:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+    7:  //        Thompson, copyright (c) 2006,
+    8:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+    9:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   10:  
+   11:  // Copyright 2009 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   12:  //    You may use, edit, run or distribute this file 
+   13:  //    as long as the above copyright notice remains 
+   14:  
+   15:  #include "RxFifo.h"
+   16:  #include "SCI0.h"
+   17:  
+   18:  /* Number of characters in the Fifo
+   19:       the FIFO is full when it has FifoSize-1 characters */
+   20:  unsigned char static volatile *RxPutPt;    /* Pointer of where to put next */
+   21:  unsigned char static volatile *RxGetPt;    /* Pointer of where to get next */
+   22:                    /* FIFO is empty if PutPt=GetPt */
+   23:                    /* FIFO is full  if PutPt+1=GetPt */
+   24:  unsigned char static RxFifo[RXFIFOSIZE];     /* The statically allocated fifo data */
+   25:   
+   26:  /*-----------------------RxFifo_Init----------------------------
+   27:    Initialize fifo to be empty
+   28:    Inputs: none
+   29:    Outputs: none */
+   30:  void RxFifo_Init(void){
+
+Function: RxFifo_Init
+Source  : D:\EE345L\Solutions\Lab2g_v2_DP512\Sources\RXFIFO.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\Solutions\Lab2g_v2_DP512;D:\EE345L\Solutions\Lab2g_v2_DP512\bin;D:\EE345L\Solutions\Lab2g_v2_DP512\prm;D:\EE345L\Solutions\Lab2g_v2_DP512\cmd;D:\EE345L\Solutions\Lab2g_v2_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\Solutions\Lab2g_v2_DP512\bin -EnvTEXTPATH=D:\EE345L\Solutions\Lab2g_v2_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\Solutions\Lab2g_v2_DP512\Lab2g_v2_DP512_Data\HCS12_Serial_Monitor\ObjectCode\RXFIFO.C.o
+
+  0000 36           [2]     PSHA  
+   31:  unsigned char SaveCCR;
+   32:  asm  tpa  
+  0001 b720         [1]     TPA   
+   33:  asm  staa SaveCCR 
+  0003 6a80         [2]     STAA  0,SP
+   34:  asm  sei          // make atomic 
+  0005 1410         [1]     SEI   
+   35:    RxPutPt=RxGetPt=&RxFifo[0];   // Empty when PutPt=GetPt 
+  0007 180300000000 [5]     MOVW  #RxFifo,RxGetPt
+  000d fc0000       [3]     LDD   RxGetPt
+  0010 7c0000       [3]     STD   RxPutPt
+   36:  asm  ldaa SaveCCR
+  0013 a680         [3]     LDAA  0,SP
+   37:  asm  tap          // end critical section 
+  0015 b702         [1]     TAP   
+   38:  }
+  0017 32           [3]     PULA  
+  0018 3d           [5]     RTS   
+   39:  
+   40:  /*-----------------------RxFifo_Put----------------------------
+   41:    Enter one character into the fifo
+   42:    Inputs: 8-bit data
+   43:    Outputs: true if data is properly saved,
+   44:             false if data not saved because it was previously full*/
+   45:  int RxFifo_Put(unsigned char data){
+
+Function: RxFifo_Put
+Source  : D:\EE345L\Solutions\Lab2g_v2_DP512\Sources\RXFIFO.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\Solutions\Lab2g_v2_DP512;D:\EE345L\Solutions\Lab2g_v2_DP512\bin;D:\EE345L\Solutions\Lab2g_v2_DP512\prm;D:\EE345L\Solutions\Lab2g_v2_DP512\cmd;D:\EE345L\Solutions\Lab2g_v2_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\Solutions\Lab2g_v2_DP512\bin -EnvTEXTPATH=D:\EE345L\Solutions\Lab2g_v2_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\Solutions\Lab2g_v2_DP512\Lab2g_v2_DP512_Data\HCS12_Serial_Monitor\ObjectCode\RXFIFO.C.o
+
+  0000 6bad         [2]     STAB  3,-SP
+   46:  unsigned char volatile *tempPt;
+   47:    tempPt = RxPutPt+1;
+  0002 fe0000       [3]     LDX   RxPutPt
+  0005 08           [1]     INX   
+  0006 6e81         [2]     STX   1,SP
+   48:    if(tempPt == &RxFifo[RXFIFOSIZE]){ // need to wrap?
+  0008 8e0000       [2]     CPX   #RxFifo:24
+  000b 2605         [3/1]   BNE   *+7 ;abs = 0012
+   49:      tempPt = &RxFifo[0];
+  000d cc0000       [2]     LDD   #RxFifo
+  0010 6c81         [2]     STD   1,SP
+   50:    }
+   51:    if(tempPt == RxGetPt){
+  0012 fc0000       [3]     LDD   RxGetPt
+  0015 ac81         [3]     CPD   1,SP
+  0017 2603         [3/1]   BNE   *+5 ;abs = 001c
+   52:      return(0);        // Failed, fifo was previously full
+  0019 c7           [1]     CLRB  
+  001a 200d         [3]     BRA   *+15 ;abs = 0029
+   53:    }     
+   54:    else{
+   55:      *(RxPutPt) = data; // Put data into fifo 
+  001c e680         [3]     LDAB  0,SP
+  001e 6bfb0000     [4]     STAB  [RxPutPt,PCR]
+   56:      RxPutPt = tempPt;  // Success, so update pointer 
+  0022 ec81         [3]     LDD   1,SP
+  0024 7c0000       [3]     STD   RxPutPt
+   57:      return(1);
+  0027 c601         [1]     LDAB  #1
+  0029 87           [1]     CLRA  
+   58:    }
+   59:  }
+  002a 1b83         [2]     LEAS  3,SP
+  002c 3d           [5]     RTS   
+   60:  
+   61:  /*-----------------------RxFifo_Get----------------------------
+   62:    Remove one character from the fifo
+   63:    Inputs: pointer to place to return 8-bit data
+   64:    Outputs: true if data is valid, 
+   65:             false if fifo was empty at the time of the call*/
+   66:  int RxFifo_Get(unsigned char *datapt){ 
+
+Function: RxFifo_Get
+Source  : D:\EE345L\Solutions\Lab2g_v2_DP512\Sources\RXFIFO.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\Solutions\Lab2g_v2_DP512;D:\EE345L\Solutions\Lab2g_v2_DP512\bin;D:\EE345L\Solutions\Lab2g_v2_DP512\prm;D:\EE345L\Solutions\Lab2g_v2_DP512\cmd;D:\EE345L\Solutions\Lab2g_v2_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\Solutions\Lab2g_v2_DP512\bin -EnvTEXTPATH=D:\EE345L\Solutions\Lab2g_v2_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\Solutions\Lab2g_v2_DP512\Lab2g_v2_DP512_Data\HCS12_Serial_Monitor\ObjectCode\RXFIFO.C.o
+
+  0000 3b           [2]     PSHD  
+   67:    if(RxPutPt == RxGetPt){
+  0001 fc0000       [3]     LDD   RxPutPt
+  0004 bc0000       [3]     CPD   RxGetPt
+  0007 2603         [3/1]   BNE   *+5 ;abs = 000c
+   68:      return(0);     // Empty if PutPt=GetPt 
+  0009 c7           [1]     CLRB  
+  000a 201c         [3]     BRA   *+30 ;abs = 0028
+   69:    }
+   70:    else{
+   71:      *datapt = *(RxGetPt);  // return by reference
+  000c ee80         [3]     LDX   0,SP
+  000e e6fb0000     [6]     LDAB  [RxGetPt,PCR]
+  0012 6b00         [2]     STAB  0,X
+   72:      RxGetPt++;             // removes data from fifo
+  0014 fe0000       [3]     LDX   RxGetPt
+  0017 08           [1]     INX   
+  0018 7e0000       [3]     STX   RxGetPt
+   73:      if(RxGetPt == &RxFifo[RXFIFOSIZE]){ 
+  001b 8e0000       [2]     CPX   #RxFifo:24
+  001e 2606         [3/1]   BNE   *+8 ;abs = 0026
+   74:        RxGetPt = &RxFifo[0];  // wrap
+  0020 180300000000 [5]     MOVW  #RxFifo,RxGetPt
+   75:      }
+   76:      return(1); 
+  0026 c601         [1]     LDAB  #1
+  0028 87           [1]     CLRA  
+   77:    }
+   78:  }
+  0029 30           [3]     PULX  
+  002a 3d           [5]     RTS   
+   79:  
+   80:  /*-----------------------RxFifo_Status----------------------------
+   81:    Check the status of the fifo
+   82:    Inputs: none
+   83:    Outputs: true if there is any data in the fifo */
+   84:  int RxFifo_Status(void){ 
+
+Function: RxFifo_Status
+Source  : D:\EE345L\Solutions\Lab2g_v2_DP512\Sources\RXFIFO.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\Solutions\Lab2g_v2_DP512;D:\EE345L\Solutions\Lab2g_v2_DP512\bin;D:\EE345L\Solutions\Lab2g_v2_DP512\prm;D:\EE345L\Solutions\Lab2g_v2_DP512\cmd;D:\EE345L\Solutions\Lab2g_v2_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\Solutions\Lab2g_v2_DP512\bin -EnvTEXTPATH=D:\EE345L\Solutions\Lab2g_v2_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\Solutions\Lab2g_v2_DP512\Lab2g_v2_DP512_Data\HCS12_Serial_Monitor\ObjectCode\RXFIFO.C.o
+
+   85:    return (RxPutPt != RxGetPt);
+  0000 fc0000       [3]     LDD   RxPutPt
+  0003 bc0000       [3]     CPD   RxGetPt
+  0006 2602         [3/1]   BNE   *+4 ;abs = 000a
+  0008 c7           [1]     CLRB  
+  0009 8f           [2]     SKIP2 
+  000a c601         [1]     LDAB  #1
+  000c 87           [1]     CLRA  
+   86:  }
+  000d 3d           [5]     RTS   
+   87:  
+   88:  // Version 2) with debugging print
+   89:  int RxFifo_Get2(unsigned char *datapt){ 
+
+Function: RxFifo_Get2
+Source  : D:\EE345L\Solutions\Lab2g_v2_DP512\Sources\RXFIFO.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\Solutions\Lab2g_v2_DP512;D:\EE345L\Solutions\Lab2g_v2_DP512\bin;D:\EE345L\Solutions\Lab2g_v2_DP512\prm;D:\EE345L\Solutions\Lab2g_v2_DP512\cmd;D:\EE345L\Solutions\Lab2g_v2_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\Solutions\Lab2g_v2_DP512\bin -EnvTEXTPATH=D:\EE345L\Solutions\Lab2g_v2_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\Solutions\Lab2g_v2_DP512\Lab2g_v2_DP512_Data\HCS12_Serial_Monitor\ObjectCode\RXFIFO.C.o
+
+  0000 3b           [2]     PSHD  
+   90:    if(RxPutPt == RxGetPt){
+  0001 fc0000       [3]     LDD   RxPutPt
+  0004 bc0000       [3]     CPD   RxGetPt
+  0007 2603         [3/1]   BNE   *+5 ;abs = 000c
+   91:      return(0);      
+  0009 c7           [1]     CLRB  
+  000a 2039         [3]     BRA   *+59 ;abs = 0045
+   92:    }
+   93:    else{
+   94:      *datapt = *(RxGetPt);  
+  000c ee80         [3]     LDX   0,SP
+  000e e6fb0000     [6]     LDAB  [RxGetPt,PCR]
+  0012 6b00         [2]     STAB  0,X
+   95:      SCI0_OutUHex((unsigned short)RxGetPt);
+  0014 fc0000       [3]     LDD   RxGetPt
+  0017 160000       [4]     JSR   SCI0_OutUHex
+   96:      SCI0_OutChar(32);
+  001a c620         [1]     LDAB  #32
+  001c 160000       [4]     JSR   SCI0_OutChar
+   97:      SCI0_OutUDec(*datapt);
+  001f ee80         [3]     LDX   0,SP
+  0021 e600         [3]     LDAB  0,X
+  0023 87           [1]     CLRA  
+  0024 160000       [4]     JSR   SCI0_OutUDec
+   98:      SCI0_OutChar(13); SCI0_OutChar(10);
+  0027 c60d         [1]     LDAB  #13
+  0029 160000       [4]     JSR   SCI0_OutChar
+  002c c60a         [1]     LDAB  #10
+  002e 160000       [4]     JSR   SCI0_OutChar
+   99:      RxGetPt++;             
+  0031 fe0000       [3]     LDX   RxGetPt
+  0034 08           [1]     INX   
+  0035 7e0000       [3]     STX   RxGetPt
+  100:      if(RxGetPt == &RxFifo[RXFIFOSIZE]){ 
+  0038 8e0000       [2]     CPX   #RxFifo:24
+  003b 2606         [3/1]   BNE   *+8 ;abs = 0043
+  101:        RxGetPt = &RxFifo[0];  
+  003d 180300000000 [5]     MOVW  #RxFifo,RxGetPt
+  102:      }
+  103:      return(1); 
+  0043 c601         [1]     LDAB  #1
+  0045 87           [1]     CLRA  
+  104:    }
+  105:  }
+  0046 30           [3]     PULX  
+  0047 3d           [5]     RTS   
+  106:  // Version 3) with debugging dump
+  107:  unsigned short ptBuf[10];
+  108:  char dataBuf[10];
+  109:  unsigned short Debug_n=0;
+  110:  int RxFifo_Get3(unsigned char *datapt){ 
+
+Function: RxFifo_Get3
+Source  : D:\EE345L\Solutions\Lab2g_v2_DP512\Sources\RXFIFO.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\Solutions\Lab2g_v2_DP512;D:\EE345L\Solutions\Lab2g_v2_DP512\bin;D:\EE345L\Solutions\Lab2g_v2_DP512\prm;D:\EE345L\Solutions\Lab2g_v2_DP512\cmd;D:\EE345L\Solutions\Lab2g_v2_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\Solutions\Lab2g_v2_DP512\bin -EnvTEXTPATH=D:\EE345L\Solutions\Lab2g_v2_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\Solutions\Lab2g_v2_DP512\Lab2g_v2_DP512_Data\HCS12_Serial_Monitor\ObjectCode\RXFIFO.C.o
+
+  0000 3b           [2]     PSHD  
+  111:    if(RxPutPt == RxGetPt){
+  0001 fc0000       [3]     LDD   RxPutPt
+  0004 bc0000       [3]     CPD   RxGetPt
+  0007 2603         [3/1]   BNE   *+5 ;abs = 000c
+  112:      return(0);      
+  0009 c7           [1]     CLRB  
+  000a 203d         [3]     BRA   *+63 ;abs = 0049
+  113:    }
+  114:    else{
+  115:      *datapt = *(RxGetPt); 
+  000c ee80         [3]     LDX   0,SP
+  000e e6fb0000     [6]     LDAB  [RxGetPt,PCR]
+  0012 6b00         [2]     STAB  0,X
+  116:      if(Debug_n<10){
+  0014 fc0000       [3]     LDD   Debug_n
+  0017 8c000a       [2]     CPD   #10
+  001a 2419         [3/1]   BCC   *+27 ;abs = 0035
+  117:        ptBuf[Debug_n] = (unsigned short)RxGetPt;
+  001c 59           [1]     LSLD  
+  001d fe0000       [3]     LDX   RxGetPt
+  0020 b746         [1]     TFR   D,Y
+  0022 6eea0000     [3]     STX   ptBuf,Y
+  118:        dataBuf[Debug_n] = *datapt;
+  0026 ee80         [3]     LDX   0,SP
+  0028 e600         [3]     LDAB  0,X
+  002a fe0000       [3]     LDX   Debug_n
+  002d 6be20000     [3]     STAB  dataBuf,X
+  119:        Debug_n++;
+  0031 08           [1]     INX   
+  0032 7e0000       [3]     STX   Debug_n
+  120:      }
+  121:      RxGetPt++;             
+  0035 fe0000       [3]     LDX   RxGetPt
+  0038 08           [1]     INX   
+  0039 7e0000       [3]     STX   RxGetPt
+  122:      if(RxGetPt == &RxFifo[RXFIFOSIZE]){ 
+  003c 8e0000       [2]     CPX   #RxFifo:24
+  003f 2606         [3/1]   BNE   *+8 ;abs = 0047
+  123:        RxGetPt = &RxFifo[0];  
+  0041 180300000000 [5]     MOVW  #RxFifo,RxGetPt
+  124:      }
+  125:      return(1); 
+  0047 c601         [1]     LDAB  #1
+  0049 87           [1]     CLRA  
+  126:    }
+  127:  }
+  004a 30           [3]     PULX  
+  004b 3d           [5]     RTS   
+  128:  

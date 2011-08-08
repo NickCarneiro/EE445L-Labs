@@ -1,0 +1,181 @@
+Design Rule Check Report
+------------------------
+
+Report File    : C:\Users\aaron\Dropbox\EE445L\lab8\small_edits_unrouted\lab8_scheme_restart (PCB - Design Rule Check Report).txt
+Report Written : Wednesday, April 06, 2011
+Design Path    : C:\Users\aaron\Dropbox\EE445L\lab8\small_edits_unrouted\lab8_scheme_restart.pcb
+Design Title   : 
+Created        : 3/27/2011 9:48:09 PM
+Last Saved     : 4/6/2011 6:08:21 AM
+Editing Time   : 1186 min
+Units          : inches (precision 3)
+
+Results
+-------
+
+Pad to Pad Error (P-P) between (5.365 12.309) and (5.375 12.309) on Layer "[Top]".
+    Error between Component Pad U1.21 (Net '7406_In_11') and Component Pad U1.22 (Net '7406_In_10'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.391 12.309) and (5.400 12.309) on Layer "[Top]".
+    Error between Component Pad U1.22 (Net '7406_In_10') and Component Pad U1.23 (Net '7406_In_9'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.416 12.309) and (5.426 12.309) on Layer "[Top]".
+    Error between Component Pad U1.23 (Net '7406_In_9') and Component Pad U1.24 (Net 'GND'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.493 12.309) and (5.503 12.309) on Layer "[Top]".
+    Error between Component Pad U1.26 (Net 'GND') and Component Pad U1.27, Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.519 12.309) and (5.528 12.309) on Layer "[Top]".
+    Error between Component Pad U1.27 and Component Pad U1.28 (Net 'GND'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.544 12.309) and (5.554 12.309) on Layer "[Top]".
+    Error between Component Pad U1.28 (Net 'GND') and Component Pad U1.29 (Net 'VCC'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.570 12.309) and (5.580 12.309) on Layer "[Top]".
+    Error between Component Pad U1.29 (Net 'VCC') and Component Pad U1.30 (Net 'RESET'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.596 12.309) and (5.605 12.309) on Layer "[Top]".
+    Error between Component Pad U1.30 (Net 'RESET') and Component Pad U1.31 (Net 'VDDPLL'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.672 12.309) and (5.682 12.309) on Layer "[Top]".
+    Error between Component Pad U1.33 (Net 'GND') and Component Pad U1.34 (Net 'EXTAL'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.698 12.309) and (5.708 12.309) on Layer "[Top]".
+    Error between Component Pad U1.34 (Net 'EXTAL') and Component Pad U1.35 (Net 'XTAL'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.724 12.309) and (5.733 12.309) on Layer "[Top]".
+    Error between Component Pad U1.35 (Net 'XTAL') and Component Pad U1.36 (Net 'GND'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.749 12.309) and (5.759 12.309) on Layer "[Top]".
+    Error between Component Pad U1.36 (Net 'GND') and Component Pad U1.37, Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.775 12.309) and (5.784 12.309) on Layer "[Top]".
+    Error between Component Pad U1.37 and Component Pad U1.38, Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.800 12.309) and (5.810 12.309) on Layer "[Top]".
+    Error between Component Pad U1.38 and Component Pad U1.39 (Net 'VCC'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.952 12.425) and (5.952 12.435) on Layer "[Top]".
+    Error between Component Pad U1.41 and Component Pad U1.42, Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.952 12.451) and (5.952 12.461) on Layer "[Top]".
+    Error between Component Pad U1.42 and Component Pad U1.43 (Net 'Button_In_3'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.952 12.477) and (5.952 12.486) on Layer "[Top]".
+    Error between Component Pad U1.43 (Net 'Button_In_3') and Component Pad U1.44 (Net 'Button_In_4'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.952 12.502) and (5.952 12.512) on Layer "[Top]".
+    Error between Component Pad U1.44 (Net 'Button_In_4') and Component Pad U1.45, Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.952 12.528) and (5.952 12.537) on Layer "[Top]".
+    Error between Component Pad U1.45 and Component Pad U1.46 (Net 'Button_In_1'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.952 12.553) and (5.952 12.563) on Layer "[Top]".
+    Error between Component Pad U1.46 (Net 'Button_In_1') and Component Pad U1.47, Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.952 12.579) and (5.952 12.589) on Layer "[Top]".
+    Error between Component Pad U1.47 and Component Pad U1.48 (Net '7406_In_24'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.952 12.605) and (5.952 12.614) on Layer "[Top]".
+    Error between Component Pad U1.48 (Net '7406_In_24') and Component Pad U1.49 (Net 'VDD2'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.952 12.630) and (5.952 12.640) on Layer "[Top]".
+    Error between Component Pad U1.49 (Net 'VDD2') and Component Pad U1.50 (Net 'GND'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.952 12.656) and (5.952 12.665) on Layer "[Top]".
+    Error between Component Pad U1.50 (Net 'GND') and Component Pad U1.51, Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.952 12.681) and (5.952 12.691) on Layer "[Top]".
+    Error between Component Pad U1.51 and Component Pad U1.52, Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.952 12.707) and (5.952 12.717) on Layer "[Top]".
+    Error between Component Pad U1.52 and Component Pad U1.53, Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.952 12.733) and (5.952 12.742) on Layer "[Top]".
+    Error between Component Pad U1.53 and Component Pad U1.54, Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.952 12.758) and (5.952 12.768) on Layer "[Top]".
+    Error between Component Pad U1.54 and Component Pad U1.55, Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.952 12.784) and (5.952 12.793) on Layer "[Top]".
+    Error between Component Pad U1.55 and Component Pad U1.56, Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.952 12.809) and (5.952 12.819) on Layer "[Top]".
+    Error between Component Pad U1.56 and Component Pad U1.57, Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.952 12.835) and (5.952 12.845) on Layer "[Top]".
+    Error between Component Pad U1.57 and Component Pad U1.58, Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.952 12.861) and (5.952 12.870) on Layer "[Top]".
+    Error between Component Pad U1.58 and Component Pad U1.59 (Net 'VCC'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.810 13.012) and (5.800 13.012) on Layer "[Top]".
+    Error between Component Pad U1.62 (Net 'GND') and Component Pad U1.63 (Net 'PS0'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.784 13.012) and (5.775 13.012) on Layer "[Top]".
+    Error between Component Pad U1.63 (Net 'PS0') and Component Pad U1.64 (Net 'PS1'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.759 13.012) and (5.749 13.012) on Layer "[Top]".
+    Error between Component Pad U1.64 (Net 'PS1') and Component Pad U1.65, Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.733 13.012) and (5.724 13.012) on Layer "[Top]".
+    Error between Component Pad U1.65 and Component Pad U1.66, Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.708 13.012) and (5.698 13.012) on Layer "[Top]".
+    Error between Component Pad U1.66 and Component Pad U1.67 (Net 'N0549'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.682 13.012) and (5.672 13.012) on Layer "[Top]".
+    Error between Component Pad U1.67 (Net 'N0549') and Component Pad U1.68, Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.656 13.012) and (5.647 13.012) on Layer "[Top]".
+    Error between Component Pad U1.68 and Component Pad U1.69, Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.631 13.012) and (5.621 13.012) on Layer "[Top]".
+    Error between Component Pad U1.69 and Component Pad U1.70 (Net 'Sclk'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.605 13.012) and (5.596 13.012) on Layer "[Top]".
+    Error between Component Pad U1.70 (Net 'Sclk') and Component Pad U1.71 (Net 'MOSI'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.580 13.012) and (5.570 13.012) on Layer "[Top]".
+    Error between Component Pad U1.71 (Net 'MOSI') and Component Pad U1.72 (Net 'SS'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.554 13.012) and (5.544 13.012) on Layer "[Top]".
+    Error between Component Pad U1.72 (Net 'SS') and Component Pad U1.73, Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.528 13.012) and (5.519 13.012) on Layer "[Top]".
+    Error between Component Pad U1.73 and Component Pad U1.74, Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.503 13.012) and (5.493 13.012) on Layer "[Top]".
+    Error between Component Pad U1.74 and Component Pad U1.75 (Net 'PP5'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.477 13.012) and (5.468 13.012) on Layer "[Top]".
+    Error between Component Pad U1.75 (Net 'PP5') and Component Pad U1.76 (Net 'GND'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.452 13.012) and (5.442 13.012) on Layer "[Top]".
+    Error between Component Pad U1.76 (Net 'GND') and Component Pad U1.77 (Net 'VCC'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.426 13.012) and (5.416 13.012) on Layer "[Top]".
+    Error between Component Pad U1.77 (Net 'VCC') and Component Pad U1.78 (Net '7406_In_17'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.400 13.012) and (5.391 13.012) on Layer "[Top]".
+    Error between Component Pad U1.78 (Net '7406_In_17') and Component Pad U1.79 (Net 'N0550'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.375 13.012) and (5.365 13.012) on Layer "[Top]".
+    Error between Component Pad U1.79 (Net 'N0550') and Component Pad U1.80 (Net 'N0551'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.249 12.896) and (5.249 12.886) on Layer "[Top]".
+    Error between Component Pad U1.1 (Net 'N0552') and Component Pad U1.2 (Net '7406_In_21'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.249 12.870) and (5.249 12.861) on Layer "[Top]".
+    Error between Component Pad U1.2 (Net '7406_In_21') and Component Pad U1.3 (Net '7406_In_22'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.249 12.845) and (5.249 12.835) on Layer "[Top]".
+    Error between Component Pad U1.3 (Net '7406_In_22') and Component Pad U1.4 (Net '7406_In_23'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.249 12.819) and (5.249 12.809) on Layer "[Top]".
+    Error between Component Pad U1.4 (Net '7406_In_23') and Component Pad U1.5 (Net '7406_In_6'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.249 12.793) and (5.249 12.784) on Layer "[Top]".
+    Error between Component Pad U1.5 (Net '7406_In_6') and Component Pad U1.6 (Net 'N0547'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.249 12.768) and (5.249 12.758) on Layer "[Top]".
+    Error between Component Pad U1.6 (Net 'N0547') and Component Pad U1.7 (Net 'N0548'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.249 12.742) and (5.249 12.733) on Layer "[Top]".
+    Error between Component Pad U1.7 (Net 'N0548') and Component Pad U1.8 (Net '7406_In_5'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.249 12.717) and (5.249 12.707) on Layer "[Top]".
+    Error between Component Pad U1.8 (Net '7406_In_5') and Component Pad U1.9 (Net 'VDD1'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.249 12.691) and (5.249 12.681) on Layer "[Top]".
+    Error between Component Pad U1.9 (Net 'VDD1') and Component Pad U1.10 (Net 'GND'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.249 12.665) and (5.249 12.656) on Layer "[Top]".
+    Error between Component Pad U1.10 (Net 'GND') and Component Pad U1.11 (Net '7406_In_4'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.249 12.640) and (5.249 12.630) on Layer "[Top]".
+    Error between Component Pad U1.11 (Net '7406_In_4') and Component Pad U1.12 (Net '7406_In_3'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.249 12.614) and (5.249 12.605) on Layer "[Top]".
+    Error between Component Pad U1.12 (Net '7406_In_3') and Component Pad U1.13 (Net '7406_In_2'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.249 12.589) and (5.249 12.579) on Layer "[Top]".
+    Error between Component Pad U1.13 (Net '7406_In_2') and Component Pad U1.14 (Net '7406_In_1'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.249 12.563) and (5.249 12.553) on Layer "[Top]".
+    Error between Component Pad U1.14 (Net '7406_In_1') and Component Pad U1.15 (Net 'BKGD'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.249 12.537) and (5.249 12.528) on Layer "[Top]".
+    Error between Component Pad U1.15 (Net 'BKGD') and Component Pad U1.16 (Net '7406_In_16'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.249 12.512) and (5.249 12.502) on Layer "[Top]".
+    Error between Component Pad U1.16 (Net '7406_In_16') and Component Pad U1.17, Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.249 12.486) and (5.249 12.477) on Layer "[Top]".
+    Error between Component Pad U1.17 and Component Pad U1.18 (Net '7406_In_14'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.249 12.461) and (5.249 12.451) on Layer "[Top]".
+    Error between Component Pad U1.18 (Net '7406_In_14') and Component Pad U1.19 (Net '7406_In_13'), Gap is 0.010 needs to be 0.010.
+Pad to Pad Error (P-P) between (5.249 12.435) and (5.249 12.425) on Layer "[Top]".
+    Error between Component Pad U1.19 (Net '7406_In_13') and Component Pad U1.20 (Net '7406_In_12'), Gap is 0.010 needs to be 0.010.
+
+Number of errors found : 69
+
+Settings
+--------
+
+Spacings
+    Tracks                             Yes
+    Pads and Vias                      Yes
+    Shapes                             Yes
+    Text                               Yes
+    Board                              Yes
+    Drills                             Yes
+    Components                         No
+
+Manufacturing
+    Min Drill Hole Size                Yes
+    Min Track Width                    Yes
+    Min Annular Ring                   Yes
+    Drill Breakout                     Yes
+
+Nets
+    Net Completion                     Yes
+    Dangling Tracks                    Yes
+    Net Track Length Differences       No
+
+
+End Of Report.

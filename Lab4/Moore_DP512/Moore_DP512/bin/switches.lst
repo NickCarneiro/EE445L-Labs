@@ -1,0 +1,48 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  //**********SWITCHES.C********
+    2:  //switch drivers
+    3:  //assign ports and direction registers
+    4:  //authors: Aaron Alaniz (aa28877)
+    5:  //         Denis Sokolov (dks574)
+    6:  
+    7:  #include <mc9s12dp512.h>
+    8:  
+    9:  extern unsigned char input;
+   10:  
+   11:  //---------Switches_Init------------------
+   12:  // initialize switches
+   13:  // inputs: none 
+   14:  // outputs: none
+   15:  void Switches_Init(void) 
+   16:  {
+*** EVALUATION ***
+
+Function: Switches_Init
+Source  : C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\Sources\switches.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512;C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\bin;C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\prm;C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\cmd;C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\Moore_DP512_Data\Standard\ObjectCode\switches.c.o -WmsgSd1106
+
+   17:    DDRP &= ~0x07;   //PP0-3 inputs
+  0000 1d000007     [4]     BCLR  _DDRP,#7
+   18:  }
+  0004 3d           [5]     RTS   
+   19:  
+   20:  //--------Get_Switches------
+   21:  // return switch values
+   22:  // inputs: none
+   23:  // outputs: switch value
+   24:  unsigned char Get_Switches(void)
+   25:  {
+*** EVALUATION ***
+
+Function: Get_Switches
+Source  : C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\Sources\switches.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512;C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\bin;C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\prm;C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\cmd;C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\Moore_DP512_Data\Standard\ObjectCode\switches.c.o -WmsgSd1106
+
+   26:    return (PTP & 0x07);
+  0000 f60000       [3]     LDAB  _PTP
+  0003 c407         [1]     ANDB  #7
+   27:  }
+  0005 3d           [5]     RTS   
+   28:    

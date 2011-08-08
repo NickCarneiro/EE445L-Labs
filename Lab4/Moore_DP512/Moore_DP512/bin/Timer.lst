@@ -1,0 +1,126 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  // filename ******** Timer.C ************** 
+    2:  // TCNT increments at a fixed rate
+    3:  // Jonathan W. Valvano 10/11/09
+    4:  
+    5:  //  This example accompanies the books
+    6:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+    7:  //        Thompson, copyright (c) 2006,
+    8:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+    9:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   10:  
+   11:  // Copyright 2009 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   12:  // You may use, edit, run or distribute this file 
+   13:  //    as long as the above copyright notices remain
+   14:  
+   15:  #include <mc9s12dp512.h>     /* derivative information */
+   16:  
+   17:  //---------Timer_Init------------------
+   18:  // activate TCNT timer at 1.5 MHz,667ns cycles
+   19:  // inputs: none 
+   20:  // outputs: none
+   21:  void Timer_Init(void){ 
+*** EVALUATION ***
+
+Function: Timer_Init
+Source  : C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\Sources\Timer.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\bin;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\prm;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\cmd;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\Moore_DP512_Data\Standard\ObjectCode\Timer.c.o -WmsgSd1106
+
+   22:    TSCR1 = 0x80;   // Enable TCNT, 24MHz boot mode, 8MHz in run mode
+  0000 cc0780       [2]     LDD   #1920
+  0003 5b00         [2]     STAB  _TSCR1
+   23:    TSCR2 = 0x07;   // divide by 128 TCNT prescale, TCNT at 5.33usec
+  0005 5a00         [2]     STAA  _TSCR2
+   24:  /* Bottom three bits of TSCR2 (PR2,PR1,PR0) set TCNT period
+   25:      divide  FastMode(24MHz)    Slow Mode (8MHz)
+   26:  000   1     42ns  TOF  2.73ms  125ns TOF  8.192ms
+   27:  001   2     84ns  TOF  5.46ms  250ns TOF 16.384ms 
+   28:  010   4    167ns  TOF  10.9ms  500ns TOF 32.768ms     
+   29:  011   8    333ns  TOF  21.8ms    1us TOF 65.536ms
+   30:  100  16    667ns  TOF  43.7ms    2us TOF 131.072ms
+   31:  101  32   1.33us  TOF  87.4ms    4us TOF 262.144ns
+   32:  110  64   2.67us  TOF 174.8ms    8us TOF 524.288ms
+   33:  111 128   5.33us  TOF 349.5ms   16us TOF 1.048576s */
+   34:    PACTL = 0;      // timer prescale used for TCNT
+  0007 790000       [3]     CLR   _PACTL
+   35:  }
+  000a 3d           [5]     RTS   
+   36:  
+   37:  //---------Timer_Wait------------------
+   38:  // fixed time delay
+   39:  // inputs: time to wait in 667ns cycles
+   40:  // outputs: none
+   41:  void Timer_Wait(unsigned short delay){ 
+*** EVALUATION ***
+
+Function: Timer_Wait
+Source  : C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\Sources\Timer.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\bin;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\prm;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\cmd;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\Moore_DP512_Data\Standard\ObjectCode\Timer.c.o -WmsgSd1106
+
+  0000 6cac         [2]     STD   4,-SP
+   42:  unsigned short startTime;
+   43:    startTime = TCNT;
+  0002 dc00         [3]     LDD   _TCNT
+  0004 6c82         [2]     STD   2,SP
+   44:    while((TCNT-startTime) <= delay){} 
+  0006 dc00         [3]     LDD   _TCNT
+  0008 a382         [3]     SUBD  2,SP
+  000a ac80         [3]     CPD   0,SP
+  000c 23f8         [3/1]   BLS   *-6 ;abs = 0006
+   45:  }
+  000e 1b84         [2]     LEAS  4,SP
+  0010 3d           [5]     RTS   
+   46:  
+   47:  //---------Timer_Wait1ms------------------
+   48:  // fixed time delay
+   49:  // inputs: time to wait in ms
+   50:  // outputs: none
+   51:  // 1500 cycles equals 1ms
+   52:  void Timer_Wait1ms(unsigned short delay){ 
+*** EVALUATION ***
+
+Function: Timer_Wait1ms
+Source  : C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\Sources\Timer.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\bin;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\prm;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\cmd;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\Moore_DP512_Data\Standard\ObjectCode\Timer.c.o -WmsgSd1106
+
+   53:    for(;delay>0;delay--){
+  0000 b745         [1]     TFR   D,X
+  0002 2008         [3]     BRA   *+10 ;abs = 000c
+   54:      Timer_Wait(1500);
+  0004 cc05dc       [2]     LDD   #1500
+  0007 34           [2]     PSHX  
+  0008 0700         [4]     BSR   Timer_Wait
+  000a 30           [3]     PULX  
+  000b 09           [1]     DEX   
+  000c 0475f5       [3]     TBNE  X,*-8 ;abs = 0004
+   55:    }
+   56:  }
+  000f 3d           [5]     RTS   
+   57:  
+   58:  //---------Timer_Wait10ms------------------
+   59:  // fixed time delay
+   60:  // inputs: time to wait in 10ms
+   61:  // outputs: none
+   62:  // 15000 cycles equals 10ms
+   63:  void Timer_Wait10ms(unsigned short delay){
+*** EVALUATION ***
+
+Function: Timer_Wait10ms
+Source  : C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\Sources\Timer.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\bin;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\prm;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\cmd;C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\Lab4\Moore_DP512\Moore_DP512\Moore_DP512_Data\Standard\ObjectCode\Timer.c.o -WmsgSd1106
+
+   64:    for(;delay>0;delay--){
+  0000 b745         [1]     TFR   D,X
+  0002 2008         [3]     BRA   *+10 ;abs = 000c
+   65:      Timer_Wait(15000);
+  0004 cc3a98       [2]     LDD   #15000
+  0007 34           [2]     PSHX  
+  0008 0700         [4]     BSR   Timer_Wait
+  000a 30           [3]     PULX  
+  000b 09           [1]     DEX   
+  000c 0475f5       [3]     TBNE  X,*-8 ;abs = 0004
+   66:    }
+   67:  }
+  000f 3d           [5]     RTS   

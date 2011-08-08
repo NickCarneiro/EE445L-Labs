@@ -1,0 +1,511 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  //filename  ***************  LCD.C ****************************** 
+    2:  //LCD Display (HD44780) on Port H for the 9S12DP512   
+    3:  //Jonathan W. Valvano 9/18/09
+    4:  
+    5:  // This example accompanies the books
+    6:  //  "Embedded Microcomputer Systems: Real Time Interfacing",
+    7:  //       Thompson, copyright (c) 2006,
+    8:  //  "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+    9:  //       Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   10:  
+   11:  //Copyright 2009 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   12:  //   You may use, edit, run or distribute this file 
+   13:  //   as long as the above copyright notice remains 
+   14:  
+   15:  /*   
+   16:    size is 1*16 
+   17:    if do not need to read busy, then you can tie R/W=ground 
+   18:    ground = pin 1    Vss
+   19:    power  = pin 2    Vdd   +5V
+   20:    ground = pin 3    Vlc   grounded for highest contrast
+   21:    PH4    = pin 4    RS    (1 for data, 0 for control/status)
+   22:    PH5    = pin 5    R/W   (1 for read, 0 for write)
+   23:    PH6    = pin 6    E     (enable)
+   24:    PH3    = pin 14   DB7   (4-bit data)
+   25:    PH2    = pin 13   DB6
+   26:    PH1    = pin 12   DB5
+   27:    PH0    = pin 11   DB4
+   28:  16 characters are configured as 2 rows of 8
+   29:  addr  00 01 02 03 04 05 06 07 40 41 42 43 44 45 46 47
+   30:  */
+   31:  
+   32:  #include <stdio.h>
+   33:  #include <stdlib.h>
+   34:  #include <string.h>
+   35:  #include <MC9S12DP512.h>
+   36:  #include "fixed.h"
+   37:  #include "lcd.h"
+   38:  
+   39:  #define HUNDRED_MICROS 150
+   40:  #define NINETY_MICROS 135
+   41:  #define ONESIXFOUR_MS 2460
+   42:  #define ONE_MS 1500
+   43:  #define CR 13
+   44:  #define TAB 9
+   45:  #define LF 10
+   46:  
+   47:  static unsigned short OpenFlag = 0;
+   48:  
+   49:  //---------------------Timer_Wait---------------------
+   50:  //time delay
+   51:  //Input: time in 0.667usec increments
+   52:  //Output: none
+   53:  static void Timer_Wait(unsigned short delay){ 
+*** EVALUATION ***
+
+Function: Timer_Wait
+Source  : C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources\lcd.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\ADC_9S12DP512_Data\HCS12_Serial_Monitor\ObjectCode\lcd.c.o -WmsgSd1106
+
+  0000 6cac         [2]     STD   4,-SP
+   54:  unsigned short startTime;
+   55:    startTime = TCNT;
+  0002 dc00         [3]     LDD   _TCNT
+  0004 6c82         [2]     STD   2,SP
+   56:    while((TCNT-startTime) <= delay){}  
+  0006 dc00         [3]     LDD   _TCNT
+  0008 a382         [3]     SUBD  2,SP
+  000a ac80         [3]     CPD   0,SP
+  000c 23f8         [3/1]   BLS   *-6 ;abs = 0006
+   57:  }
+  000e 1b84         [2]     LEAS  4,SP
+  0010 3d           [5]     RTS   
+   58:  //---------------------Timer_Wait_1ms---------------------
+   59:  //time delay
+   60:  //Input: time in msec increments
+   61:  //Output: none
+   62:  static void Timer_Wait_1ms(unsigned short msec){ 
+*** EVALUATION ***
+
+Function: Timer_Wait_1ms
+Source  : C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources\lcd.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\ADC_9S12DP512_Data\HCS12_Serial_Monitor\ObjectCode\lcd.c.o -WmsgSd1106
+
+   63:    for(;msec;msec--){
+  0000 b745         [1]     TFR   D,X
+  0002 2008         [3]     BRA   *+10 ;abs = 000c
+   64:      Timer_Wait(ONE_MS);    //1ms wait
+  0004 cc05dc       [2]     LDD   #1500
+  0007 34           [2]     PSHX  
+  0008 0700         [4]     BSR   Timer_Wait
+  000a 30           [3]     PULX  
+  000b 09           [1]     DEX   
+  000c 0475f5       [3]     TBNE  X,*-8 ;abs = 0004
+   65:    }
+   66:  }
+  000f 3d           [5]     RTS   
+   67:    
+   68:  //---------------------outCsrNibble--------------------- 
+   69:  //execute a 4-bit lcd command
+   70:  //Input: command contains the 4-bit lcd command   
+   71:  //Output: none
+   72:  static void outCsrNibble(unsigned char command){
+*** EVALUATION ***
+
+Function: outCsrNibble
+Source  : C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources\lcd.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\ADC_9S12DP512_Data\HCS12_Serial_Monitor\ObjectCode\lcd.c.o -WmsgSd1106
+
+  0000 37           [2]     PSHB  
+   73:    PTH = (PTH&0x80)+(command&0x0F);    //nibble, E=0, RS=0
+  0001 f60000       [3]     LDAB  _PTH
+  0004 c480         [1]     ANDB  #128
+  0006 32           [3]     PULA  
+  0007 840f         [1]     ANDA  #15
+  0009 1806         [2]     ABA   
+  000b 7a0000       [3]     STAA  _PTH
+   74:    PTH |= 0x40;             //E goes 0->1
+  000e 1c000040     [4]     BSET  _PTH,#64
+   75:    asm nop
+  0012 a7           [1]     NOP   
+   76:    asm nop                  //5 cycles wide = 208ns
+  0013 a7           [1]     NOP   
+   77:    PTH &= ~0x40;            //E goes 1->0
+  0014 1d000040     [4]     BCLR  _PTH,#64
+   78:  }
+  0018 3d           [5]     RTS   
+   79:  
+   80:  //---------------------outCsr--------------------- 
+   81:  //executes an 8-bit lcd command via two intervalled calls to outCsrNibble
+   82:  //Input: command contains the 8-bit lcd command   
+   83:  //Output: none
+   84:  static void outCsr(unsigned char command){
+*** EVALUATION ***
+
+Function: outCsr
+Source  : C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources\lcd.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\ADC_9S12DP512_Data\HCS12_Serial_Monitor\ObjectCode\lcd.c.o -WmsgSd1106
+
+  0000 37           [2]     PSHB  
+   85:    outCsrNibble(command>>4);   //ms nibble, E=0, RS=0
+  0001 54           [1]     LSRB  
+  0002 54           [1]     LSRB  
+  0003 54           [1]     LSRB  
+  0004 54           [1]     LSRB  
+  0005 0700         [4]     BSR   outCsrNibble
+   86:    outCsrNibble(command);      //ls nibble, E=0, RS=0
+  0007 e680         [3]     LDAB  0,SP
+  0009 0700         [4]     BSR   outCsrNibble
+   87:    Timer_Wait(NINETY_MICROS);  //blind cycle 90 us wait
+  000b c687         [1]     LDAB  #135
+  000d 87           [1]     CLRA  
+  000e 0700         [4]     BSR   Timer_Wait
+   88:  }
+  0010 32           [3]     PULA  
+  0011 3d           [5]     RTS   
+   89:  
+   90:  //---------------------LCD_Clear---------------------
+   91:  //clear the LCD display, send cursor to home
+   92:  //Input: none
+   93:  //Output: true if successful
+   94:  unsigned short LCD_Clear(void){
+*** EVALUATION ***
+
+Function: LCD_Clear
+Source  : C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources\lcd.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\ADC_9S12DP512_Data\HCS12_Serial_Monitor\ObjectCode\lcd.c.o -WmsgSd1106
+
+   95:    if(OpenFlag==0){
+  0000 fc0000       [3]     LDD   OpenFlag
+  0003 2601         [3/1]   BNE   *+3 ;abs = 0006
+   96:      return 0;  //not open
+  0005 3d           [5]     RTS   
+   97:    }
+   98:    letter_cnt = 0;   //zero letters after clear
+  0006 c7           [1]     CLRB  
+  0007 87           [1]     CLRA  
+  0008 7c0000       [3]     STD   letter_cnt
+   99:    outCsr(0x01);        //Clear Display
+  000b 52           [1]     INCB  
+  000c 0700         [4]     BSR   outCsr
+  100:    Timer_Wait(ONESIXFOUR_MS);  //1.64ms wait
+  000e cc099c       [2]     LDD   #2460
+  0011 0700         [4]     BSR   Timer_Wait
+  101:    outCsr(0x02);        //Cursor to home
+  0013 c602         [1]     LDAB  #2
+  0015 0700         [4]     BSR   outCsr
+  102:    Timer_Wait(ONESIXFOUR_MS);  //1.64ms wait
+  0017 cc099c       [2]     LDD   #2460
+  001a 0700         [4]     BSR   Timer_Wait
+  103:    return 1;		         //success
+  001c c601         [1]     LDAB  #1
+  001e 87           [1]     CLRA  
+  104:  }
+  001f 3d           [5]     RTS   
+  105:  #define LCDINC 2
+  106:  #define LCDDEC 0
+  107:  #define LCDSHIFT 1
+  108:  #define LCDNOSHIFT 0
+  109:  #define LCDCURSOR 2
+  110:  #define LCDNOCURSOR 0
+  111:  #define LCDBLINK 1
+  112:  #define LCDNOBLINK 0
+  113:  #define LCDSCROLL 8
+  114:  #define LCDNOSCROLL 0
+  115:  #define LCDLEFT 0
+  116:  #define LCDRIGHT 4
+  117:  #define LCD2LINE 8
+  118:  #define LCD1LINE 0
+  119:  #define LCD10DOT 4
+  120:  #define LCD7DOT 0
+  121:  
+  122:  //---------------------LCD_Init---------------------
+  123:  //initialize the LCD display, called once at beginning
+  124:  //Input: none
+  125:  //Output: true if successful
+  126:  unsigned short LCD_Init(void){
+*** EVALUATION ***
+
+Function: LCD_Init
+Source  : C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources\lcd.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\ADC_9S12DP512_Data\HCS12_Serial_Monitor\ObjectCode\lcd.c.o -WmsgSd1106
+
+  127:    if(OpenFlag){
+  0000 fc0000       [3]     LDD   OpenFlag
+  0003 2703         [3/1]   BEQ   *+5 ;abs = 0008
+  128:      return 0;      //error if already open
+  0005 c7           [1]     CLRB  
+  0006 87           [1]     CLRA  
+  0007 3d           [5]     RTS   
+  129:    }
+  130:    DDRH |= 0x7F;       //PH6-0 output to LCD
+  0008 1c00007f     [4]     BSET  _DDRH,#127
+  131:    PTH &= ~0x20;       //PH5=R/W=0 means write
+  000c 1d000020     [4]     BCLR  _PTH,#32
+  132:    TSCR1 = 0x80;       //Enable TCNT, 24MHz boot mode, 4MHz in run mode
+  0010 cc0480       [2]     LDD   #1152
+  0013 5b00         [2]     STAB  _TSCR1
+  133:    TSCR2 = 0x04;       //divide by 16 TCNT prescale, TCNT at 667nsec
+  0015 5a00         [2]     STAA  _TSCR2
+  134:    PACTL = 0;          //timer prescale used for TCNT
+  0017 790000       [3]     CLR   _PACTL
+  135:    Timer_Wait_1ms(20);        //20ms wait to allow LCD powerup
+  001a c614         [1]     LDAB  #20
+  001c 87           [1]     CLRA  
+  001d 0700         [4]     BSR   Timer_Wait_1ms
+  136:    outCsrNibble(0x03); //(DL=1 8-bit mode)
+  001f c603         [1]     LDAB  #3
+  0021 0700         [4]     BSR   outCsrNibble
+  137:    Timer_Wait_1ms(5);          //blind cycle 5ms wait
+  0023 c605         [1]     LDAB  #5
+  0025 87           [1]     CLRA  
+  0026 160000       [4]     JSR   Timer_Wait_1ms
+  138:    outCsrNibble(0x03); //(DL=1 8-bit mode)
+  0029 c603         [1]     LDAB  #3
+  002b 0700         [4]     BSR   outCsrNibble
+  139:    Timer_Wait(HUNDRED_MICROS); //blind cycle 100us wait
+  002d c696         [1]     LDAB  #150
+  002f 87           [1]     CLRA  
+  0030 160000       [4]     JSR   Timer_Wait
+  140:    outCsrNibble(0x03); //(DL=1 8-bit mode)
+  0033 c603         [1]     LDAB  #3
+  0035 071b         [4]     BSR   *+29 ;abs = 0052
+  141:    Timer_Wait(HUNDRED_MICROS); //blind cycle 100us wait (not called for, but do it anyway)
+  142:    outCsrNibble(0x02); //(DL=0 4-bit mode)
+  0037 c602         [1]     LDAB  #2
+  0039 0717         [4]     BSR   *+25 ;abs = 0052
+  143:    Timer_Wait(HUNDRED_MICROS); //blind cycle 100us wait
+  144:    outCsr(0x04+LCDINC+LCDNOSHIFT);        //I/D=1 Increment, S=0 no displayshift
+  003b c606         [1]     LDAB  #6
+  003d 0700         [4]     BSR   outCsr
+  145:    outCsr(0x0C+LCDNOCURSOR+LCDNOBLINK);   //D=1 displayon, C=0 cursoroff, B=0 blink off
+  003f c60c         [1]     LDAB  #12
+  0041 0700         [4]     BSR   outCsr
+  146:    outCsr(0x10+LCDNOSCROLL+LCDRIGHT);     //S/C=0 cursormove, R/L=1 shiftright
+  0043 c614         [1]     LDAB  #20
+  0045 0700         [4]     BSR   outCsr
+  147:    outCsr(0x20+LCD2LINE+LCD7DOT);         //DL=0 4bit, N=1 2 line, F=0 5by7 dots
+  0047 c628         [1]     LDAB  #40
+  0049 0700         [4]     BSR   outCsr
+  148:    OpenFlag = 1;       //device open
+  004b c601         [1]     LDAB  #1
+  004d 87           [1]     CLRA  
+  004e 7c0000       [3]     STD   OpenFlag
+  149:    return 1;           //clear display
+  150:  }
+  0051 3d           [5]     RTS   
+  0052 160000       [4]     JSR   outCsrNibble
+  0055 c696         [1]     LDAB  #150
+  0057 87           [1]     CLRA  
+  0058 060000       [3]     JMP   Timer_Wait
+  151:  
+  152:  //---------------------LCD_OutChar---------------------
+  153:  //sends one ASCII to the LCD display
+  154:  //Input: letter is ASCII code
+  155:  //Output: true if successful
+  156:  unsigned short LCD_OutChar(unsigned char letter){
+*** EVALUATION ***
+
+Function: LCD_OutChar
+Source  : C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources\lcd.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\ADC_9S12DP512_Data\HCS12_Serial_Monitor\ObjectCode\lcd.c.o -WmsgSd1106
+
+  0000 37           [2]     PSHB  
+  157:    if(OpenFlag==0){
+  0001 fc0000       [3]     LDD   OpenFlag
+  0004 2602         [3/1]   BNE   *+4 ;abs = 0008
+  158:      return 0;  //not open
+  0006 202d         [3]     BRA   *+47 ;abs = 0035
+  159:    }
+  160:    PTH = (PTH&0x80)+(0x10+(0x0F&(letter>>4)));  //ms nibble, E=0, RS=1
+  0008 f60000       [3]     LDAB  _PTH
+  000b c480         [1]     ANDB  #128
+  000d a680         [3]     LDAA  0,SP
+  000f 44           [1]     LSRA  
+  0010 44           [1]     LSRA  
+  0011 44           [1]     LSRA  
+  0012 44           [1]     LSRA  
+  0013 0723         [4]     BSR   *+37 ;abs = 0038
+  161:    PTH |= 0x40;       //E goes 0->1
+  162:    asm nop
+  0015 a7           [1]     NOP   
+  163:    asm nop            //5 cycles wide = 208ns
+  0016 a7           [1]     NOP   
+  164:    PTH &= ~0x40;      //E goes 1->0
+  0017 1d000040     [4]     BCLR  _PTH,#64
+  165:    PTH = (PTH&0x80)+(0x10+(letter&0x0F));  //ls nibble, E=0, RS=1
+  001b f60000       [3]     LDAB  _PTH
+  001e c480         [1]     ANDB  #128
+  0020 a680         [3]     LDAA  0,SP
+  0022 840f         [1]     ANDA  #15
+  0024 0712         [4]     BSR   *+20 ;abs = 0038
+  166:    PTH |= 0x40;       //E goes 0->1
+  167:    asm nop
+  0026 a7           [1]     NOP   
+  168:    asm nop            //5 cycles wide = 208ns
+  0027 a7           [1]     NOP   
+  169:    PTH &= ~0x40;      //E goes 1->0
+  0028 1d000040     [4]     BCLR  _PTH,#64
+  170:    Timer_Wait(NINETY_MICROS);   //90 us wait
+  002c c687         [1]     LDAB  #135
+  002e 87           [1]     CLRA  
+  002f 160000       [4]     JSR   Timer_Wait
+  171:    return 1;	         //success
+  0032 c601         [1]     LDAB  #1
+  0034 87           [1]     CLRA  
+  172:  }
+  0035 1b81         [2]     LEAS  1,SP
+  0037 3d           [5]     RTS   
+  0038 8b10         [1]     ADDA  #16
+  003a 1806         [2]     ABA   
+  003c 7a0000       [3]     STAA  _PTH
+  003f 1c000040     [4]     BSET  _PTH,#64
+  0043 3d           [5]     RTS   
+  173:  
+  174:  //---------------------LCD_OutString--------------------- 
+  175:  //outputs an ASCII string to the LCD display 
+  176:  //Input: string is a pointer to the beginning of the string to output   
+  177:  //Output: true if successful
+  178:  unsigned short LCD_OutString(char *pt){ 
+*** EVALUATION ***
+
+Function: LCD_OutString
+Source  : C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources\lcd.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\ADC_9S12DP512_Data\HCS12_Serial_Monitor\ObjectCode\lcd.c.o -WmsgSd1106
+
+  0000 3b           [2]     PSHD  
+  179:    if(OpenFlag==0){
+  0001 fc0000       [3]     LDD   OpenFlag
+  0004 260f         [3/1]   BNE   *+17 ;abs = 0015
+  180:      return 0;   //not open
+  0006 2005         [3]     BRA   *+7 ;abs = 000d
+  181:    }
+  182:    while(*pt){
+  183:      if(LCD_OutChar((unsigned char)*pt)==0){
+  0008 0700         [4]     BSR   LCD_OutChar
+  000a 046403       [3]     TBNE  D,*+6 ;abs = 0010
+  184:        return 0; //not open for an LCD_OutChar operations
+  000d c7           [1]     CLRB  
+  000e 200d         [3]     BRA   *+15 ;abs = 001d
+  185:      }
+  186:      pt++;       //move to next letter
+  0010 ee80         [3]     LDX   0,SP
+  0012 08           [1]     INX   
+  0013 6e80         [2]     STX   0,SP
+  0015 ee80         [3]     LDX   0,SP
+  0017 e600         [3]     LDAB  0,X
+  0019 26ed         [3/1]   BNE   *-17 ;abs = 0008
+  187:    }
+  188:    return 1;	    //success
+  001b c601         [1]     LDAB  #1
+  001d 87           [1]     CLRA  
+  189:  }
+  001e 30           [3]     PULX  
+  001f 3d           [5]     RTS   
+  190:  
+  191:  //---------------------LCD_GoTo--------------------- 
+  192:  //moves cursor to desired location 
+  193:  //Input: string is a pointer to the beginning of the string to output   
+  194:  //Output: true if successful
+  195:  unsigned short LCD_GoTo(unsigned short cur_loc){
+*** EVALUATION ***
+
+Function: LCD_GoTo
+Source  : C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources\lcd.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\ADC_9S12DP512_Data\HCS12_Serial_Monitor\ObjectCode\lcd.c.o -WmsgSd1106
+
+  0000 3b           [2]     PSHD  
+  196:    
+  197:    if(cur_loc >= 0x08 && cur_loc <= 0x3F || cur_loc >= 0x48 && cur_loc <= 0xFF){
+  0001 830008       [2]     SUBD  #8
+  0004 8c0037       [2]     CPD   #55
+  0007 230a         [3/1]   BLS   *+12 ;abs = 0013
+  0009 ec80         [3]     LDD   0,SP
+  000b 830048       [2]     SUBD  #72
+  000e 8c00b7       [2]     CPD   #183
+  0011 2203         [3/1]   BHI   *+5 ;abs = 0016
+  198:      return 0;
+  0013 c7           [1]     CLRB  
+  0014 2009         [3]     BRA   *+11 ;abs = 001f
+  199:    }
+  200:    outCsr(cur_loc + 0x80);
+  0016 e681         [3]     LDAB  1,SP
+  0018 cb80         [1]     ADDB  #128
+  001a 160000       [4]     JSR   outCsr
+  201:    return 1;   
+  001d c601         [1]     LDAB  #1
+  001f 87           [1]     CLRA  
+  202:  }
+  0020 30           [3]     PULX  
+  0021 3d           [5]     RTS   
+  203:  
+  204:  //---------------------TERMIO_PutChar--------------------- 
+  205:  //sends one ASCII to the LCD display 
+  206:  //Input: letter is ASCII code 
+  207:  //handles at least two special characters, like CR LF or TAB  
+  208:  //Output: true if successful
+  209:  short TERMIO_PutChar(unsigned char letter){
+*** EVALUATION ***
+
+Function: TERMIO_PutChar
+Source  : C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources\lcd.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\ADC_9S12DP512_Data\HCS12_Serial_Monitor\ObjectCode\lcd.c.o -WmsgSd1106
+
+  0000 37           [2]     PSHB  
+  210:    if(letter == 0x0A){       //if \n, clear display
+  0001 c10a         [1]     CMPB  #10
+  0003 2606         [3/1]   BNE   *+8 ;abs = 000b
+  211:      LCD_GoTo(0);
+  0005 c7           [1]     CLRB  
+  0006 87           [1]     CLRA  
+  0007 0700         [4]     BSR   LCD_GoTo
+  212:    } else if(letter == 0x09){      //if \t, output 3 spaces
+  0009 2040         [3]     BRA   *+66 ;abs = 004b
+  000b c109         [1]     CMPB  #9
+  000d 2623         [3/1]   BNE   *+37 ;abs = 0032
+  213:      if( letter_cnt >= 8){
+  000f fc0000       [3]     LDD   letter_cnt
+  0012 8c0008       [2]     CPD   #8
+  0015 2502         [3/1]   BCS   *+4 ;abs = 0019
+  214:        LCD_GoTo(0x40);   //goto next lcd line
+  0017 0735         [4]     BSR   *+55 ;abs = 004e
+  215:        letter_cnt = 0;
+  216:      }
+  217:      letter_cnt += 3;    //3 more letters
+  0019 fe0000       [3]     LDX   letter_cnt
+  001c 1a03         [2]     LEAX  3,X
+  001e 7e0000       [3]     STX   letter_cnt
+  218:      LCD_OutChar(' ');
+  0021 c620         [1]     LDAB  #32
+  0023 160000       [4]     JSR   LCD_OutChar
+  219:      LCD_OutChar(' ');
+  0026 c620         [1]     LDAB  #32
+  0028 160000       [4]     JSR   LCD_OutChar
+  220:      LCD_OutChar(' ');   //tab outputs 3 spaces
+  002b c620         [1]     LDAB  #32
+  002d 160000       [4]     JSR   LCD_OutChar
+  221:    } else{
+  0030 2019         [3]     BRA   *+27 ;abs = 004b
+  222:      if( letter_cnt >= 8){
+  0032 fc0000       [3]     LDD   letter_cnt
+  0035 8c0008       [2]     CPD   #8
+  0038 2502         [3/1]   BCS   *+4 ;abs = 003c
+  223:        LCD_GoTo(0x40);
+  003a 0712         [4]     BSR   *+20 ;abs = 004e
+  224:        letter_cnt = 0;
+  225:      }
+  226:      letter_cnt++;
+  003c fe0000       [3]     LDX   letter_cnt
+  003f 08           [1]     INX   
+  0040 7e0000       [3]     STX   letter_cnt
+  227:      LCD_OutChar(letter); //output letter
+  0043 e680         [3]     LDAB  0,SP
+  0045 160000       [4]     JSR   LCD_OutChar
+  228:      return 1;            //assume it worked
+  0048 c601         [1]     LDAB  #1
+  004a 87           [1]     CLRA  
+  229:    }
+  230:  }
+  004b 1b81         [2]     LEAS  1,SP
+  004d 3d           [5]     RTS   
+  004e c640         [1]     LDAB  #64
+  0050 87           [1]     CLRA  
+  0051 0700         [4]     BSR   LCD_GoTo
+  0053 c7           [1]     CLRB  
+  0054 87           [1]     CLRA  
+  0055 7c0000       [3]     STD   letter_cnt
+  0058 3d           [5]     RTS   
+  231:  

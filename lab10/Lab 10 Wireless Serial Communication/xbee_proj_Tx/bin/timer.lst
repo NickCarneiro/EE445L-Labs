@@ -1,0 +1,77 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  //**********Timer Functions*******
+    2:  #include "timer.h"
+    3:  #include <MC9S12DP512.h>
+    4:  
+    5:  //---------------------Timer_Init---------------------
+    6:  // initializes timer
+    7:  // Input: none
+    8:  // Output: none
+    9:  void Timer_Init(void){
+*** EVALUATION ***
+
+Function: Timer_Init
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\timer.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\Lab 10 Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\timer.c.o" -WmsgSd1106
+
+   10:      TSCR1 = 0x80; //enable TCNT
+  0000 c680         [1]     LDAB  #128
+  0002 5b00         [2]     STAB  _TSCR1
+   11:      TSCR2 = 0x00; //divide by 1
+  0004 790000       [3]     CLR   _TSCR2
+   12:      PACTL = 0;        // timer prescale used for TCNT  
+  0007 790000       [3]     CLR   _PACTL
+   13:  }
+  000a 3d           [5]     RTS   
+   14:  
+   15:  //---------------------Wait---------------------
+   16:  // time delay
+   17:  // Input: time in 41.6667ns(1/24M)
+   18:  // Output: none
+   19:  void Wait(unsigned short delay){ 
+*** EVALUATION ***
+
+Function: Wait
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\timer.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\Lab 10 Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\timer.c.o" -WmsgSd1106
+
+  0000 6cac         [2]     STD   4,-SP
+   20:  unsigned short startTime;
+   21:    startTime = TCNT;
+  0002 dc00         [3]     LDD   _TCNT
+  0004 6c82         [2]     STD   2,SP
+   22:    while((TCNT-startTime) <= delay){}  
+  0006 dc00         [3]     LDD   _TCNT
+  0008 a382         [3]     SUBD  2,SP
+  000a ac80         [3]     CPD   0,SP
+  000c 23f8         [3/1]   BLS   *-6 ;abs = 0006
+   23:  }
+  000e 1b84         [2]     LEAS  4,SP
+  0010 3d           [5]     RTS   
+   24:  
+   25:  //---------------------Wait1ms---------------------
+   26:  // time delay
+   27:  // Input: time in msec
+   28:  // Output: none
+   29:  void Wait1ms(unsigned short msec){ 
+*** EVALUATION ***
+
+Function: Wait1ms
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\timer.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\Lab 10 Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\timer.c.o" -WmsgSd1106
+
+   30:    for(;msec;msec--){
+  0000 b745         [1]     TFR   D,X
+  0002 2008         [3]     BRA   *+10 ;abs = 000c
+   31:      Wait(24000);    // 1ms wait
+  0004 cc5dc0       [2]     LDD   #24000
+  0007 34           [2]     PSHX  
+  0008 0700         [4]     BSR   Wait
+  000a 30           [3]     PULX  
+  000b 09           [1]     DEX   
+  000c 0475f5       [3]     TBNE  X,*-8 ;abs = 0004
+   32:    }
+   33:  }
+  000f 3d           [5]     RTS   

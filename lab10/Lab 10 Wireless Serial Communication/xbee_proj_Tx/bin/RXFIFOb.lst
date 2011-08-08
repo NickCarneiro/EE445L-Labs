@@ -1,0 +1,170 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  // filename *************RxFifob.c********
+    2:  // Pointer implementation of the receive FIFO
+    3:  // Jonathan W. Valvano 10/25/09
+    4:  
+    5:  //  This example accompanies the books
+    6:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+    7:  //        Thompson, copyright (c) 2006,
+    8:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+    9:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   10:  
+   11:  // Copyright 2009 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   12:  //    You may use, edit, run or distribute this file 
+   13:  //    as long as the above copyright notice remains 
+   14:  
+   15:  #include "RxFifob.h"
+   16:  /* Number of characters in the Fifo
+   17:       the FIFO is full when it has FifoSize-1 characters */
+   18:  unsigned char static volatile *RxPutPtb;    /* Pointer of where to put next */
+   19:  unsigned char static volatile *RxGetPtb;    /* Pointer of where to get next */
+   20:                    /* FIFO is empty if PutPt=GetPt */
+   21:                    /* FIFO is full  if PutPt+1=GetPt */
+   22:  char unsigned static RxFifob[RXFIFOSIZEb];     /* The statically allocated fifo data */
+   23:   
+   24:  /*-----------------------RxFifob_Init----------------------------
+   25:    Initialize fifo to be empty
+   26:    Inputs: none
+   27:    Outputs: none */
+   28:  void RxFifob_Init(void){unsigned char SaveCCR;
+*** EVALUATION ***
+
+Function: RxFifob_Init
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\RXFIFOb.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\Lab 10 Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\RXFIFOb.C.o"
+
+  0000 36           [2]     PSHA  
+   29:  /* save previous interrupt enable */
+   30:  asm  tpa  
+  0001 b720         [1]     TPA   
+   31:  asm  staa SaveCCR 
+  0003 6a80         [2]     STAA  0,SP
+   32:  asm  sei          /* make atomic */
+  0005 1410         [1]     SEI   
+   33:    RxPutPtb=RxGetPtb=&RxFifob[0];   /* Empty when PutPt=GetPt */
+  0007 180300000000 [5]     MOVW  #RxFifob,RxGetPtb
+  000d fc0000       [3]     LDD   RxGetPtb
+  0010 7c0000       [3]     STD   RxPutPtb
+   34:  asm  ldaa SaveCCR
+  0013 a680         [3]     LDAA  0,SP
+   35:  asm  tap          /* end critical section */
+  0015 b702         [1]     TAP   
+   36:  }
+  0017 32           [3]     PULA  
+  0018 3d           [5]     RTS   
+   37:  
+   38:  /*-----------------------RxFifob_Put----------------------------
+   39:    Enter one character into the fifo
+   40:    Inputs: 8-bit data
+   41:    Outputs: true if data is properly saved
+   42:    Since this is called by interrupt handlers no sei,cli*/
+   43:  int RxFifob_Put(unsigned char data){
+*** EVALUATION ***
+
+Function: RxFifob_Put
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\RXFIFOb.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\Lab 10 Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\RXFIFOb.C.o"
+
+  0000 6bad         [2]     STAB  3,-SP
+   44:  unsigned char volatile *tempPt;
+   45:    tempPt = RxPutPtb;
+  0002 fe0000       [3]     LDX   RxPutPtb
+   46:    tempPt++;              // place for next time
+  0005 08           [1]     INX   
+  0006 6e81         [2]     STX   1,SP
+   47:    if(tempPt==&RxFifob[RXFIFOSIZEb]){ // need to wrap?
+  0008 8e0000       [2]     CPX   #RxFifob:20
+  000b 2605         [3/1]   BNE   *+7 ;abs = 0012
+   48:      tempPt = &RxFifob[0];
+  000d cc0000       [2]     LDD   #RxFifob
+  0010 6c81         [2]     STD   1,SP
+   49:    }
+   50:    if(tempPt == RxGetPtb ){
+  0012 fc0000       [3]     LDD   RxGetPtb
+  0015 ac81         [3]     CPD   1,SP
+  0017 2603         [3/1]   BNE   *+5 ;abs = 001c
+   51:      return(0);             // Failed, fifo was full 
+  0019 c7           [1]     CLRB  
+  001a 200d         [3]     BRA   *+15 ;abs = 0029
+   52:    }     
+   53:    else{
+   54:      (*RxPutPtb) = data;    // put
+  001c e680         [3]     LDAB  0,SP
+  001e 6bfb0000     [4]     STAB  [RxPutPtb,PCR]
+   55:      RxPutPtb = tempPt;     // Success, so update pointer 
+  0022 ec81         [3]     LDD   1,SP
+  0024 7c0000       [3]     STD   RxPutPtb
+   56:      return(1);
+  0027 c601         [1]     LDAB  #1
+  0029 87           [1]     CLRA  
+   57:    }
+   58:  }
+  002a 1b83         [2]     LEAS  3,SP
+  002c 3d           [5]     RTS   
+   59:  
+   60:  /*-----------------------RxFifob_Get----------------------------
+   61:    Remove one character from the fifo
+   62:    Inputs: pointer to place to save 8-bit data
+   63:    Outputs: true if data is valid */
+   64:  int RxFifob_Get(unsigned char *datapt){ 
+*** EVALUATION ***
+
+Function: RxFifob_Get
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\RXFIFOb.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\Lab 10 Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\RXFIFOb.C.o"
+
+  0000 3b           [2]     PSHD  
+   65:    if(RxPutPtb == RxGetPtb ){
+  0001 fc0000       [3]     LDD   RxPutPtb
+  0004 bc0000       [3]     CPD   RxGetPtb
+  0007 2603         [3/1]   BNE   *+5 ;abs = 000c
+   66:      return(0);     /* Empty if PutPt=GetPt */
+  0009 c7           [1]     CLRB  
+  000a 201c         [3]     BRA   *+30 ;abs = 0028
+   67:    }
+   68:    else{
+   69:      *datapt = *(RxGetPtb++);
+  000c fe0000       [3]     LDX   RxGetPtb
+  000f e630         [3]     LDAB  1,X+
+  0011 7e0000       [3]     STX   RxGetPtb
+  0014 ee80         [3]     LDX   0,SP
+  0016 6b00         [2]     STAB  0,X
+   70:      if(RxGetPtb==&RxFifob[RXFIFOSIZEb]){ 
+  0018 fc0000       [3]     LDD   RxGetPtb
+  001b 8c0000       [2]     CPD   #RxFifob:20
+  001e 2606         [3/1]   BNE   *+8 ;abs = 0026
+   71:         RxGetPtb = &RxFifob[0];
+  0020 180300000000 [5]     MOVW  #RxFifob,RxGetPtb
+   72:      }
+   73:      return(1); 
+  0026 c601         [1]     LDAB  #1
+  0028 87           [1]     CLRA  
+   74:    }
+   75:  }
+  0029 30           [3]     PULX  
+  002a 3d           [5]     RTS   
+   76:  
+   77:  /*-----------------------RxFifbo_Status----------------------------
+   78:    Check the status of the fifo
+   79:    Inputs: none
+   80:    Outputs: true if there is any data in the fifo */
+   81:  int RxFifob_Status(void){ 
+*** EVALUATION ***
+
+Function: RxFifob_Status
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\RXFIFOb.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\Lab 10 Rx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\RXFIFOb.C.o"
+
+   82:    return (RxPutPtb != RxGetPtb);
+  0000 fc0000       [3]     LDD   RxPutPtb
+  0003 bc0000       [3]     CPD   RxGetPtb
+  0006 2602         [3/1]   BNE   *+4 ;abs = 000a
+  0008 c7           [1]     CLRB  
+  0009 8f           [2]     SKIP2 
+  000a c601         [1]     LDAB  #1
+  000c 87           [1]     CLRA  
+   83:  }
+  000d 3d           [5]     RTS   
+   84:  

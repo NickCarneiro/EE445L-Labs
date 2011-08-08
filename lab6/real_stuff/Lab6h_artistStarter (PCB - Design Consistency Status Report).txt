@@ -1,0 +1,29 @@
+Design Consistency Status Report
+--------------------------------
+
+Report File    : C:\Users\Denis\My Dropbox\EE445L\lab6\real_stuff\Lab6h_artistStarter (PCB - Design Consistency Status Report).txt
+Report Written : Sunday, March 06, 2011
+Design Path    : C:\Users\Denis\My Dropbox\EE445L\lab6\real_stuff\Lab6h_artistStarter.pcb
+Design Title   : 
+Created        : 9/11/2009 4:58:24 PM
+Last Saved     : 3/5/2011 8:20:17 PM
+Editing Time   : 1880 min
+Units          : mil (precision 0)
+
+Checking integrity of Schematic "C:\Users\Denis\My Dropbox\EE445L\lab6\real_stuff\Lab6h_artistStarter.sch" with PCB "C:\Users\Denis\My Dropbox\EE445L\lab6\real_stuff\Lab6h_artistStarter.pcb".
+
+The PCB and Schematic designs do not match.
+To bring them into line, you will need to make the following changes to the PCB design:
+
+Add Net "N0317"
+Add Net "N0318"
+Add Net "N0319"
+
+Connect Pin U3-7 to Net "N0319"
+Connect Pin U3-8 to Net "N0318"
+Connect Pin J3-2 to Net "N0319"
+Connect Pin J3-3 to Net "N0318"
+Connect Pin J3-5 to Net "N0317"
+
+
+End Of Report.

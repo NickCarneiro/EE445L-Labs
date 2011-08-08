@@ -1,0 +1,364 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  //******XBEE.C******
+    2:  //contains xbee drivers
+    3:  #pragma LINK_INFO DERIVATIVE "mc9s12dp512"
+    4:  #include "XBee.h"
+    5:  #include <hidef.h>      /* common defines and macros */
+    6:  #include <mc9s12dp512.h>     /* derivative information */
+    7:  #include "SCIb.h"
+    8:  #include "SCI1.h"
+    9:  #include "timer.h"
+   10:  
+   11:  //static char [] frame;
+   12:  #define LEN 6
+   13:  #define OK 0
+   14:  #define TWENTY_MS 20
+   15:  #define THREE_SEC 3000
+   16:  
+   17:  const unsigned short rxID = 63;
+   18:  const unsigned short txID = 65;
+   19:  static unsigned char Id = 1;
+   20:  char response[10];
+   21:  
+   22:  unsigned short stringLength(char *string);
+   23:  
+   24:  //--------------sendATCommand-------------
+   25:  // Send an AT command repeatedly until it receives 
+   26:  // a reply that it was correctly received
+   27:  void sendATCommand(char *command){
+*** EVALUATION ***
+
+Function: sendATCommand
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\XBee.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\XBee.c.o" -WmsgSd1106
+
+  0000 3b           [2]     PSHD  
+   28:    while(1){
+   29:      SCIb_OutString(command);
+  0001 ec80         [3]     LDD   0,SP
+  0003 160000       [4]     JSR   SCIb_OutString
+   30:      Wait1ms(TWENTY_MS);
+  0006 c614         [1]     LDAB  #20
+  0008 87           [1]     CLRA  
+  0009 160000       [4]     JSR   Wait1ms
+   31:      SCIb_InString(response,2);
+  000c cc0000       [2]     LDD   #response
+  000f 3b           [2]     PSHD  
+  0010 c602         [1]     LDAB  #2
+  0012 87           [1]     CLRA  
+  0013 160000       [4]     JSR   SCIb_InString
+  0016 1b82         [2]     LEAS  2,SP
+   32:      if ((response[0] == 'O' && response[1] == 'K') || (response[0] == 'K' && response[1] == 'O')){
+  0018 f60000       [3]     LDAB  response
+  001b c14f         [1]     CMPB  #79
+  001d 2607         [3/1]   BNE   *+9 ;abs = 0026
+  001f f60000       [3]     LDAB  response:1
+  0022 c14b         [1]     CMPB  #75
+  0024 2710         [3/1]   BEQ   *+18 ;abs = 0036
+  0026 f60000       [3]     LDAB  response
+  0029 c14b         [1]     CMPB  #75
+  002b 26d4         [3/1]   BNE   *-42 ;abs = 0001
+  002d f60000       [3]     LDAB  response:1
+  0030 c14f         [1]     CMPB  #79
+  0032 2702         [3/1]   BEQ   *+4 ;abs = 0036
+  0034 20cb         [3]     BRA   *-51 ;abs = 0001
+   33:        break;
+   34:      }
+   35:    }  
+   36:      response[0] = 0;
+   37:      response[1] = 0;  
+  0036 c7           [1]     CLRB  
+  0037 87           [1]     CLRA  
+  0038 7c0000       [3]     STD   response
+   38:  }
+  003b 3a           [3]     PULD  
+  003c 3d           [5]     RTS   
+   39:  
+   40:  //---------------------XBee_Init--------------------- 
+   41:  //initialize XBee
+   42:  //Input: none   
+   43:  //Output: none
+   44:  void XBee_Init(void){
+*** EVALUATION ***
+
+Function: XBee_Init
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\XBee.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\XBee.c.o" -WmsgSd1106
+
+   45:  
+   46:    sendATCommand("+++");          // enter command mode
+  0000 cc0000       [2]     LDD   #"+++"
+  0003 0700         [4]     BSR   sendATCommand
+   47:    sendATCommand("ATDL3C\r");  // sets destination address to __
+  0005 cc0000       [2]     LDD   #"ATDL3C\015"
+  0008 0700         [4]     BSR   sendATCommand
+   48:    sendATCommand("ATMY2E\r");  // sets my address to __
+  000a cc0000       [2]     LDD   #"ATMY2E\015"
+  000d 0700         [4]     BSR   sendATCommand
+   49:    sendATCommand("ATAP 1\r");   // API mode 1 (sends/receive message packets)
+  000f cc0000       [2]     LDD   #"ATAP 1\015"
+  0012 0700         [4]     BSR   sendATCommand
+   50:    sendATCommand("ATCN\r");     // end command mode  
+  0014 cc0000       [2]     LDD   #"ATCN\015"
+  0017 060000       [3]     JMP   sendATCommand
+   51:  }       
+   52:  
+   53:  //---------------------XBee_CreateTxFrame--------------------- 
+   54:  //creates frame to send to xbee
+   55:  //Input: frame params
+   56:  //Output: frame
+   57:  unsigned char* XBee_CreateTxFrame(char* message){
+*** EVALUATION ***
+
+Function: XBee_CreateTxFrame
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\XBee.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\XBee.c.o" -WmsgSd1106
+
+  0000 1bf1ad       [2]     LEAS  -83,SP
+  0003 3b           [2]     PSHD  
+   58:    unsigned char sframe[75];
+   59:    char *msg_count = &message[0];
+   60:    unsigned short i = 0, j = 0;
+   61:    unsigned short length = 0; 
+  0004 c7           [1]     CLRB  
+  0005 87           [1]     CLRA  
+  0006 6c84         [2]     STD   4,SP
+   62:    unsigned short check_sum = 0;
+  0008 6c82         [2]     STD   2,SP
+   63:    
+   64:    //calculating message length
+   65:    while(*msg_count){
+  000a ee80         [3]     LDX   0,SP
+  000c 2006         [3]     BRA   *+8 ;abs = 0014
+   66:      length++;
+  000e ed84         [3]     LDY   4,SP
+  0010 02           [1]     INY   
+  0011 6d84         [2]     STY   4,SP
+   67:      msg_count++;  
+  0013 08           [1]     INX   
+  0014 e600         [3]     LDAB  0,X
+  0016 26f6         [3/1]   BNE   *-8 ;abs = 000e
+   68:    }
+   69:    length += 5;
+  0018 ee84         [3]     LDX   4,SP
+  001a 1a05         [2]     LEAX  5,X
+  001c 6e84         [2]     STX   4,SP
+   70:    
+   71:    //creating frame of variable length
+   72:    sframe[0] = 0x7E;
+  001e c67e         [1]     LDAB  #126
+  0020 6b8a         [2]     STAB  10,SP
+   73:    sframe[1] = (char) (length >> 8);
+  0022 a684         [3]     LDAA  4,SP
+  0024 6a8b         [2]     STAA  11,SP
+   74:    sframe[2] = (char) (length);
+  0026 a685         [3]     LDAA  5,SP
+  0028 6a8c         [2]     STAA  12,SP
+   75:    sframe[3] = 0x01;    //api
+  002a c601         [1]     LDAB  #1
+  002c 6b8d         [2]     STAB  13,SP
+   76:    check_sum += sframe[3];
+  002e 076c         [4]     BSR   *+110 ;abs = 009c
+   77:    sframe[4] = Id++;
+  0030 f60000       [3]     LDAB  Id
+  0033 6b8e         [2]     STAB  14,SP
+  0035 52           [1]     INCB  
+  0036 7b0000       [3]     STAB  Id
+   78:    check_sum += sframe[4];
+  0039 e68e         [3]     LDAB  14,SP
+  003b 075f         [4]     BSR   *+97 ;abs = 009c
+   79:    sframe[5] = (char) (0x3C >> 8);
+  003d 698f         [2]     CLR   15,SP
+   80:    sframe[6] = (char) 0x3C;
+  003f c63c         [1]     LDAB  #60
+  0041 6bf010       [3]     STAB  16,SP
+   81:    check_sum += (sframe[5]>>8) + sframe[6];
+  0044 0756         [4]     BSR   *+88 ;abs = 009c
+   82:    sframe[7] = 0;       //opt
+  0046 69f011       [3]     CLR   17,SP
+   83:    check_sum += sframe[7];
+  0049 e6f011       [3]     LDAB  17,SP
+  004c 074e         [4]     BSR   *+80 ;abs = 009c
+   84:    //populate message portion
+   85:    for (i = 8, j = 0; j < length - 5 ; i++, j++){
+  004e c608         [1]     LDAB  #8
+  0050 87           [1]     CLRA  
+  0051 6c88         [2]     STD   8,SP
+  0053 c7           [1]     CLRB  
+  0054 6c86         [2]     STD   6,SP
+  0056 201c         [3]     BRA   *+30 ;abs = 0074
+   86:      sframe[i] = message[j];
+  0058 ec80         [3]     LDD   0,SP
+  005a e386         [3]     ADDD  6,SP
+  005c 1a8a         [2]     LEAX  10,SP
+  005e b7c5         [1]     EXG   D,X
+  0060 e388         [3]     ADDD  8,SP
+  0062 b746         [1]     TFR   D,Y
+  0064 e600         [3]     LDAB  0,X
+  0066 6b40         [2]     STAB  0,Y
+   87:      check_sum += sframe[i];  
+  0068 0732         [4]     BSR   *+52 ;abs = 009c
+  006a ee88         [3]     LDX   8,SP
+  006c 08           [1]     INX   
+  006d 6e88         [2]     STX   8,SP
+  006f ee86         [3]     LDX   6,SP
+  0071 08           [1]     INX   
+  0072 6e86         [2]     STX   6,SP
+  0074 ee84         [3]     LDX   4,SP
+  0076 1a1b         [2]     LEAX  -5,X
+  0078 ae86         [3]     CPX   6,SP
+  007a 22dc         [3/1]   BHI   *-34 ;abs = 0058
+   88:    }
+   89:    sframe[i] = 0xFF - (check_sum & 0x00FF);//sframe[i+1]=CheckSum
+  007c 1a8a         [2]     LEAX  10,SP
+  007e b754         [1]     TFR   X,D
+  0080 e388         [3]     ADDD  8,SP
+  0082 b745         [1]     TFR   D,X
+  0084 c6ff         [1]     LDAB  #255
+  0086 e083         [3]     SUBB  3,SP
+  0088 6b00         [2]     STAB  0,X
+   90:    if (Id == 0){Id = 1;}
+  008a f60000       [3]     LDAB  Id
+  008d 2605         [3/1]   BNE   *+7 ;abs = 0094
+  008f c601         [1]     LDAB  #1
+  0091 7b0000       [3]     STAB  Id
+   91:    return &sframe[0];
+  0094 1a8a         [2]     LEAX  10,SP
+  0096 b754         [1]     TFR   X,D
+   92:  }
+  0098 1bf055       [2]     LEAS  85,SP
+  009b 3d           [5]     RTS   
+  009c 87           [1]     CLRA  
+  009d e384         [3]     ADDD  4,SP
+  009f 6c84         [2]     STD   4,SP
+  00a1 3d           [5]     RTS   
+   93:  
+   94:  #define delimiter frame[0]
+   95:  #define lengthMS frame[1]
+   96:  #define lengthLS frame[2]
+   97:  #define api frame[3]
+   98:  #define id frame[4]
+   99:  #define status frame[5]
+  100:  //---------------------XBee_TxStatus--------------------- 
+  101:  //gets the status of the xbee
+  102:  //Input: none
+  103:  //Output: 1 if successful, 0 otherwise
+  104:  short XBee_TxStatus(void){
+*** EVALUATION ***
+
+Function: XBee_TxStatus
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\XBee.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\XBee.c.o" -WmsgSd1106
+
+  0000 1b96         [2]     LEAS  -10,SP
+  105:    unsigned char frame[7]; 
+  106:    unsigned char receiveI, checkSum;
+  107:    unsigned short subtractor; 
+  108:    //everything except checkSum(known sizes)
+  109:    for(receiveI = 0; receiveI < 6; receiveI++){   
+  0002 c7           [1]     CLRB  
+  110:      frame[receiveI] = SCIb_InChar2(); 
+  0003 87           [1]     CLRA  
+  0004 1a80         [2]     LEAX  0,SP
+  0006 1ae6         [2]     LEAX  D,X
+  0008 37           [2]     PSHB  
+  0009 34           [2]     PSHX  
+  000a 160000       [4]     JSR   SCIb_InChar2
+  000d 30           [3]     PULX  
+  000e 6b00         [2]     STAB  0,X
+  0010 33           [3]     PULB  
+  0011 52           [1]     INCB  
+  0012 c106         [1]     CMPB  #6
+  0014 25ed         [3/1]   BCS   *-17 ;abs = 0003
+  111:    }
+  112:    if(api != 0x89) return 0; //not a status check frame
+  0016 e683         [3]     LDAB  3,SP
+  0018 c189         [1]     CMPB  #137
+  001a 261d         [3/1]   BNE   *+31 ;abs = 0039
+  113:    subtractor = api + id + status; 
+  001c 87           [1]     CLRA  
+  001d b745         [1]     TFR   D,X
+  001f e684         [3]     LDAB  4,SP
+  0021 1ae6         [2]     LEAX  D,X
+  0023 e685         [3]     LDAB  5,SP
+  0025 1ae6         [2]     LEAX  D,X
+  0027 6e88         [2]     STX   8,SP
+  114:    //receive checksum and verify
+  115:    checkSum = 0xFF - (subtractor & 0x00FF);
+  0029 43           [1]     DECA  
+  002a a089         [3]     SUBA  9,SP
+  002c 6a87         [2]     STAA  7,SP
+  116:    if(checkSum != SCIb_InChar2() || (status != 0)) return 0; 
+  002e 160000       [4]     JSR   SCIb_InChar2
+  0031 e187         [3]     CMPB  7,SP
+  0033 2604         [3/1]   BNE   *+6 ;abs = 0039
+  0035 e685         [3]     LDAB  5,SP
+  0037 2702         [3/1]   BEQ   *+4 ;abs = 003b
+  0039 c7           [1]     CLRB  
+  003a 8f           [2]     SKIP2 
+  117:    return 1; //status=0->successful transmission
+  003b c601         [1]     LDAB  #1
+  003d 87           [1]     CLRA  
+  118:  }
+  003e 1b8a         [2]     LEAS  10,SP
+  0040 3d           [5]     RTS   
+  119:  
+  120:  //---------------------XBee_SendTxFrame---------------------
+  121:  //send frame to the xbee
+  122:  //Input: frame to send
+  123:  //Output: true if successful
+  124:  unsigned char XBee_SendTxFrame(unsigned char* f){
+*** EVALUATION ***
+
+Function: XBee_SendTxFrame
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\XBee.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\XBee.c.o" -WmsgSd1106
+
+  0000 6caa         [2]     STD   6,-SP
+  125:    unsigned short i;
+  126:    //unsigned short frame_size = stringLength(f);
+  127:    unsigned char *frame_count = f+8;
+  128:    unsigned short frame_size = ((*(f+1)<<8) + *(f+2)) + 4;
+  0002 b745         [1]     TFR   D,X
+  0004 e601         [3]     LDAB  1,X
+  0006 b710         [1]     TFR   B,A
+  0008 c7           [1]     CLRB  
+  0009 b746         [1]     TFR   D,Y
+  000b e602         [3]     LDAB  2,X
+  000d 87           [1]     CLRA  
+  000e 19ee         [2]     LEAY  D,Y
+  0010 1944         [2]     LEAY  4,Y
+  0012 6d84         [2]     STY   4,SP
+  129:  
+  130:    for (i = 0 ; i < 8; i++){
+  0014 c7           [1]     CLRB  
+  0015 6c82         [2]     STD   2,SP
+  131:      SCIb_OutChar(f[i]);  } 
+  0017 0713         [4]     BSR   *+21 ;abs = 002c
+  0019 8e0008       [2]     CPX   #8
+  001c 25f9         [3/1]   BCS   *-5 ;abs = 0017
+  132:    
+  133:    for (; i < frame_size; i++){  
+  001e 8f           [2]     SKIP2 
+  134:      SCIb_OutChar(f[i]);          //put bytes into fifo
+  001f 070b         [4]     BSR   *+13 ;abs = 002c
+  0021 ec82         [3]     LDD   2,SP
+  0023 ac84         [3]     CPD   4,SP
+  0025 25f8         [3/1]   BCS   *-6 ;abs = 001f
+  135:    }
+  136:    return XBee_TxStatus();
+  0027 0700         [4]     BSR   XBee_TxStatus
+  137:  }    
+  0029 1b86         [2]     LEAS  6,SP
+  002b 3d           [5]     RTS   
+  002c ec82         [3]     LDD   2,SP
+  002e e384         [3]     ADDD  4,SP
+  0030 b745         [1]     TFR   D,X
+  0032 e600         [3]     LDAB  0,X
+  0034 160000       [4]     JSR   SCIb_OutChar
+  0037 ee84         [3]     LDX   4,SP
+  0039 08           [1]     INX   
+  003a 6e84         [2]     STX   4,SP
+  003c 3d           [5]     RTS   

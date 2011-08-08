@@ -1,0 +1,81 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.38 Build 9056, Feb 26 2009
+
+    1:  /*************************PLL.C***************************
+    2:  *   boosts the CPU clock to 24 MHz                       *
+    3:  *                                                        *
+    4:  *   Created by Theodore Deden on 20 January 2004.        *
+    5:  *   Modified by Theodore Deden on 9 February 2004.       *
+    6:  *   Last Modified by Jonathan Valvano 7/13/07.           *
+    7:  *                                                        *
+    8:  *   Distributed underthe provisions of the GNU GPL ver 2 *
+    9:  *   Copying, redistributing, modifying is encouraged.    *
+   10:  *                                                        *
+   11:  *********************************************************/
+   12:  
+   13:  #include <hidef.h>         /* common defines and macros */
+   14:  #include <mc9s12dp512.h>     /* derivative information */
+   15:  
+   16:  //********* PLL_Init ****************
+   17:  // Set 9S12DP512 PLL clock to 24 MHz
+   18:  // Inputs: none
+   19:  // Outputs: none
+   20:  // Errors: will hang if PLL does not stabilize 
+   21:  void PLL_Init(void){  
+*** EVALUATION ***
+
+Function: PLL_Init
+Source  : D:\EE345L\9S12DP512\LCD_DP512\Sources\PLL.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\9S12DP512\LCD_DP512;D:\EE345L\9S12DP512\LCD_DP512\bin;D:\EE345L\9S12DP512\LCD_DP512\prm;D:\EE345L\9S12DP512\LCD_DP512\cmd;D:\EE345L\9S12DP512\LCD_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\LCD_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\LCD_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\LCD_DP512\LCD_DP512_Data\HCS12_Serial_Monitor\ObjectCode\PLL.c.o -WmsgSd1106
+
+   22:    SYNR = 0x02;
+  0000 ccd102       [2]     LDD   #53506
+  0003 5b00         [2]     STAB  _SYNR
+   23:    REFDV = 0x01;
+  0005 57           [1]     ASRB  
+  0006 5b00         [2]     STAB  _REFDV
+   24:    
+   25:    /*PLLCLK = 2 * OSCCLK * (SYNR + 1) / (REFDV + 1)
+   26:               2 *   16   * (  2  + 1) / (  1   + 1)
+   27:  	Values above give E clock of 24 MHz with 16 MHz crystal. 
+   28:  	(OSCCLK is Crystal Clock Frequency)                    */
+   29:    
+   30:    CLKSEL = 0x00;
+  0008 790000       [3]     CLR   _CLKSEL
+   31:    
+   32:    /*Meaning for CLKSEL:
+   33:    Bit 7: PLLSEL = 0 Keep using OSCCLK until we are ready to switch to PLLCLK
+   34:    Bit 6: PSTP   = 0 Do not need to go to Pseudo-Stop Mode
+   35:    Bit 5: SYSWAI = 0 In wait mode system clocks stop.
+   36:    But 4: ROAWAI = 0 Do not reduce oscillator amplitude in wait mode.
+   37:    Bit 3: PLLWAI = 0 Do not turn off PLL in wait mode
+   38:    Bit 2: CWAI	= 0 Do not stop the core during wait mode
+   39:    Bit 1: RTIWAI = 0 Do not stop the RTI in wait mode
+   40:    Bit 0: COPWAI = 0 Do not stop the COP in wait mode
+   41:    */
+   42:    
+   43:    
+   44:    PLLCTL = 0xD1;
+  000b 5a00         [2]     STAA  _PLLCTL
+   45:    
+   46:    /*Meaning for PLLCTL:
+   47:    Bit 7: CME   = 1; Clock monitor enable - reset if bad clock when set
+   48:    Bit 6: PLLON = 1; PLL On bit
+   49:    Bit 5: AUTO  = 0; No automatic control of bandwidth, manual through ACQ
+   50:    But 4: ACQ   = 1; 1 for high bandwidth filter (acquisition); 0 for low (tracking)
+   51:    Bit 3:            (Not Used by 9s12c32)
+   52:    Bit 2: PRE   = 0; RTI stops during Pseudo Stop Mode
+   53:    Bit 1: PCE   = 0; COP diabled during Pseudo STOP mode
+   54:    Bit 0: SCME  = 1; Crystal Clock Failure -> Self Clock mode NOT reset.
+   55:    
+   56:    */
+   57:    
+   58:    while((CRGFLG&0x08) == 0){ 	  // Wait for PLLCLK to stabilize.
+  000d 4f0008fc     [4]     BRCLR _CRGFLG,#8,*+0 ;abs = 000d
+   59:    }  
+   60:    CLKSEL_PLLSEL = 1;  // Switch to PLL clock
+  0011 4c0080       [4]     BSET  _CLKSEL,#128
+   61:  }
+  0014 3d           [5]     RTS   
+   62:  
+   63:  

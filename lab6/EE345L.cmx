@@ -1,0 +1,137 @@
++2.5V
++3.3V
++3.6V
++3.7V
++5V
+0.1WresistorSM603||#SM603=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=||@R=10k
+0.1WresistorSM805||#SMD=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=||@R=10k
+0.25Wresistor||#DIP=2||@V=10k||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+0.125Wresistor||#DIL=2||@V=10k||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+1N914||#MISC=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+1N4003||#DIL=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+2N2222||#TO92=3||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+8k EEPROM 28C64BL-12||#DIP28=28||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+9S12C32_DOCKING_MODULE||#DIP40=0||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+25LC1024||#DIP=8||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+74HC138||#SKDIP=16||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+74HC573||#DIP20=20||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+7406||#DIP=14||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+7407||#DIP=14||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+AD627||#SM=8||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=||#DIP=8||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+AD8032||#DIP=8||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+ADS7816||#DIP8=8||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+ADXL202||#SM=14||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+ADXL330||#LFCSP=17||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+AGM1264||#MISC=24||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Audio_Jack 3.5mm||#CONN=5||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+B3F-1050||#DIP=4||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+BDMConnector||#MOLEX 87049-0616=6||@Mfr=Molex||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+BigPot||#Pot=3||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=||@V=10k
+BOXMOUNTBUTTON||#SW=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Capacitor||#C=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=||@Value=
+Capacitor(Tantalum)||#C=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=||@Value=
+CAP_SMD_A||#SM=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+CAP_SMD_A_TANT||#SM=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+CAS1007||#MISC=4||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Ceramic||#C=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=||@V=0.01uF
+Ceramic0.2||#C=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=||@V=0.1uF
+Ceramic0603||#SMD=2||@C=220pF||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Ceramic0805||#SMD=2||@C=220pF||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Ceramic1206||#SMD=2||@C=0.47uF||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+CoinBattery||#SM=4||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+DP512_DOCKING_H1||#DIL=0||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+DP512_DOCKING_H2||#DIL=0||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+DP512_H1||#MISC=50||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+electret||#SIP=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Electrolytic||#C=2||@V=4.7uF||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+frame
+Gnd
+H1_DG128||#9S12=50||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+H1_DP512||#9S12=50||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+H2_DG128||#9S12=50||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+H2_DP512||#9S12=50||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+HD44780||#SIL14=14||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+HD44780_16pin||#SIL16=20||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+HEADER14_100||#SIP=14||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+HeadphoneJack||#MISC=3||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+INA122||#DIP=8||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+INA321||#SM=8||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Inductor||#DIP=2||@Value=10uH||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Inductor_A||#L-A=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+IPL1_CON20||#IPL1=20||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Jumper2||#SIP=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Jumper3||#SIP=3||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Jumper4||#SIP=4||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=||#SLM-4=4||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Jumper5||#SIP=5||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+L293||#DIP16=16||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+LEDT1.75||#SIP=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+LED_0603||#SM=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+LM317L||#TO92=3||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+LM2937||#MISC=3||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+LM4041||#MISC=3||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=||#SOT23=3||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+LM4041BIDCKR||#DCK=5||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+LM7805CT||#TO-220=3||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=||#TO-220hole=4||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+LogicAnalyzer||#DIP=16||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+MAX494CPD||#DIP14=14||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Max539||#DIP=8||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Max549||#DIP=8||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Max1247||#DIP=16||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+MAX3232||#DIP=16||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Max5154||#DIP=16||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Max5352||#DIP=8||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Max5353||#DIP=8||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=||#SMD=8||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+MAX5414||#TSSOP=14||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Max6225||#DIP=8||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+MC9S12C32MFUE25||#QFP80=80||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+MC9S12C32Nanocore||#DIP=32||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+MC9S12C128||#QFP80=80||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+MC9S12XDTMAA||#QFP80=80||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+MC68HC11E1CFN3||#PLCC=52||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+MC74HC595AN||#DIP16=16||@Mfr=OnSemi||@Category=REGISTER||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+MC34119||#DIP=8||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+MC34164-005||#TO92=3||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+microSD Slot||#Socket=12||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+MMA7455||#LGA=14||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+MSBSTM32||#MISC=64||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+MSP430F2012||#DIP=14||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=||#MISC=14||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=||#TSSOP=14||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+MSP430F2012IRSAT||#QFN=17||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+MSP430T2012||#MISC=14||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+NX4025DA-16CRYSTAL||#CRYSTAL=4||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+OffBoardPowerSwitch||#DIP=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+OffBoardSwitch||#DIP=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+OPA330||#SM=8||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+OPA330AIDCKT||#DCK=5||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+OPA2350||#DIP=8||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=||#SMD=8||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+OPA4350||#DIP=14||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+PowerJack||#MISC=3||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+PowerJumper||#SIP=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+POWER_JACK_1.3mm||#CONN=6||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Ref03||#DIP=8||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+REF3012||#SM=3||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+REG103_SO8||#SOIC-8=8||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+SCHEMATIC_PAGE||#A1=0||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+SerialDB9||#SM=9||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+SLM-2||#SLM-2=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+SLM-3||#SLM-3=3||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+SLM-4||#MISC=4||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+SmallPot||#SIP=3||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=||@V=10k
+SPDT||#MISC=3||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Speaker||#DIP=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=||#SPKR=0||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+SquarePot||#MISC=3||@V=10k||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+ST232CN||#DIP=16||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+StepperMotor||#SIL7=7||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+tantalum||#C=2||@V=6.8uF||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+tantalum_0805||#SM=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=||@C=10uF
+tantalum_SM||#SM=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=||@C=10uF
+testpoint||#SIP=1||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Thermistor||#SIP=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+TIP120||#TO220=3||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+TIRF2500BOARD||#MODULE=6||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+TLC2272||#DIP=8||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+TLC2274||#DIP=14||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+TLV5616||#DIP=8||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+TPS77501POWERPAD||#TSSOP20=21||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+TPS79101||#SM=6||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+Variable Resistor(POT)||#RV=3||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=||@Value=
+XBee||#DIP=20||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=||#SKDIP=20||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=
+XTAL||#DSC=2||@Manufacturer=||@Manufacturer Part Number=||@Distributor=||@Distributor Part Number=

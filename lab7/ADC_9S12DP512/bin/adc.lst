@@ -1,0 +1,125 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  /* ************************ adc.c *****************************
+    2:   * Simple I/O routines ADC port 
+    3:   * ************************************************************ */
+    4:   
+    5:  // 9S12DP512
+    6:  // Jonathan W. Valvano 7/14/07
+    7:  
+    8:  //  This example accompanies the books
+    9:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+   10:  //        Thomson Engineering, copyright (c) 2006,
+   11:  //   "Introduction to Embedded Microcomputer Systems: 
+   12:  //    Motorola 6811 and 6812 Simulation", Brooks-Cole, copyright (c) 2002
+   13:  
+   14:  // Copyright 2007 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   15:  //    You may use, edit, run or distribute this file 
+   16:  //    as long as the above copyright notice remains 
+   17:  
+   18:  #include <mc9s12dp512.h>     /* derivative information */
+   19:  #include "ADC.h"
+   20:  
+   21:  //******** ADC_In *************** 
+   22:  // perform 10-bit analog to digital conversion
+   23:  // input: chan is 0 to 7 specifying analog channel to sample
+   24:  // output: 10-bit ADC sample (left justified) 
+   25:  // analog input    left justified   right justified
+   26:  //  0.000               0	               0
+   27:  //  0.005            0040	               1
+   28:  //  0.010            0080                2
+   29:  //  1.250            4000              100
+   30:  //  2.500            8000							 200
+   31:  //  5.000            FFC0						   3FF
+   32:  // uses busy-wait synchronization
+   33:  // bit 7 DJM Result Register Data Justification
+   34:  //       1=right justified, 0=left justified
+   35:  // bit 6 DSGN Result Register Data Signed or Unsigned Representation
+   36:  //       1=signed, 0=unsigned
+   37:  // bit 5 SCAN Continuous Conversion Sequence Mode
+   38:  //       1=continuous, 0=single
+   39:  // bit 4 MULT Multi-Channel Sample Mode
+   40:  //       1=multiple channel, 0=single channel
+   41:  // bit 3 0
+   42:  // bit 2-0 CC,CB,CA channel number 0 to 7
+   43:  // example  data = ADC_In(0x82); // samples right-justified channel 2
+   44:  unsigned short ADC_In(unsigned short chan){ 
+*** EVALUATION ***
+
+Function: ADC_In
+Source  : C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources\adc.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\ADC_9S12DP512_Data\HCS12_Serial_Monitor\ObjectCode\adc.c.o -WmsgSd1106
+
+   45:    ATD0CTL5 = 0x80;//(unsigned char)chan;  // start sequence
+  0000 c680         [1]     LDAB  #128
+  0002 5b00         [2]     STAB  _ATD0CTL45:1
+   46:    while((ATD0STAT1&0x01)==0){};    // wait for SCF 
+  0004 4f0001fc     [4]     BRCLR _ATD0STAT1,#1,*+0 ;abs = 0004
+   47:    return ATD0DR0; 
+  0008 dc00         [3]     LDD   _ATD0DR0
+   48:  }
+  000a 3d           [5]     RTS   
+   49:  
+   50:  //******** ADC_Init *************** 
+   51:  // Initialize ADC, sequence length=1, 10-bit mode
+   52:  // input: none
+   53:  // output: none
+   54:  // errors: none
+   55:  void ADC_Init(void){
+*** EVALUATION ***
+
+Function: ADC_Init
+Source  : C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources\adc.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab7\ADC_9S12DP512\ADC_9S12DP512_Data\HCS12_Serial_Monitor\ObjectCode\adc.c.o -WmsgSd1106
+
+   56:    ATD0CTL2 = 0x80; // enable ADC
+  0000 cc0880       [2]     LDD   #2176
+  0003 5b00         [2]     STAB  _ATD0CTL23
+   57:    // bit 7 ADPU=1 enable
+   58:    // bit 6 AFFC=0 ATD Fast Flag Clear All
+   59:    // bit 5 AWAI=0 ATD Power Down in Wait Mode
+   60:    // bit 4 ETRIGLE=0 External Trigger Level/Edge Control
+   61:    // bit 3 ETRIGP=0 External Trigger Polarity
+   62:    // bit 2 ETRIGE=0 External Trigger Mode Enable
+   63:    // bit 1 ASCIE=0 ATD Sequence Complete Interrupt Enable
+   64:    // bit 0 ASCIF=0 ATD Sequence Complete Interrupt Flag
+   65:    
+   66:    ATD0CTL3 = 0x08; 
+  0005 5a00         [2]     STAA  _ATD0CTL23:1
+   67:    // bit 6 S8C =0 Sequence length = 1
+   68:    // bit 5 S4C =0 
+   69:    // bit 4 S2C =0 
+   70:    // bit 3 S1C =1
+   71:    // bit 2 FIFO=0 no FIFO mode
+   72:    // bit 1 FRZ1=0 no freeze
+   73:    // bit 0 FRZ0=0 
+   74:    
+   75:    ATD0CTL4 = 0x05; // enable ADC
+  0007 c605         [1]     LDAB  #5
+  0009 5b00         [2]     STAB  _ATD0CTL45
+   76:    // bit 7 SRES8=0 A/D Resolution Select
+   77:    //      1 => n=8 bit resolution
+   78:    //      0 => n=10 bit resolution
+   79:    // bit 6 SMP1=0 Sample Time Select 
+   80:    // bit 5 SMP0=0 s=4
+   81:    // bit 4 PRS4=0 ATD Clock Prescaler m=5
+   82:    // bit 3 PRS3=0 ATD Clock Prescaler
+   83:    // bit 2 PRS2=1 ATD Clock Prescaler
+   84:    // bit 1 PRS1=0 ATD Clock Prescaler
+   85:    // bit 0 PRS0=1 ATD Clock Prescaler
+   86:    // Prescale = 2(m+1) = 12 cycles
+   87:    // ADC clock period = 2(m+1)/24MHz = 0.5us
+   88:    // choose m so 2(m+1)/Eperiod is between 0.5 to 2us
+   89:    // Sample time s=4
+   90:    // SMP1 SMP0  s sample time
+   91:    //  0    0    4 ADC clock periods
+   92:    //  0    1    6 ADC clock periods
+   93:    //  1    0   10 ADC clock periods
+   94:    //  1    1   18 ADC clock periods
+   95:    // ADC conversion time  2(m+1)(s+n)/24MHz = 7us
+   96:    // if multiple samples are selected, then each requires 7us
+   97:    
+   98:  }
+  000b 3d           [5]     RTS   
+   99:  

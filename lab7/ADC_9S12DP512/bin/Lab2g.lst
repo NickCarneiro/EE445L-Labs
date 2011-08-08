@@ -1,0 +1,165 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  // filename ******** Lab2g_v2.C ************** 
+    2:  // output compare interrupt program for the 9S12DP512, Lab2g
+    3:  // Starter project for EE445L Lab2g_v2, DP512 version
+    4:  // Jonathan W. Valvano 8/28/10
+    5:  
+    6:  //  This example accompanies the books
+    7:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+    8:  //        Thompson, copyright (c) 2006,
+    9:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+   10:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   11:  
+   12:  // Copyright 2010 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   13:  //    You may use, edit, run or distribute this file 
+   14:  //    as long as the above copyright notice remains 
+   15:  
+   16:  // how to run programs that use the SCI port
+   17:  // 1) connect 9S12DP512 to PC's COM port, 
+   18:  //     set 9S12DP512 to LOAD mode
+   19:  //     reset 9S12DP512
+   20:  // 2) execute Project->Debug (compiles and downloads code to 9S12DP512)
+   21:  // 3) quit MW debugger once programming complete 
+   22:  //    quitting the debugger will release the COM port
+   23:  // 4) start a terminal program (like HyperTerminal)
+   24:  //    specify proper COM port, 115200 bits/sec, no flow control
+   25:  // 5) set to RUN mode and hit reset
+   26:  // 6) when done, quit terminal program
+   27:  //    quitting the terminal program will release the COM port
+   28:  //     set 9S12DP512 to LOAD mode
+   29:  //     reset 9S12DP512
+   30:  
+   31:  #include <hidef.h>      /* common defines and macros */
+   32:  #include <mc9s12dp512.h>     /* derivative information */
+   33:  #pragma LINK_INFO DERIVATIVE "mc9s12dp512"
+   34:  
+   35:  #include "pll.h"
+   36:  #include "SCI0.h"
+   37:  #include "Fifo.h"
+   38:  
+   39:  //---------------------OutCRLF---------------------
+   40:  // Output a CR,LF to SCI to go to a new line
+   41:  // Input: none
+   42:  // Output: none
+   43:  void OutCRLF(void){
+*** EVALUATION ***
+
+Function: OutCRLF
+Source  : C:\Users\Owner\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources\Lab2g.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\Owner\Dropbox\EE445L\lab7\ADC_9S12DP512;C:\Users\Owner\Dropbox\EE445L\lab7\ADC_9S12DP512\bin;C:\Users\Owner\Dropbox\EE445L\lab7\ADC_9S12DP512\prm;C:\Users\Owner\Dropbox\EE445L\lab7\ADC_9S12DP512\cmd;C:\Users\Owner\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\Owner\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -EnvTEXTPATH=C:\Users\Owner\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\Owner\Dropbox\EE445L\lab7\ADC_9S12DP512\ADC_9S12DP512_Data\HCS12_Serial_Monitor\ObjectCode\Lab2g.c.o -WmsgSd1106
+
+   44:    SCI0_OutChar(CR);
+  0000 c60d         [1]     LDAB  #13
+  0002 160000       [4]     JSR   SCI0_OutChar
+   45:    SCI0_OutChar(LF);
+  0005 c60a         [1]     LDAB  #10
+  0007 060000       [3]     JMP   SCI0_OutChar
+   46:  }
+   47:  
+   48:  dataType ForeData;
+   49:  void main(void){ 
+*** EVALUATION ***
+
+Function: main
+Source  : C:\Users\Owner\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources\Lab2g.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\Owner\Dropbox\EE445L\lab7\ADC_9S12DP512;C:\Users\Owner\Dropbox\EE445L\lab7\ADC_9S12DP512\bin;C:\Users\Owner\Dropbox\EE445L\lab7\ADC_9S12DP512\prm;C:\Users\Owner\Dropbox\EE445L\lab7\ADC_9S12DP512\cmd;C:\Users\Owner\Dropbox\EE445L\lab7\ADC_9S12DP512\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\Owner\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -EnvTEXTPATH=C:\Users\Owner\Dropbox\EE445L\lab7\ADC_9S12DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\Owner\Dropbox\EE445L\lab7\ADC_9S12DP512\ADC_9S12DP512_Data\HCS12_Serial_Monitor\ObjectCode\Lab2g.c.o -WmsgSd1106
+
+   50:  unsigned short First;
+   51:  unsigned short Delay = 0;	 
+  0000 c7           [1]     CLRB  
+  0001 87           [1]     CLRA  
+  0002 6cac         [2]     STD   4,-SP
+   52:  EnableInterrupts;
+  0004 10ef         [1]     CLI   
+   53:    PLL_Init();       // running at 24MHz
+  0006 160000       [4]     JSR   PLL_Init
+   54:    DDRT = 0xff;      // debugging outputs
+  0009 ccc2ff       [2]     LDD   #49919
+  000c 7b0000       [3]     STAB  _DDRT
+   55:    PTT = 0x00;
+  000f 790000       [3]     CLR   _PTT
+  0012 c7           [1]     CLRB  
+   56:    SCI0_Init(115200);	// fastest standard baud rate on run mode 9S12DP512
+  0013 ce0001       [2]     LDX   #1
+  0016 160000       [4]     JSR   SCI0_Init
+   57:    
+   58:    SCI0_OutString("EE445L Lab2g -JWV"); OutCRLF();
+  0019 cc0000       [2]     LDD   #"EE445L Lab2g -JWV"
+  001c 0737         [4]     BSR   *+57 ;abs = 0055
+   59:    TSCR1 = 0x80;     // Enable TCNT, 24MHz assuming PLL is active
+  001e c680         [1]     LDAB  #128
+  0020 5b00         [2]     STAB  _TSCR1
+   60:    TSCR2 = 0;
+  0022 790000       [3]     CLR   _TSCR2
+   61:  // calibration offset  
+   62:    First = TCNT;
+  0025 dc00         [3]     LDD   _TCNT
+  0027 6c82         [2]     STD   2,SP
+   63:    //nothing here
+   64:    Delay = TCNT - First - 9;
+  0029 0730         [4]     BSR   *+50 ;abs = 005b
+   65:    SCI0_OutString("Time to execute nothing "); 
+  002b cc0000       [2]     LDD   #"Time to execute nothing "
+  002e 0735         [4]     BSR   *+55 ;abs = 0065
+   66:    SCI0_OutUDec(Delay);
+   67:    SCI0_OutString(" cycles"); OutCRLF();
+  0030 cc0000       [2]     LDD   #" cycles"
+  0033 0720         [4]     BSR   *+34 ;abs = 0055
+   68:  
+   69:  // measurement version 1, no debugging instruments 
+   70:    Fifo_Init();    // Initialize fifo
+  0035 160000       [4]     JSR   Fifo_Init
+   71:    Fifo_Put(1);    // make sure there is something in the fifo
+  0038 c601         [1]     LDAB  #1
+  003a 160000       [4]     JSR   Fifo_Put
+   72:    First = TCNT;
+  003d dc00         [3]     LDD   _TCNT
+  003f 6c82         [2]     STD   2,SP
+   73:    Fifo_Get(&ForeData);
+  0041 cc0000       [2]     LDD   #ForeData
+  0044 160000       [4]     JSR   Fifo_Get
+   74:    Delay = TCNT-First-9;
+  0047 0712         [4]     BSR   *+20 ;abs = 005b
+   75:    SCI0_OutString("Time to execute Fifo_Get with no debugging instruments is "); 
+  0049 cc0000       [2]     LDD   #"Time to execute Fifo_Get with no debugging instruments is "
+  004c 0717         [4]     BSR   *+25 ;abs = 0065
+   76:    SCI0_OutUDec(Delay);
+   77:    SCI0_OutString(" cycles"); OutCRLF();
+  004e cc0000       [2]     LDD   #" cycles"
+  0051 0702         [4]     BSR   *+4 ;abs = 0055
+   78:  
+   79:  // measurement version 2, print debugging instruments 
+   80:  /*  Fifo_Init();    // Initialize fifo
+   81:    Fifo_Put(1);    // make sure there is something in the fifo
+   82:    First = TCNT;
+   83:    Fifo_Get2(&ForeData);
+   84:    Delay = TCNT-First-9;
+   85:    SCI0_OutString("Time to execute Fifo_Get2 with print debugging instruments is "); 
+   86:    SCI0_OutUDec(Delay);
+   87:    SCI0_OutString(" cycles"); OutCRLF();
+   88:    
+   89:  // measurement version 3, dump debugging instruments 
+   90:    Fifo_Init();    // Initialize fifo
+   91:    Fifo_Put(1);    // make sure there is something in the fifo
+   92:    First = TCNT;
+   93:    Fifo_Get3(&ForeData);
+   94:    Delay = TCNT-First-9;
+   95:    SCI0_OutString("Time to execute Fifo_Get3 with dump debugging instruments is "); 
+   96:    SCI0_OutUDec(Delay);
+   97:    SCI0_OutString(" cycles"); OutCRLF();*/  
+   98:    for(;;){}
+  0053 20fe         [3]     BRA   *+0 ;abs = 0053
+  0055 160000       [4]     JSR   SCI0_OutString
+  0058 060000       [3]     JMP   OutCRLF
+  005b dc00         [3]     LDD   _TCNT
+  005d a384         [3]     SUBD  4,SP
+  005f 830009       [2]     SUBD  #9
+  0062 6c82         [2]     STD   2,SP
+  0064 3d           [5]     RTS   
+  0065 160000       [4]     JSR   SCI0_OutString
+  0068 ec82         [3]     LDD   2,SP
+  006a 060000       [3]     JMP   SCI0_OutUDec
+   99:  }
+  100:  

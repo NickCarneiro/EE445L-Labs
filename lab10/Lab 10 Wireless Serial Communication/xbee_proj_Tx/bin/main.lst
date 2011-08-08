@@ -1,0 +1,140 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  // filename ******** main.C ************** 
+    2:  // Busy-wait SCI1 driver for the 9S12DP512,
+    3:  // Jonathan W. Valvano 8/10/09
+    4:  
+    5:  //  This example accompanies the books
+    6:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+    7:  //        Thompson, copyright (c) 2006,
+    8:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+    9:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   10:  
+   11:  // Copyright 2009 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   12:  //    You may use, edit, run or distribute this file 
+   13:  //    as long as the above copyright notice remains 
+   14:  
+   15:  // how to run programs that use the SCI1 port
+   16:  // 1) connect SCI0 on 9S12DP512 to PC's COM port, 
+   17:  //    connect SCI1 on 9S12DP512 to a different COM port on PC, 
+   18:  //     set 9S12DP512 to LOAD mode
+   19:  //     reset 9S12DP512
+   20:  // 2) execute Project->Debug (compiles and downloads code to 9S12DP512)
+   21:  // 3) start a terminal program (like HyperTerminal)
+   22:  //    specify proper COM port, 115200 bits/sec, no flow control
+   23:  // 4) run either in debugger or set to RUN mode and hit reset
+   24:  
+   25:  #include <hidef.h>      /* common defines and macros */
+   26:  #include <mc9s12dp512.h>     /* derivative information */
+   27:  #pragma LINK_INFO DERIVATIVE "mc9s12dp512"
+   28:  #include "SCI1.h"
+   29:  #include "derivative.h"      /* derivative-specific definitions */
+   30:  #include "PLL.h"
+   31:  #include "Xbee.h"
+   32:  #include "SCIb.h"
+   33:  #include "TXFIFOb.h"
+   34:  #include "lcd.h"
+   35:  #include "timer.h"
+   36:  #include <stdio.h>
+   37:  
+   38:  extern unsigned short BitTime;
+   39:  
+   40:  // If you want to communicate from one 9S12DP512 to another, then you can build the following 4-pin 
+   41:  // cable to connect the RS232 SCI1 ports between the two 9S12 systems. 
+   42:  // You would need two 4-pin female headers (All Electronics part number CON-244)
+   43:  // 9S12 Computer 1                                             9S12 Computer 2
+   44:  //   1 RxD ------ black ------------------------- yellow ------  3 TxD
+   45:  //   2 Ground --- green ------------------------- green -------  2 Ground
+   46:  //   3 TxD 	----- yellow ------------------------ black -------  1 RxD
+   47:  //   4 NC                                                        4 NC
+   48:  
+   49:  // If you wish to connect SCI1 to a personal computer, you could build this cable. 
+   50:  // You would need a 4-pin female header (All Electronics part number CON-244) and 
+   51:  // a 9-pin female DP9 header (All Electronic part number DB-9S). 
+   52:  // Three wires must be connected in the cable, they are:
+   53:  // 9S12 J2                                           COM port on a PC
+   54:  //   1 RxD ------------------------------------------   3 TxD
+   55:  //   2 Ground ---------------------------------------   5 Ground
+   56:  //   3 TxD 	------------------------------------------  2 RxD
+   57:  
+   58:  //---------------------OutCRLF---------------------
+   59:  // Output a CR,LF to SCI to go to a new line
+   60:  // Input: none
+   61:  // Output: none
+   62:  void OutCRLF(void){
+*** EVALUATION ***
+
+Function: OutCRLF
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o" -WmsgSd1106
+
+   63:    SCI1_OutChar(CR);
+  0000 c60d         [1]     LDAB  #13
+  0002 160000       [4]     JSR   SCI1_OutChar
+   64:    SCI1_OutChar(LF);
+  0005 c60a         [1]     LDAB  #10
+  0007 160000       [4]     JSR   SCI1_OutChar
+   65:    PTP_PTP7 ^= 1;
+  000a f60000       [3]     LDAB  _PTP
+  000d c880         [1]     EORB  #128
+  000f 7b0000       [3]     STAB  _PTP
+   66:  }
+  0012 3d           [5]     RTS   
+   67:  
+   68:  //---------------------mainTx---------------------
+   69:  // main used for transmitter
+   70:  // Input: none
+   71:  // Output: none
+   72:  char string[75];  // global to assist in debugging  
+   73:  unsigned short n;  
+   74:  void main(void) {		
+*** EVALUATION ***
+
+Function: main
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o" -WmsgSd1106
+
+   75:    DDRP |= 0x80;     // PortP bit 7 is output to LED
+  0000 1c000080     [4]     BSET  _DDRP,#128
+   76:    PLL_Init();       // running at 24 MHz
+  0004 160000       [4]     JSR   PLL_Init
+   77:    //Timer_Init();
+   78:    SCI1_Init(115200);	// fastest standard baud rate on run mode 9S12DP512
+  0007 86c2         [1]     LDAA  #194
+  0009 c7           [1]     CLRB  
+  000a ce0001       [2]     LDX   #1
+  000d 160000       [4]     JSR   SCI1_Init
+   79:    SCIb_Init(9600);   //enables interrupts and init's fifo and interrupts
+  0010 cc2580       [2]     LDD   #9600
+  0013 160000       [4]     JSR   SCIb_Init
+   80:    XBee_Init();
+  0016 160000       [4]     JSR   XBee_Init
+   81:    SCI1_OutString("TechArts DP512, SCI demo 8/10/09 -JWV"); OutCRLF();
+  0019 cc0000       [2]     LDD   #"TechArts DP512, SCI demo 8/10/09 -JWV"
+  001c 160000       [4]     JSR   SCI1_OutString
+  001f 0700         [4]     BSR   OutCRLF
+   82:    //SCIb_OutString("init test");
+   83:    while(1) {  
+   84:      //string = XBee_CreateTxFrame();
+   85:      SCI1_OutString("InString: "); 
+  0021 cc0000       [2]     LDD   #"InString: "
+  0024 160000       [4]     JSR   SCI1_OutString
+   86:      SCI1_InString(&string[0],75); //Typed Terminal String->string 
+  0027 cc0000       [2]     LDD   #string
+  002a 3b           [2]     PSHD  
+  002b c64b         [1]     LDAB  #75
+  002d 87           [1]     CLRA  
+  002e 160000       [4]     JSR   SCI1_InString
+  0031 3a           [3]     PULD  
+   87:      //string[0] = SCI1_InChar();
+   88:      OutCRLF();
+  0032 0700         [4]     BSR   OutCRLF
+   89:      while(!(XBee_SendTxFrame(XBee_CreateTxFrame(&string[0]))));
+  0034 cc0000       [2]     LDD   #string
+  0037 160000       [4]     JSR   XBee_CreateTxFrame
+  003a 160000       [4]     JSR   XBee_SendTxFrame
+  003d 0451f4       [3]     TBEQ  B,*-9 ;abs = 0034
+  0040 20df         [3]     BRA   *-31 ;abs = 0021
+   90:    }
+   91:  }

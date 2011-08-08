@@ -1,0 +1,119 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  // filename ******** main.C ************** 
+    2:  // Busy-wait SCI1 driver for the 9S12DP512,
+    3:  // Jonathan W. Valvano 8/10/09
+    4:  
+    5:  //  This example accompanies the books
+    6:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+    7:  //        Thompson, copyright (c) 2006,
+    8:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+    9:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   10:  
+   11:  // Copyright 2009 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   12:  //    You may use, edit, run or distribute this file 
+   13:  //    as long as the above copyright notice remains 
+   14:  
+   15:  // how to run programs that use the SCI1 port
+   16:  // 1) connect SCI0 on 9S12DP512 to PC's COM port, 
+   17:  //    connect SCI1 on 9S12DP512 to a different COM port on PC, 
+   18:  //     set 9S12DP512 to LOAD mode
+   19:  //     reset 9S12DP512
+   20:  // 2) execute Project->Debug (compiles and downloads code to 9S12DP512)
+   21:  // 3) start a terminal program (like HyperTerminal)
+   22:  //    specify proper COM port, 115200 bits/sec, no flow control
+   23:  // 4) run either in debugger or set to RUN mode and hit reset
+   24:  
+   25:  #include <hidef.h>      /* common defines and macros */
+   26:  #include <mc9s12dp512.h>     /* derivative information */
+   27:  #pragma LINK_INFO DERIVATIVE "mc9s12dp512"
+   28:  #include "SCI1.h"
+   29:  #include "PLL.h"
+   30:  #include "Xbee.h"
+   31:  
+   32:  
+   33:  // If you want to communicate from one 9S12DP512 to another, then you can build the following 4-pin 
+   34:  // cable to connect the RS232 SCI1 ports between the two 9S12 systems. 
+   35:  // You would need two 4-pin female headers (All Electronics part number CON-244)
+   36:  // 9S12 Computer 1                                             9S12 Computer 2
+   37:  //   1 RxD ------ black ------------------------- yellow ------  3 TxD
+   38:  //   2 Ground --- green ------------------------- green -------  2 Ground
+   39:  //   3 TxD 	----- yellow ------------------------ black -------  1 RxD
+   40:  //   4 NC                                                        4 NC
+   41:  
+   42:  // If you wish to connect SCI1 to a personal computer, you could build this cable. 
+   43:  // You would need a 4-pin female header (All Electronics part number CON-244) and 
+   44:  // a 9-pin female DP9 header (All Electronic part number DB-9S). 
+   45:  // Three wires must be connected in the cable, they are:
+   46:  // 9S12 J2                                           COM port on a PC
+   47:  //   1 RxD ------------------------------------------   3 TxD
+   48:  //   2 Ground ---------------------------------------   5 Ground
+   49:  //   3 TxD 	------------------------------------------  2 RxD
+   50:  
+   51:  //---------------------OutCRLF---------------------
+   52:  // Output a CR,LF to SCI to go to a new line
+   53:  // Input: none
+   54:  // Output: none
+   55:  void OutCRLF(void){
+*** EVALUATION ***
+
+Function: OutCRLF
+Source  : C:\Users\Owner\Dropbox\EE445L\lab10\xbee_proj\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\Owner\Dropbox\EE445L\lab10\xbee_proj;C:\Users\Owner\Dropbox\EE445L\lab10\xbee_proj\bin;C:\Users\Owner\Dropbox\EE445L\lab10\xbee_proj\prm;C:\Users\Owner\Dropbox\EE445L\lab10\xbee_proj\cmd;C:\Users\Owner\Dropbox\EE445L\lab10\xbee_proj\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\Owner\Dropbox\EE445L\lab10\xbee_proj\bin -EnvTEXTPATH=C:\Users\Owner\Dropbox\EE445L\lab10\xbee_proj\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\Owner\Dropbox\EE445L\lab10\xbee_proj\xbee_proj_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+   56:    SCI1_OutChar(CR);
+  0000 c60d         [1]     LDAB  #13
+  0002 160000       [4]     JSR   SCI1_OutChar
+   57:    SCI1_OutChar(LF);
+  0005 c60a         [1]     LDAB  #10
+  0007 160000       [4]     JSR   SCI1_OutChar
+   58:    PTP_PTP7 ^= 1;
+  000a f60000       [3]     LDAB  _PTP
+  000d c880         [1]     EORB  #128
+  000f 7b0000       [3]     STAB  _PTP
+   59:  }
+  0012 3d           [5]     RTS   
+   60:  
+   61:  char string[20];  // global to assist in debugging  
+   62:  unsigned short n;  
+   63:  void main(void) {		
+*** EVALUATION ***
+
+Function: main
+Source  : C:\Users\Owner\Dropbox\EE445L\lab10\xbee_proj\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\Owner\Dropbox\EE445L\lab10\xbee_proj;C:\Users\Owner\Dropbox\EE445L\lab10\xbee_proj\bin;C:\Users\Owner\Dropbox\EE445L\lab10\xbee_proj\prm;C:\Users\Owner\Dropbox\EE445L\lab10\xbee_proj\cmd;C:\Users\Owner\Dropbox\EE445L\lab10\xbee_proj\Sources;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\Owner\Dropbox\EE445L\lab10\xbee_proj\bin -EnvTEXTPATH=C:\Users\Owner\Dropbox\EE445L\lab10\xbee_proj\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\Owner\Dropbox\EE445L\lab10\xbee_proj\xbee_proj_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+   64:    DDRP |= 0x80;     // PortP bit 7 is output to LED
+  0000 1c000080     [4]     BSET  _DDRP,#128
+   65:    PLL_Init();       // running at 24 MHz
+  0004 160000       [4]     JSR   PLL_Init
+   66:    XBee_Init();
+  0007 160000       [4]     JSR   XBee_Init
+   67:    SCI1_Init(115200);	// fastest standard baud rate on run mode 9S12DP512
+  000a 86c2         [1]     LDAA  #194
+  000c c7           [1]     CLRB  
+  000d ce0001       [2]     LDX   #1
+  0010 160000       [4]     JSR   SCI1_Init
+   68:    asm cli
+  0013 10ef         [1]     CLI   
+   69:    SCI1_OutString("TechArts DP512, SCI demo 8/10/09 -JWV"); OutCRLF();
+  0015 cc0000       [2]     LDD   #"TechArts DP512, SCI demo 8/10/09 -JWV"
+  0018 160000       [4]     JSR   SCI1_OutString
+  001b 0700         [4]     BSR   OutCRLF
+   70:    while(1) {
+   71:      SCI1_OutString("InString: "); 
+  001d cc0000       [2]     LDD   #"InString: "
+  0020 160000       [4]     JSR   SCI1_OutString
+   72:      SCI1_InString(string,19);   
+  0023 cc0000       [2]     LDD   #string
+  0026 3b           [2]     PSHD  
+  0027 c613         [1]     LDAB  #19
+  0029 87           [1]     CLRA  
+  002a 160000       [4]     JSR   SCI1_InString
+  002d 1b82         [2]     LEAS  2,SP
+  002f 20ec         [3]     BRA   *-18 ;abs = 001d
+   73:    }
+   74:  
+   75:  }
+   76:  

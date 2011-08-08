@@ -1,0 +1,123 @@
+Update Components Report
+------------------------
+
+Report File    : C:\Users\aaron\Dropbox\EE445L\lab8\small_edits_unrouted\lab8_scheme_restart_2 (PCB - Update Components Report).txt
+Report Written : Wednesday, April 06, 2011
+Design Path    : C:\Users\aaron\Dropbox\EE445L\lab8\small_edits_unrouted\lab8_scheme_restart_2.pcb
+Design Title   : 
+Created        : 3/27/2011 9:48:09 PM
+Last Saved     : 4/7/2011 2:35:47 AM
+Editing Time   : 1358 min
+Units          : inches (precision 3)
+
+Library Files:
+	C:\Users\aaron\Dropbox\EE445L\lab6\EE345L.cml
+	C:\Users\aaron\Dropbox\EE445L\lab6\myLib.cml
+	C:\Users\Public\Documents\PCB Artist\Library\3M.cml
+	C:\Users\Public\Documents\PCB Artist\Library\74hc.cml
+	C:\Users\Public\Documents\PCB Artist\Library\74hct.cml
+	C:\Users\Public\Documents\PCB Artist\Library\74ls.cml
+	C:\Users\Public\Documents\PCB Artist\Library\4000.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Actel.cml
+	C:\Users\Public\Documents\PCB Artist\Library\AD.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Altera.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Atmel.cml
+	C:\Users\Public\Documents\PCB Artist\Library\AVX.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Capacitor.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Connector.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Csm.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Cypress.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Diode.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Discrete.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Dsm.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Fairchild.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Fairchild1.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Fiducial.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Fuse.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Hamlin.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Hybrid.cml
+	C:\Users\Public\Documents\PCB Artist\Library\IR.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Lattice.cml
+	C:\Users\Public\Documents\PCB Artist\Library\LT.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Maxim.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Microchip.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Murata.cml
+	C:\Users\Public\Documents\PCB Artist\Library\NatSemi.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Omron.cml
+	C:\Users\Public\Documents\PCB Artist\Library\OnSemi.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Opamps.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Pcb.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Qbsm.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Qcsm.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Qsm.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Quicklogic.cml
+	C:\Users\Public\Documents\PCB Artist\Library\relay.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Resistor.cml
+	C:\Users\Public\Documents\PCB Artist\Library\RFMicro.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Schema.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Sm.cml
+	C:\Users\Public\Documents\PCB Artist\Library\ST.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Testpoint.cml
+	C:\Users\Public\Documents\PCB Artist\Library\TI.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Trans.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Transistor.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Vishay.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Wago.cml
+	C:\Users\Public\Documents\PCB Artist\Library\Xilinx.cml
+
+
+Selected items to be updated:
+-----------------------------
+
+    Components:
+
+	(None) 
+
+    Symbols:
+
+	(None) 
+
+Additional items to be updated:
+-------------------------------
+
+    Components:
+
+	(None) 
+
+    Symbols:
+
+	(None) 
+
+Selected items not to be updated  (Same version as library)
+-----------------------------------------------------------
+
+    Components:
+
+	HD44780         [C:\Users\aaron\Dropbox\EE445L\lab6\EE345L.cml]
+
+    Symbols:
+
+	SIP-14          [C:\Users\aaron\Dropbox\EE445L\lab6\EE345L_pcb_symbols.psl]
+
+
+Update Components Summary
+-------------------------
+
+Updating single component.
+Update component attribute values
+(Remove pad style exceptions on updated components)
+
+	Selected for update:			   1  Component 
+						   1  Symbol 
+
+	Selected items to be updated:		   0  Components
+						   0  Symbols
+
+	Additional symbols to be updated:		   0  Symbols
+
+	Selected items NOT to be updated:	   1  Component 
+	  (Same version as library)		   1  Symbol 
+
+
+
+End Of Report.

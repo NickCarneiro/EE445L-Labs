@@ -1,0 +1,325 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  // filename ******** Main.C ************** 
+    2:  // This example illustrates the output compare interrupts, 
+    3:  // 9S12DP512
+    4:  // Jonathan W. Valvano 9/7/09
+    5:  
+    6:  //  This example accompanies the books
+    7:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+    8:  //        Thompson, copyright (c) 2006,
+    9:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+   10:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   11:  
+   12:  // Copyright 2009 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   13:  // You may use, edit, run or distribute this file 
+   14:  //    as long as the above copyright notices remain
+   15:  
+   16:  
+   17:  #include <hidef.h>      /* common defines and macros */
+   18:  #include <mc9s12dp512.h>     /* derivative information */
+   19:  #include <stdio.h>
+   20:  #include <stdlib.h>
+   21:  #include "lcd.h"
+   22:  #include "light_ring.h"
+   23:  #pragma LINK_INFO DERIVATIVE "mc9s12dp512"
+   24:  
+   25:  #define ON_PERIOD 9500
+   26:  #define WIN_PERIOD 50000
+   27:  #define WIN_LED 4
+   28:  
+   29:  void main2(void);
+   30:  void PLL_Init(void);
+   31:  
+   32:  unsigned short main_loc = 0;             //main lcd location
+   33:  unsigned short interrupt_loc = 0;        //interrupt lcd location
+   34:  unsigned short hour = 12, minute = 0, second = 0, mili_sec_count = 0;   //time counters
+   35:  unsigned short al_minute = 0, al_hour = 12, alarm_set = 0, secret_alarm = 0;    //alarm time counters
+   36:  unsigned short timeNow = 0;
+   37:  
+   38:  short off_index = -1; 	//initialized to -1 since all lights are off
+   39:  unsigned short on_index = 0;
+   40:  void	(*lightRing[6])(void) = 
+   41:  {
+   42:  	ToggleLED_top,
+   43:  	ToggleLED_b,
+   44:  	ToggleLED_c,
+   45:  	ToggleLED_d,
+   46:  	ToggleLED_e,
+   47:  	ToggleLED_f,
+   48:  };
+   49:  
+   50:  
+   51:  interrupt 8 void TOC0handler(void){ // executes at 100 Hz 
+*** EVALUATION ***
+
+Function: TOC0handler
+Source  : C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\prm;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\cmd;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\cyclone_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+   52:    TFLG1 = 0x01;         // acknowledge OC0
+  0000 c601         [1]     LDAB  #1
+  0002 5b00         [2]     STAB  _TFLG1
+   53:    TC0 = TC0 + ON_PERIOD;      // 10 ms
+  0004 dc00         [3]     LDD   _TC0
+  0006 c3251c       [2]     ADDD  #9500
+  0009 5c00         [2]     STD   _TC0
+   54:    //on_index turns new light on
+   55:    //off_index trails and turns off the light previously on
+   56:    if (off_index >= 0){
+  000b fc0000       [3]     LDD   off_index
+  000e 2d07         [3/1]   BLT   *+9 ;abs = 0017
+   57:  	  (*lightRing[off_index])();
+  0010 59           [1]     LSLD  
+  0011 b746         [1]     TFR   D,Y
+  0013 15eb0000     [7]     JSR   [lightRing,Y]
+   58:    }
+   59:    (*lightRing[on_index])();
+  0017 fc0000       [3]     LDD   on_index
+  001a 59           [1]     LSLD  
+  001b b746         [1]     TFR   D,Y
+  001d 15eb0000     [7]     JSR   [lightRing,Y]
+   60:    off_index= (off_index+ 1) % 6;
+  0021 fc0000       [3]     LDD   off_index
+  0024 c30001       [2]     ADDD  #1
+  0027 ce0006       [2]     LDX   #6
+  002a 1815         [12]    IDIVS 
+  002c 7c0000       [3]     STD   off_index
+   61:    on_index = (on_index + 1) % 6;
+  002f fc0000       [3]     LDD   on_index
+  0032 c30001       [2]     ADDD  #1
+  0035 ce0006       [2]     LDX   #6
+  0038 1810         [12]    IDIV  
+  003a 7c0000       [3]     STD   on_index
+   62:  }
+  003d 0b           [8]     RTI   
+   63:  
+   64:  //---------------------OC_Init0---------------------
+   65:  // arm output compare 0 for 100Hz periodic interrupt
+   66:  // Input: none
+   67:  // Output: none 
+   68:  void OC_Init0(){
+*** EVALUATION ***
+
+Function: OC_Init0
+Source  : C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\prm;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\cmd;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\cyclone_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+   69:    TIOS |= 0x01;   // activate TC0 as output compare
+  0000 4c0001       [4]     BSET  _TIOS,#1
+   70:    TIE  |= 0x01;   // arm OC0    to be armed conditionally
+  0003 4c0001       [4]     BSET  _TIE,#1
+   71:  /* Bottom three bits of TSCR2 (PR2,PR1,PR0) set TCNT period
+   72:      divide  FastMode(24MHz)    Slow Mode (8MHz)
+   73:  000   1     42ns  TOF  2.73ms  125ns TOF  8.192ms
+   74:  001   2     84ns  TOF  5.46ms  250ns TOF 16.384ms 
+   75:  010   4    167ns  TOF  10.9ms  500ns TOF 32.768ms     
+   76:  011   8    333ns  TOF  21.8ms    1us TOF 65.536ms
+   77:  100  16    667ns  TOF  43.7ms    2us TOF 131.072ms
+   78:  101  32   1.33us  TOF  87.4ms    4us TOF 262.144ns
+   79:  110  64   2.67us  TOF 174.8ms    8us TOF 524.288ms
+   80:  111 128   5.33us  TOF 349.5ms   16us TOF 1.048576s */
+   81:    TC0    = TCNT+50; // first interrupt right away
+  0006 dc00         [3]     LDD   _TCNT
+  0008 c30032       [2]     ADDD  #50
+  000b 5c00         [2]     STD   _TC0
+   82:  }
+  000d 3d           [5]     RTS   
+   83:  
+   84:  //---------------------OC_Init3---------------------
+   85:  // arm output compare 3 for 1000Hz periodic interrupt
+   86:  // Input: none    assumes another ritual enabled the TCNT
+   87:  // Output: none 
+   88:  void OC_Init3(){
+*** EVALUATION ***
+
+Function: OC_Init3
+Source  : C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\prm;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\cmd;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\cyclone_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+   89:    TIOS |= 0x08;    // activate TC3 as output compare
+  0000 4c0008       [4]     BSET  _TIOS,#8
+   90:    TC3   = TCNT+50; // first interrupt right away
+  0003 dc00         [3]     LDD   _TCNT
+  0005 c30032       [2]     ADDD  #50
+  0008 5c00         [2]     STD   _TC3
+   91:  }
+  000a 3d           [5]     RTS   
+   92:  
+   93:  interrupt 11 void TOC3handler(void){ // executes at 1000 Hz 
+*** EVALUATION ***
+
+Function: TOC3handler
+Source  : C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\prm;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\cmd;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\cyclone_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+   94:    TFLG1 = 0x08;         // acknowledge OC3
+  0000 c608         [1]     LDAB  #8
+  0002 5b00         [2]     STAB  _TFLG1
+   95:    
+   96:    TC3 = TC3+WIN_PERIOD;       // 1 ms
+  0004 dc00         [3]     LDD   _TC3
+  0006 c3c350       [2]     ADDD  #50000
+  0009 5c00         [2]     STD   _TC3
+   97:    PTT ^= 0x3F;          // this is a celebration
+  000b f60000       [3]     LDAB  _PTT
+  000e c83f         [1]     EORB  #63
+  0010 7b0000       [3]     STAB  _PTT
+   98:    LCD_Clear();
+  0013 160000       [4]     JSR   LCD_Clear
+   99:  }
+  0016 0b           [8]     RTI   
+  100:  
+  101:  
+  102:  /*
+  103:  //---------------------OC_Init2---------------------
+  104:  // arm output compare 3 for 1000Hz periodic interrupt
+  105:  // Input: none    assumes another ritual enabled the TCNT
+  106:  // Output: none 
+  107:  void OC_Init2(){
+  108:    Count3 = 0;      // debugging monitor      
+  109:    //DDRT |= 0x08;    // debugging monitor
+  110:    TIOS |= 0x04;    // activate TC2 as output compare
+  111:    TIE  |= 0x04;    // arm OC2
+  112:    TC2   = TCNT+1500; // first interrupt right away
+  113:  }
+  114:  
+  115:  interrupt 10 void TOC2handler(void){ // executes at 100 Hz 
+  116:    TFLG1 = 0x04;         // acknowledge OC0
+  117:    TC2 = TC2+1500;      // 10 ms
+  118:    //PTT ^= 0x01;          // debugging monitor
+  119:    mili_sec_count = (mili_sec_count + 1) % 500;   //count milisecs
+  120:    if (mili_sec_count == 0){
+  121:      LCD_GoTo(2,interrupt_loc);
+  122:      printf("b");
+  123:      interrupt_loc = (interrupt_loc + 1) % 8;
+  124:      LCD_GoTo(1,main_loc);
+  125:    }
+  126:    //PTT ^= 0x80;
+  127:  }*/
+  128:   
+  129:  void main(void){
+*** EVALUATION ***
+
+Function: main
+Source  : C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\prm;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\cmd;C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab9\cyclone_prototype\cyclone_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+  0000 1b9d         [2]     LEAS  -3,SP
+  130:  
+  131:    unsigned char won = 0;
+  0002 6982         [2]     CLR   2,SP
+  132:    unsigned short jackpot = 150;
+  0004 c696         [1]     LDAB  #150
+  0006 87           [1]     CLRA  
+  0007 6c80         [2]     STD   0,SP
+  133:    PLL_Init();
+  0009 160000       [4]     JSR   PLL_Init
+  134:    LCD_Init();
+  000c 160000       [4]     JSR   LCD_Init
+  135:    OC_Init3();
+  000f 0700         [4]     BSR   OC_Init3
+  136:    OC_Init0();
+  0011 0700         [4]     BSR   OC_Init0
+  137:    LCD_Clear();
+  0013 160000       [4]     JSR   LCD_Clear
+  138:    DDRT |= 0x3F;
+  0016 1c00003f     [4]     BSET  _DDRT,#63
+  139:    DDRP |= 0x80;
+  001a 1c000080     [4]     BSET  _DDRP,#128
+  140:    DDRP &= ~0x03;
+  001e 1d000003     [4]     BCLR  _DDRP,#3
+  141:    PTT &= ~0x3F;
+  0022 1d00003f     [4]     BCLR  _PTT,#63
+  142:    printf("Push to start");
+  0026 cc0000       [2]     LDD   #"Push to start"
+  0029 3b           [2]     PSHD  
+  002a 160000       [4]     JSR   printf
+  002d 1b82         [2]     LEAS  2,SP
+  143:    while(PTP_PTP1 != 1); //wait for game to start
+  002f 1f000002fb   [5]     BRCLR _PTP,#2,*+0 ;abs = 002f
+  144:    LCD_Clear();
+  0034 160000       [4]     JSR   LCD_Clear
+  145:    printf("%u", jackpot);
+  0037 ec80         [3]     LDD   0,SP
+  0039 3b           [2]     PSHD  
+  003a ce0000       [2]     LDX   #"%u"
+  003d 34           [2]     PSHX  
+  003e 160000       [4]     JSR   printf
+  0041 1b84         [2]     LEAS  4,SP
+  146:    asm cli
+  0043 10ef         [1]     CLI   
+  147:    
+  148:    while(1){
+  149:      if (PTP_PTP0 == 1){
+  0045 1f0000015a   [5]     BRCLR _PTP,#1,*+95 ;abs = 00a4
+  150:        TIE  &= ~0x01;   
+  004a 4d0001       [4]     BCLR  _TIE,#1
+  151:        if (off_index == 4){
+  004d fc0000       [3]     LDD   off_index
+  0050 8c0004       [2]     CPD   #4
+  0053 2624         [3/1]   BNE   *+38 ;abs = 0079
+  152:        on_index = 0;
+  0055 c7           [1]     CLRB  
+  0056 87           [1]     CLRA  
+  0057 7c0000       [3]     STD   on_index
+  153:        off_index = -1;
+  005a 53           [1]     DECB  
+  005b 43           [1]     DECA  
+  005c 7c0000       [3]     STD   off_index
+  154:         TIE |= 0x08; 
+  005f 4c0008       [4]     BSET  _TIE,#8
+  155:         jackpot = 150;
+  0062 ce0096       [2]     LDX   #150
+  0065 6e80         [2]     STX   0,SP
+  156:         won = 1; 
+  0067 50           [1]     NEGB  
+  0068 6b82         [2]     STAB  2,SP
+  006a 200d         [3]     BRA   *+15 ;abs = 0079
+  157:        }
+  158:        while(PTP_PTP1 != 1){
+  159:        //wait for continue button to pushed
+  160:          if (won){
+  006c e682         [3]     LDAB  2,SP
+  006e 2709         [3/1]   BEQ   *+11 ;abs = 0079
+  161:            printf("JACKPOT!");
+  0070 cc0000       [2]     LDD   #"JACKPOT!"
+  0073 3b           [2]     PSHD  
+  0074 160000       [4]     JSR   printf
+  0077 1b82         [2]     LEAS  2,SP
+  0079 1f000002ee   [5]     BRCLR _PTP,#2,*-13 ;abs = 006c
+  162:          }
+  163:        }
+  164:        if (won){
+  007e e682         [3]     LDAB  2,SP
+  0080 270b         [3/1]   BEQ   *+13 ;abs = 008d
+  165:          TIE &= ~0x08;
+  0082 4d0008       [4]     BCLR  _TIE,#8
+  166:          PTT &= ~0x3F;
+  0085 1d00003f     [4]     BCLR  _PTT,#63
+  167:          won = 0;
+  0089 6982         [2]     CLR   2,SP
+  168:        }else{
+  008b 2005         [3]     BRA   *+7 ;abs = 0092
+  169:          jackpot++;
+  008d ee80         [3]     LDX   0,SP
+  008f 08           [1]     INX   
+  0090 6e80         [2]     STX   0,SP
+  170:        }
+  171:        LCD_Clear();
+  0092 160000       [4]     JSR   LCD_Clear
+  172:        printf("%u", jackpot);
+  0095 ec80         [3]     LDD   0,SP
+  0097 3b           [2]     PSHD  
+  0098 cc0000       [2]     LDD   #"%u"
+  009b 3b           [2]     PSHD  
+  009c 160000       [4]     JSR   printf
+  009f 1b84         [2]     LEAS  4,SP
+  173:        TIE  |= 0x01;   // arm OC0    to be armed conditionally     
+  00a1 4c0001       [4]     BSET  _TIE,#1
+  00a4 209f         [3]     BRA   *-95 ;abs = 0045
+  174:      }
+  175:    }
+  176:    return;
+  177:  }

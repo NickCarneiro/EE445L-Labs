@@ -1,0 +1,198 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  // filename ******** Main.C ************** 
+    2:  // This example illustrates the output compare interrupts, 
+    3:  // 9S12DP512
+    4:  // Jonathan W. Valvano 9/7/09
+    5:  
+    6:  //  This example accompanies the books
+    7:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+    8:  //        Thompson, copyright (c) 2006,
+    9:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+   10:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   11:  
+   12:  // Copyright 2009 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   13:  // You may use, edit, run or distribute this file 
+   14:  //    as long as the above copyright notices remain
+   15:  
+   16:  
+   17:  #include <hidef.h>      /* common defines and macros */
+   18:  #include <mc9s12dp512.h>     /* derivative information */
+   19:  #include "music.h"
+   20:  #include "timer.h"
+   21:  #include "switches.h"
+   22:  #include "dac.h"
+   23:  #pragma LINK_INFO DERIVATIVE "mc9s12dp512"
+   24:  
+   25:  void PLL_Init(void);
+   26:  void main2(void);
+   27:  void Debug_Profile(unsigned short thePlace);
+   28:  extern unsigned char volt_change; 
+   29:  extern unsigned short note_index;
+   30:  
+   31:  //------------Debug_Profile------------
+   32:  // saves place and time
+   33:  // inputs: 8-bit number identifying where the software is executing
+   34:  // outputs: none
+   35:  unsigned short timeBuf[100];
+   36:  unsigned short placeBuf[100];
+   37:  unsigned static short Debug_n = 0;
+   38:  //unsigned short Debug_n=0;
+   39:  void Debug_Profile(unsigned short thePlace){
+*** EVALUATION ***
+
+Function: Debug_Profile
+Source  : C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+  0000 3b           [2]     PSHD  
+   40:    if(Debug_n>99) return;
+  0001 fc0000       [3]     LDD   Debug_n
+  0004 8c0063       [2]     CPD   #99
+  0007 2216         [3/1]   BHI   *+24 ;abs = 001f
+   41:    timeBuf[Debug_n] = TCNT;        // record current time
+  0009 59           [1]     LSLD  
+  000a de00         [3]     LDX   _TCNT
+  000c b746         [1]     TFR   D,Y
+  000e 6eea0000     [3]     STX   timeBuf,Y
+   42:    placeBuf[Debug_n] = thePlace;   // record place from which it is called
+  0012 ee80         [3]     LDX   0,SP
+  0014 6eea0000     [3]     STX   placeBuf,Y
+   43:    Debug_n++;
+  0018 fe0000       [3]     LDX   Debug_n
+  001b 08           [1]     INX   
+  001c 7e0000       [3]     STX   Debug_n
+   44:  }
+  001f 3a           [3]     PULD  
+  0020 3d           [5]     RTS   
+   45:  
+   46:  //*******Iron Man*******
+   47:  //
+   48:  //
+   49:  Envelope envelope [SONG_SIZE] = {
+   50:  	{ONE_HALF,B}, 
+   51:  	{ONE_QUARTER,D},
+   52:  	{ONE_QUARTER,REST},
+   53:  	{ONE_QUARTER,D},
+   54:  	{ONE_EIGHTH,E},
+   55:  	{ONE_EIGHTH,REST},
+   56:  	{ONE_HALF,E},
+   57:  	{ONE_EIGHTH,G},
+   58:  	{ONE_EIGHTH,F_SHARP},
+   59:  	{ONE_EIGHTH,G},
+   60:  	{ONE_EIGHTH,F_SHARP},
+   61:  	{ONE_EIGHTH,G},
+   62:  	{ONE_EIGHTH,F_SHARP},
+   63:  	{ONE_EIGHTH,D},
+   64:  	{ONE_EIGHTH,REST},
+   65:  	{ONE_QUARTER,D},
+   66:  	{ONE_EIGHTH,E},
+   67:  	{ONE_EIGHTH,REST},
+   68:  	{ONE_QUARTER,E},
+   69:  	{ONE_QUARTER,REST}	  
+   70:  };  
+   71:  
+   72:  //unsigned short old_note = 0;
+   73:  
+   74:  void main(void){
+*** EVALUATION ***
+
+Function: main
+Source  : C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+   75:    PLL_Init();
+  0000 160000       [4]     JSR   PLL_Init
+   76:    Timer_Init();
+  0003 160000       [4]     JSR   Timer_Init
+   77:    DAC_Init();
+  0006 160000       [4]     JSR   DAC_Init
+   78:    asm cli
+  0009 10ef         [1]     CLI   
+   79:    for(;;){
+   80:      DAC_Out(0);
+  000b c7           [1]     CLRB  
+  000c 160000       [4]     JSR   DAC_Out
+  000f 20fa         [3]     BRA   *-4 ;abs = 000b
+   81:    }
+   82:  }
+   83:  
+   84:  void main2(void) {
+*** EVALUATION ***
+
+Function: main2
+Source  : C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+   85:    PLL_Init();
+  0000 160000       [4]     JSR   PLL_Init
+   86:    Timer_Init();
+  0003 160000       [4]     JSR   Timer_Init
+   87:    OC_Init3();
+  0006 160000       [4]     JSR   OC_Init3
+   88:    OC_Init0();
+  0009 160000       [4]     JSR   OC_Init0
+   89:    DAC_Init();
+  000c 160000       [4]     JSR   DAC_Init
+   90:    Switches_Init(); 
+  000f 160000       [4]     JSR   Switches_Init
+   91:    DDRP |= 0x80;
+  0012 1c000080     [4]     BSET  _DDRP,#128
+   92:    asm cli
+  0016 10ef         [1]     CLI   
+   93:    Debug_Profile(0);
+  0018 c7           [1]     CLRB  
+  0019 87           [1]     CLRA  
+  001a 0700         [4]     BSR   Debug_Profile
+   94:  
+   95:    while(1) {
+   96:      
+   97:      //wait for play button to be pushed to start song
+   98:      if (Get_Switches() == PLAY){
+  001c 160000       [4]     JSR   Get_Switches
+  001f 04212a       [3]     DBNE  B,*+45 ;abs = 004c
+   99:        while (1){
+  100:          //old_note = note_index;
+  101:          //if stop button is pushed exit and wait for the play button to be pushed again
+  102:          if (Get_Switches() == STOP){
+  0022 160000       [4]     JSR   Get_Switches
+  0025 c102         [1]     CMPB  #2
+  0027 2605         [3/1]   BNE   *+7 ;abs = 002e
+  103:            Music_Stop();
+  0029 160000       [4]     JSR   Music_Stop
+  104:            break;
+  002c 201e         [3]     BRA   *+32 ;abs = 004c
+  105:          }
+  106:          if (Get_Switches() == REWIND){
+  002e 160000       [4]     JSR   Get_Switches
+  0031 c104         [1]     CMPB  #4
+  0033 2605         [3/1]   BNE   *+7 ;abs = 003a
+  107:            Music_Rewind();
+  0035 160000       [4]     JSR   Music_Rewind
+  108:            continue; 
+  0038 20e8         [3]     BRA   *-22 ;abs = 0022
+  109:          }
+  110:          Music_Play(envelope[note_index].frequency_pitch);
+  003a fc0000       [3]     LDD   note_index
+  003d cd0003       [2]     LDY   #3
+  0040 13           [3]     EMUL  
+  0041 b745         [1]     TFR   D,X
+  0043 e6e20000     [4]     LDAB  envelope:2,X
+  0047 160000       [4]     JSR   Music_Play
+  004a 20d6         [3]     BRA   *-40 ;abs = 0022
+  111:        }
+  112:      }
+  113:      
+  114:      if (Get_Switches() == REWIND){
+  004c 160000       [4]     JSR   Get_Switches
+  004f c104         [1]     CMPB  #4
+  0051 26c9         [3/1]   BNE   *-53 ;abs = 001c
+  115:        Music_Rewind();
+  0053 160000       [4]     JSR   Music_Rewind
+  0056 20c4         [3]     BRA   *-58 ;abs = 001c
+  116:      }
+  117:    }
+  118:  }
+  119:  
+  120:  

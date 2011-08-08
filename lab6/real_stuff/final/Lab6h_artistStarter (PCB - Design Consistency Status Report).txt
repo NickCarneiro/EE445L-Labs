@@ -1,0 +1,18 @@
+Design Consistency Status Report
+--------------------------------
+
+Report File    : C:\Users\aaron\Dropbox\EE445L\lab6\real_stuff\final\Lab6h_artistStarter (PCB - Design Consistency Status Report).txt
+Report Written : Tuesday, March 08, 2011
+Design Path    : C:\Users\aaron\Dropbox\EE445L\lab6\real_stuff\final\Lab6h_artistStarter.pcb
+Design Title   : 
+Created        : 9/11/2009 4:58:24 PM
+Last Saved     : 3/7/2011 2:59:21 AM
+Editing Time   : 1945 min
+Units          : mil (precision 0)
+
+Checking integrity of Schematic "C:\Users\aaron\Dropbox\EE445L\lab6\real_stuff\final\Lab6h_artistStarter.sch" with PCB "C:\Users\aaron\Dropbox\EE445L\lab6\real_stuff\final\Lab6h_artistStarter.pcb".
+
+The designs are the same.
+
+
+End Of Report.

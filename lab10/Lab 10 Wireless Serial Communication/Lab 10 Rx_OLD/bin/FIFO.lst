@@ -1,0 +1,159 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  // filename *************Fifo.c********
+    2:  // Reagan Revisore, Michael May
+    3:  // Date Created: 3/10/2011
+    4:  // Lab Number: 7
+    5:  // TA: Justin Capogna 
+    6:  // Date of Last Revision: 3/10/2011
+    7:  
+    8:  //  This example accompanies the books
+    9:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+   10:  //        Thompson, copyright (c) 2006,
+   11:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+   12:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   13:  
+   14:  // Copyright 2010 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   15:  //    You may use, edit, run or distribute this file 
+   16:  //    as long as the above copyright notice remains 
+   17:  
+   18:  #include "Fifo.h"
+   19:  dataType static Fifo[FIFOSIZE];
+   20:  
+   21:  unsigned short volatile PutI;  // put next
+   22:  unsigned short volatile GetI;  // get next
+   23:  
+   24:  // ******* Fifo_Init ********
+   25:  // Initialize FIFO, making it empty
+   26:  // This function must be called before FIFO is used,
+   27:  // Can be called again to empty FIFO
+   28:  // Inputs: none
+   29:  // Outputs: none
+   30:  void Fifo_Init(void){ unsigned char SaveCCR;
+*** EVALUATION ***
+
+Function: Fifo_Init
+Source  : C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Sources\FIFO.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\prm;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\cmd;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\FIFO.c.o"
+
+  0000 36           [2]     PSHA  
+   31:  asm  tpa  
+  0001 b720         [1]     TPA   
+   32:  asm  staa SaveCCR 
+  0003 6a80         [2]     STAA  0,SP
+   33:  asm  sei          // make atomic 
+  0005 1410         [1]     SEI   
+   34:    PutI = GetI = 0;      // Empty
+  0007 c7           [1]     CLRB  
+  0008 87           [1]     CLRA  
+  0009 7c0000       [3]     STD   GetI
+  000c fe0000       [3]     LDX   GetI
+  000f 7e0000       [3]     STX   PutI
+   35:  asm  ldaa SaveCCR
+  0012 a680         [3]     LDAA  0,SP
+   36:  asm  tap          // end critical section 
+  0014 b702         [1]     TAP   
+   37:  }
+  0016 32           [3]     PULA  
+  0017 3d           [5]     RTS   
+   38:  
+   39:  // ******* Fifo_Put ********
+   40:  // Put data into FIFO
+   41:  // Inputs: data to save in FIFO
+   42:  // Outputs: FIFOSUCCESS if saved
+   43:  //          FIFOFAIL if not saved, because FIFO was full
+   44:  int Fifo_Put(dataType data){
+*** EVALUATION ***
+
+Function: Fifo_Put
+Source  : C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Sources\FIFO.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\prm;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\cmd;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\FIFO.c.o"
+
+  0000 3b           [2]     PSHD  
+   45:    if((PutI-GetI) & ~(FIFOSIZE-1)){
+  0001 fc0000       [3]     LDD   PutI
+  0004 b30000       [3]     SUBD  GetI
+  0007 c4e0         [1]     ANDB  #224
+  0009 044403       [3]     TBEQ  D,*+6 ;abs = 000f
+   46:      return(FIFOFAIL); // Failed, fifo full
+  000c c7           [1]     CLRB  
+  000d 2018         [3]     BRA   *+26 ;abs = 0027
+   47:    }
+   48:    Fifo[PutI&(FIFOSIZE-1)] = data; // put
+  000f fc0000       [3]     LDD   PutI
+  0012 c41f         [1]     ANDB  #31
+  0014 87           [1]     CLRA  
+  0015 59           [1]     LSLD  
+  0016 ee80         [3]     LDX   0,SP
+  0018 b746         [1]     TFR   D,Y
+  001a 6eea0000     [3]     STX   Fifo,Y
+   49:    PutI++;  // Success, update
+  001e fe0000       [3]     LDX   PutI
+  0021 08           [1]     INX   
+  0022 7e0000       [3]     STX   PutI
+   50:    return(FIFOSUCCESS);
+  0025 c601         [1]     LDAB  #1
+  0027 87           [1]     CLRA  
+   51:  }
+  0028 30           [3]     PULX  
+  0029 3d           [5]     RTS   
+   52:  
+   53:  // ******* Fifo_Get ********
+   54:  // Get data from FIFO
+   55:  // Inputs: pointer to memory into which to return data
+   56:  // Outputs: FIFOSUCCESS if data properly removed
+   57:  //          FIFOFAIL if not removed, because FIFO was empty
+   58:  int Fifo_Get(dataType *datapt){
+*** EVALUATION ***
+
+Function: Fifo_Get
+Source  : C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Sources\FIFO.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\prm;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\cmd;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\FIFO.c.o"
+
+  0000 3b           [2]     PSHD  
+   59:    if(PutI == GetI ){
+  0001 fc0000       [3]     LDD   PutI
+  0004 bc0000       [3]     CPD   GetI
+  0007 2603         [3/1]   BNE   *+5 ;abs = 000c
+   60:      return(FIFOFAIL); // Empty if PutI=GetI
+  0009 c7           [1]     CLRB  
+  000a 201a         [3]     BRA   *+28 ;abs = 0026
+   61:    }
+   62:    *datapt = Fifo[GetI&(FIFOSIZE-1)];
+  000c fc0000       [3]     LDD   GetI
+  000f c41f         [1]     ANDB  #31
+  0011 87           [1]     CLRA  
+  0012 59           [1]     LSLD  
+  0013 b745         [1]     TFR   D,X
+  0015 ece20000     [4]     LDD   Fifo,X
+  0019 ee80         [3]     LDX   0,SP
+  001b 6c00         [2]     STD   0,X
+   63:    GetI++;  // Success, update
+  001d fe0000       [3]     LDX   GetI
+  0020 08           [1]     INX   
+  0021 7e0000       [3]     STX   GetI
+   64:    return(FIFOSUCCESS);
+  0024 c601         [1]     LDAB  #1
+  0026 87           [1]     CLRA  
+   65:  }
+  0027 30           [3]     PULX  
+  0028 3d           [5]     RTS   
+   66:  
+   67:  // ******* Fifo_Size ********
+   68:  // Check the status of the FIFO
+   69:  // Inputs: none
+   70:  // Outputs: number of elements currently stored
+   71:  // 0 to FIFOSIZE (0 means empty, FIFOSIZE means full)
+   72:  unsigned short Fifo_Size(void){
+*** EVALUATION ***
+
+Function: Fifo_Size
+Source  : C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Sources\FIFO.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\prm;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\cmd;C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\M\Documents\ee445l_microcontrollers\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\FIFO.c.o"
+
+   73:   return ((unsigned short)(PutI-GetI));
+  0000 fc0000       [3]     LDD   PutI
+  0003 b30000       [3]     SUBD  GetI
+   74:  }
+  0006 3d           [5]     RTS   

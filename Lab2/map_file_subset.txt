@@ -1,0 +1,22 @@
+*********************************************************************************************
+OBJECT-ALLOCATION SECTION
+     Name               Module                 Addr   hSize   dSize     Ref    Section   RLIB
+---------------------------------------------------------------------------------------------
+MODULE:                 -- Lab2g.c.o --
+- PROCEDURES:
+     OC0_Init                                  C045      2F      47       1   .text       
+     Debug_Profile                             C074      21      33       5   .text       
+     main                                      C095      61      97       1   .text       
+     OC0Han                                    C0F6      4F      79       1   .text       
+- VARIABLES:
+     Debug_n                                    900       2       2       3   .bss        
+     _Vector_8                                 FFEE       2       2       0   .abs_section_ffee
+     BackData                                   922       1       1       3   .common     	
+     NumLost                                    923       2       2       3   .common     
+     BackPeriod                                 925       2       2       4   .common     
+     NumInterrupts                              927       4       4       6   .common     
+     ForeData                                   92B       1       1       4   .common     
+     ForeExpected                               92C       1       1       4   .common     
+     Errors                                     92D       2       2       2   .common     
+     timeBuf                                    92F      C8     200       1   .common     
+     placeBuf                                   9F7      C8     200       1   .common   

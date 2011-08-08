@@ -1,0 +1,156 @@
+Forward Design Changes Report
+-----------------------------
+
+Report File    : C:\Users\aaron\Dropbox\EE445L\lab8\~lab8_scheme_3 (PCB - Forward Design Changes Report).txt
+Report Written : Sunday, March 27, 2011
+Design Path    : C:\Users\aaron\Dropbox\EE445L\lab8\~lab8_scheme_3.pcb
+Design Title   : 
+Created        : 3/27/2011 9:48:09 PM
+Last Saved     : 3/28/2011 2:59:55 AM
+Editing Time   : 44 min
+Units          : mil (precision 0)
+
+Disconnected pin "C19.1" from net "EXTAL".
+Disconnected pin "C19.2" from net "GND".
+Disconnected pin "Y2.1" from net "XTAL".
+Disconnected pin "Y2.2" from net "EXTAL".
+Disconnected pin "U1.70" from net "SCLK".
+Disconnected pin "U1.71" from net "MOSI".
+Disconnected pin "U1.72" from net "SS".
+Disconnected pin "U1.2" from net "Rewind_button_0".
+Disconnected pin "U1.3" from net "Stop_button_0".
+Disconnected pin "U1.4" from net "Play_button_0".
+Disconnected pin "R34.1" from net "XTAL".
+Disconnected pin "R34.2" from net "EXTAL".
+Disconnected pin "C20.1" from net "XTAL".
+Disconnected pin "C20.2" from net "GND".
+
+Deleted component reference "C19".
+Deleted component reference "Y2".
+Deleted component reference "R34".
+Deleted component reference "C20".
+
+Deleted net "SCLK".
+Deleted net "MOSI".
+Deleted net "SS".
+Deleted net "Rewind_button_0".
+Deleted net "Stop_button_0".
+Deleted net "Play_button_0".
+
+Added net "N0473".
+Added net "N0476".
+Added net "N0478".
+Added net "N0480".
+Added net "N0481".
+Added net "N0482".
+Added net "N0483".
+Added net "N0484".
+Added net "N0485".
+Added net "N0486".
+Added net "N0487".
+Added net "N0490".
+Added net "N0491".
+Added net "N0492".
+Added net "N0493".
+Added net "N0494".
+Added net "N0495".
+Added net "N0496".
+Added net "N0497".
+Added net "N0498".
+Added net "N0499".
+Added net "N0500".
+Added net "N0502".
+Added net "N0503".
+Added net "N0505".
+Added net "N0506".
+Added net "N0507".
+Added net "N0508".
+Added net "N0510".
+Added net "N0532".
+Added net "N0533".
+Added net "N0534".
+Added net "N0535".
+Added net "N0536".
+Added net "N0537".
+Added net "N0539".
+
+Connected pin "U1.48" to net "N0507".
+Connected pin "U1.47" to net "N0514".
+Connected pin "U1.46" to net "N0511".
+Connected pin "U1.45" to net "N0524".
+Connected pin "U1.44" to net "N0519".
+Connected pin "U1.43" to net "N0515".
+Connected pin "U1.42" to net "N0510".
+Connected pin "U1.41" to net "N0508".
+Connected pin "U1.58" to net "N0536".
+Connected pin "U1.57" to net "N0537".
+Connected pin "U1.54" to net "N0535".
+Connected pin "U1.53" to net "N0534".
+Connected pin "U1.52" to net "N0533".
+Connected pin "U1.51" to net "N0532".
+Connected pin "U1.23" to net "N0490".
+Connected pin "U1.22" to net "N0491".
+Connected pin "U1.21" to net "N0492".
+Connected pin "U1.20" to net "N0493".
+Connected pin "U1.19" to net "N0494".
+Connected pin "U1.18" to net "N0495".
+Connected pin "U1.17" to net "N0496".
+Connected pin "U1.16" to net "N0497".
+Connected pin "U1.72" to net "N0473".
+Connected pin "U1.71" to net "N0476".
+Connected pin "U1.70" to net "N0478".
+Connected pin "U1.78" to net "N0498".
+Connected pin "U1.67" to net "N0499".
+Connected pin "U1.79" to net "N0500".
+Connected pin "U1.80" to net "N0539".
+Connected pin "U1.1" to net "N0502".
+Connected pin "U1.2" to net "N0503".
+Connected pin "U1.3" to net "N0505".
+Connected pin "U1.4" to net "N0506".
+Connected pin "U1.14" to net "N0480".
+Connected pin "U1.13" to net "N0481".
+Connected pin "U1.12" to net "N0482".
+Connected pin "U1.11" to net "N0483".
+Connected pin "U1.8" to net "N0484".
+Connected pin "U1.7" to net "N0486".
+Connected pin "U1.6" to net "N0487".
+Connected pin "U1.5" to net "N0485".
+Connected pin "U4.1" to net "N0510".
+Connected pin "U4.3" to net "N0499".
+Connected pin "U4.5" to net "N0500".
+Connected pin "U4.9" to net "N0539".
+Connected pin "U4.11" to net "N0502".
+Connected pin "U4.13" to net "N0508".
+Connected pin "U5.1" to net "N0498".
+Connected pin "U5.3" to net "N0507".
+Connected pin "U5.5" to net "N0506".
+Connected pin "U5.9" to net "N0505".
+Connected pin "U5.11" to net "N0503".
+Connected pin "U5.13" to net "N0497".
+Connected pin "U6.1" to net "N0485".
+Connected pin "U6.3" to net "N0490".
+Connected pin "U6.5" to net "N0491".
+Connected pin "U6.9" to net "N0492".
+Connected pin "U6.11" to net "N0493".
+Connected pin "U6.13" to net "N0494".
+Connected pin "U7.1" to net "N0480".
+Connected pin "U7.3" to net "N0481".
+Connected pin "U7.5" to net "N0482".
+Connected pin "U7.9" to net "N0483".
+Connected pin "U7.11" to net "N0484".
+Connected pin "U7.13" to net "N0495".
+Connected pin "U8.1" to net "N0486".
+Connected pin "U8.3" to net "N0487".
+Connected pin "U8.13" to net "N0496".
+Connected pin "U9.4" to net "N0536".
+Connected pin "U9.6" to net "N0537".
+Connected pin "U9.11" to net "N0535".
+Connected pin "U9.12" to net "N0534".
+Connected pin "U9.13" to net "N0533".
+Connected pin "U9.14" to net "N0532".
+Connected pin "DAC.1" to net "N0476".
+Connected pin "DAC.2" to net "N0478".
+Connected pin "DAC.3" to net "N0473".
+
+
+End Of Report.

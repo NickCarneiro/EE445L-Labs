@@ -1,0 +1,833 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.40 Build 10020, Jan 21 2010
+
+    1:  // filename ************** SCIb.C *****************************
+    2:  // Interrupting I/O routines to 9S12DP512 virtual serial port 
+    3:  
+    4:  // 9S12DP512 PT2 is RxD (input to 9S12DP512) 
+    5:  // 9S12DP512 PT3 is TxD (output from 9S12DP512)
+    6:  // 9S12DP512 channel 4 output compare interrupt used 
+    7:  // baud rate can be from 1000 to 50000 bits/sec
+    8:  // 1 start bit, 8 bit data, 1 stop
+    9:  // Jonathan W. Valvano 11/12/09
+   10:  
+   11:  //  This example accompanies the books
+   12:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+   13:  //        Thompson, copyright (c) 2006,
+   14:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+   15:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   16:  
+   17:  // Copyright 2009 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   18:  //    You may use, edit, run or distribute this file 
+   19:  //    as long as the above copyright notice remains 
+   20:  
+   21:  #include <mc9s12dp512.h>     /* derivative information */
+   22:  #pragma LINK_INFO DERIVATIVE "mc9s12dp512"
+   23:  #include "SCIb.h"
+   24:  #include "TxFifob.h"
+   25:  #include "RxFifob.h"  
+   26:   
+   27:  // Tx interrupt rate at the baud rate
+   28:  // Rx interrupt rate at the baud rate
+   29:  // change the following two defines in order to adjust baud rate
+   30:  unsigned short BitTime;     // 24000000/baudrate
+   31:  unsigned short HalfBitTime; // 24000000/baudrate/2
+   32:  // E.g., for 9600, BitTime=2500 
+   33:  
+   34:  static unsigned short TxCount,TxData; // transmit shift register
+   35:  static unsigned char RxCount,RxData;  // receive shift register
+   36:  unsigned char RxFull,NoStart,NoStop;  // number of receiver errors
+   37:  
+   38:  //-------------------------SCIb_Init------------------------
+   39:  // Initialize virtual Serial port SCI
+   40:  // baudrate can be from 1000 to 50000 bits/sec
+   41:  // 1 start, 8 data, 1 stop bit
+   42:  // Input: none
+   43:  // Output: none
+   44:  // assumes a module clock frequency of 24 MHz
+   45:  void SCIb_Init(unsigned short baudrate){
+*** EVALUATION ***
+
+Function: SCIb_Init
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  0000 3b           [2]     PSHD  
+   46:    RxFifob_Init();
+  0001 160000       [4]     JSR   RxFifob_Init
+   47:    TxFifob_Init();
+  0004 160000       [4]     JSR   TxFifob_Init
+   48:    BitTime = (unsigned short)(24000000L/(unsigned long)baudrate);
+  0007 ec80         [3]     LDD   0,SP
+  0009 3b           [2]     PSHD  
+  000a c7           [1]     CLRB  
+  000b 87           [1]     CLRA  
+  000c 3b           [2]     PSHD  
+  000d 8636         [1]     LDAA  #54
+  000f ce016e       [2]     LDX   #366
+  0012 160000       [4]     JSR   _LDIVU
+  0015 7c0000       [3]     STD   BitTime
+   49:    HalfBitTime = BitTime/2;
+  0018 49           [1]     LSRD  
+  0019 7c0000       [3]     STD   HalfBitTime
+   50:    DDRT |= 0x08;     // PT3 is TxD output
+  001c 1c000008     [4]     BSET  _DDRT,#8
+   51:    DDRT &= ~0x04;    // PT2 RxD input
+  0020 1d000004     [4]     BCLR  _DDRT,#4
+   52:    PERT |= 0x04;     // internal pullup on PT2
+  0024 1c000004     [4]     BSET  _PERT,#4
+   53:    PTT  |= 0x08;     // PT3 high TxD idle
+  0028 1c000008     [4]     BSET  _PTT,#8
+   54:    RxFull = 0; NoStart = 0; NoStop = 0; 
+  002c 790000       [3]     CLR   RxFull
+  002f 790000       [3]     CLR   NoStart
+  0032 790000       [3]     CLR   NoStop
+   55:    RxCount =0;       // means receiver is idle
+  0035 790000       [3]     CLR   RxCount
+   56:    TxCount =0;       // means transmitter is idle
+  0038 c7           [1]     CLRB  
+  0039 87           [1]     CLRA  
+  003a 7c0000       [3]     STD   TxCount
+   57:    TIOS  &= ~0x04;   // activate TC2 as input capture
+  003d 4d0004       [4]     BCLR  _TIOS,#4
+   58:    TIOS  |= 0x18;    // activate TC3,TC4 as output compares
+  0040 4c0018       [4]     BSET  _TIOS,#24
+   59:    TSCR1 = 0x80;     // Enable TCNT, 24MHz 
+  0043 c680         [1]     LDAB  #128
+  0045 5b00         [2]     STAB  _TSCR1
+   60:    TSCR2 = 0x00;     // divide by 1 TCNT prescale, TOI disarm
+  0047 5a00         [2]     STAA  _TSCR2
+   61:    PACTL = 0;        // timer prescale used for TCNT
+  0049 5a00         [2]     STAA  _PACTL
+   62:    TCTL4 = 0x20;     // falling edge IC2
+  004b c620         [1]     LDAB  #32
+  004d 5b00         [2]     STAB  _TCTL4
+   63:    TIE  |= 0x0C;     // arm OC3, IC2
+  004f 4c000c       [4]     BSET  _TIE,#12
+   64:    TC3   = TCNT+50;  // first interrupt right away
+  0052 de00         [3]     LDX   _TCNT
+  0054 1ae032       [2]     LEAX  50,X
+  0057 5e00         [2]     STX   _TC3
+   65:    asm cli   /* enable interrupts */
+  0059 10ef         [1]     CLI   
+   66:  }
+  005b 3a           [3]     PULD  
+  005c 3d           [5]     RTS   
+   67:  
+   68:  //-------------------------SCIb_Clear------------------------
+   69:  // Initialize buffers, halt activity
+   70:  // Input: none
+   71:  // Output: none
+   72:  void SCIb_Clear(void){
+*** EVALUATION ***
+
+Function: SCIb_Clear
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+   73:    RxFifob_Init();
+  0000 160000       [4]     JSR   RxFifob_Init
+   74:    TxFifob_Init();
+  0003 160000       [4]     JSR   TxFifob_Init
+   75:    PTT  |= 0x08;     // PT3 high TxD idle
+  0006 1c000008     [4]     BSET  _PTT,#8
+   76:    RxFull = 0; NoStart = 0; NoStop = 0; 
+  000a 790000       [3]     CLR   RxFull
+  000d 790000       [3]     CLR   NoStart
+  0010 790000       [3]     CLR   NoStop
+   77:    RxCount =0;       // means receiver is idle
+  0013 790000       [3]     CLR   RxCount
+   78:    TxCount =0;       // means transmitter is idle
+  0016 c7           [1]     CLRB  
+  0017 87           [1]     CLRA  
+  0018 7c0000       [3]     STD   TxCount
+   79:  }  
+  001b 3d           [5]     RTS   
+   80:    
+   81:  //-------------------------SCIb_InChar-----------------------
+   82:  // Wait for new serial port input, interrupt synchronization
+   83:  // Input: none
+   84:  // Output: ASCII code for key typed
+   85:  unsigned char SCIb_InChar(void){ 
+*** EVALUATION ***
+
+Function: SCIb_InChar
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  0000 36           [2]     PSHA  
+   86:  unsigned char letter;
+   87:    while (RxFifob_Get(&letter) == 0){};
+  0001 b774         [1]     TFR   SP,D
+  0003 160000       [4]     JSR   RxFifob_Get
+  0006 0454f8       [3]     TBEQ  D,*-5 ;abs = 0001
+   88:    return(letter);
+  0009 e680         [3]     LDAB  0,SP
+   89:  }
+  000b 32           [3]     PULA  
+  000c 3d           [5]     RTS   
+   90:  
+   91:  //-------------------------SCIb_InChar2------------------------
+   92:  // Wait for new serial port input, interrupt synchronization
+   93:  // Input: none
+   94:  // Output: ASCII code for key typed
+   95:  // Worst case response time is 20 ms
+   96:  // so it returns with 0xFE if no response in 20 ms
+   97:  unsigned char SCIb_InChar2(void){ 
+*** EVALUATION ***
+
+Function: SCIb_InChar2
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+   98:  unsigned char letter;
+   99:  short TimeLeft,EndT;
+  100:  unsigned short timeOut=2000; // 20ms
+  0000 cc07d0       [2]     LDD   #2000
+  0003 6ca9         [2]     STD   7,-SP
+  101:    while (RxFifob_Get(&letter) == 0){
+  0005 201f         [3]     BRA   *+33 ;abs = 0026
+  102:      EndT = TCNT+240;       // 240 counts (42ns cycles) in 10us 
+  0007 dc00         [3]     LDD   _TCNT
+  0009 c300f0       [2]     ADDD  #240
+  000c 6c83         [2]     STD   3,SP
+  103:      do{
+  104:        TimeLeft = (short)TCNT-EndT;
+  000e dc00         [3]     LDD   _TCNT
+  0010 a383         [3]     SUBD  3,SP
+  0012 6c85         [2]     STD   5,SP
+  105:      }
+  106:      while((TimeLeft<0)||(TimeLeft>100));   // wait 10us
+  0014 2df8         [3/1]   BLT   *-6 ;abs = 000e
+  0016 8c0064       [2]     CPD   #100
+  0019 2ef3         [3/1]   BGT   *-11 ;abs = 000e
+  107:      timeOut--;
+  001b ee80         [3]     LDX   0,SP
+  001d 09           [1]     DEX   
+  001e 6e80         [2]     STX   0,SP
+  108:      if(timeOut == 0){
+  0020 2604         [3/1]   BNE   *+6 ;abs = 0026
+  109:        return(0xFE);
+  0022 c6fe         [1]     LDAB  #254
+  0024 200c         [3]     BRA   *+14 ;abs = 0032
+  0026 1a82         [2]     LEAX  2,SP
+  0028 b754         [1]     TFR   X,D
+  002a 160000       [4]     JSR   RxFifob_Get
+  002d 0454d7       [3]     TBEQ  D,*-38 ;abs = 0007
+  110:      }
+  111:    }
+  112:    return(letter);
+  0030 e682         [3]     LDAB  2,SP
+  113:  
+  114:  }
+  0032 1b87         [2]     LEAS  7,SP
+  0034 3d           [5]     RTS   
+  115:  
+  116:  
+  117:  //-------------------------SCIb_OutChar------------------------
+  118:  // Wait for buffer to be empty, output 8-bit to serial port
+  119:  // interrupt synchronization
+  120:  // Input: 8-bit data to be transferred
+  121:  // Output: none
+  122:  void SCIb_OutChar(unsigned char data){
+*** EVALUATION ***
+
+Function: SCIb_OutChar
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  0000 37           [2]     PSHB  
+  123:    while (TxFifob_Put(data) == 0){}; // spin if TxFifo is full
+  0001 e680         [3]     LDAB  0,SP
+  0003 160000       [4]     JSR   TxFifob_Put
+  0006 0454f8       [3]     TBEQ  D,*-5 ;abs = 0001
+  124:  }
+  0009 32           [3]     PULA  
+  000a 3d           [5]     RTS   
+  125:      
+  126:  //-------------------------SCIb_InStatus--------------------------
+  127:  // Checks if new input is ready, TRUE if new input is ready
+  128:  // Input: none
+  129:  // Output: TRUE if a call to InChar will return right away with data
+  130:  //         FALSE if a call to InChar will wait for input
+  131:  int SCIb_InStatus(void){  
+*** EVALUATION ***
+
+Function: SCIb_InStatus
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  132:    return(RxFifob_Status());
+  0000 160000       [4]     JSR   RxFifob_Status
+  133:  }
+  0003 3d           [5]     RTS   
+  134:  
+  135:  //-----------------------SCIb_OutStatus----------------------------
+  136:  // Checks if there is room in the FIFO, 
+  137:  // TRUE if a call to OutChar will not spin
+  138:  int SCIb_OutStatus(void){
+*** EVALUATION ***
+
+Function: SCIb_OutStatus
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  139:    return(TxFifob_Status());
+  0000 160000       [4]     JSR   TxFifob_Status
+  140:  }
+  0003 3d           [5]     RTS   
+  141:  
+  142:  /*----------------Input Capture 2 Handler---------------*/
+  143:  // used to detect start bit on RxD input
+  144:  // PT2=RxD input
+  145:  // ______			 ____ ____ ____ ____ ____ ____ ____ ____ ______
+  146:  //       |  S | 0  | 1  | 2  | 3  | 4  | 5  | 6  | 7  | Stop  
+  147:  //       |____|____|____|____|____|____|____|____|____|
+  148:  // 			
+  149:  // IC2   ^
+  150:  // OC4      ^    ^    ^    ^    ^    ^    ^    ^    ^    ^
+  151:  interrupt 10 void T2Handler(void){
+*** EVALUATION ***
+
+Function: T2Handler
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  152:    TC4 = TC2+HalfBitTime;   // 1/2 bit time later
+  0000 dc00         [3]     LDD   _TC2
+  0002 f30000       [3]     ADDD  HalfBitTime
+  0005 5c00         [2]     STD   _TC4
+  153:    TIE  |= 0x10;            // arm OC4
+  0007 4c0010       [4]     BSET  _TIE,#16
+  154:    TIE  &= ~0x04;           // disarm IC2
+  000a 4d0004       [4]     BCLR  _TIE,#4
+  155:    RxCount = 10;            // 10 bits/frame
+  000d c60a         [1]     LDAB  #10
+  000f 7b0000       [3]     STAB  RxCount
+  156:    TFLG1 = 0x14;            // acknowledge OC4,IC2
+  0012 58           [1]     LSLB  
+  0013 5b00         [2]     STAB  _TFLG1
+  157:  }
+  0015 0b           [8]     RTI   
+  158:  
+  159:  /*----------------Output Compare 3 Handler---------------*/
+  160:  // used to output virtual TxData
+  161:  // PT3=TxD output
+  162:  // ______			 ____ ____ ____ ____ ____ ____ ____ ____ ______
+  163:  //       |  S | 0  | 1  | 2  | 3  | 4  | 5  | 6  | 7  | Stop  
+  164:  //       |____|____|____|____|____|____|____|____|____|
+  165:  // 			
+  166:  // OC3   ^    ^    ^    ^    ^    ^    ^    ^    ^    ^
+  167:  interrupt 11 void T3Handler(void){  char data;
+*** EVALUATION ***
+
+Function: T3Handler
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  0000 36           [2]     PSHA  
+  168:    TFLG1 = 0x08;         // acknowledge OC3
+  0001 c608         [1]     LDAB  #8
+  0003 5b00         [2]     STAB  _TFLG1
+  169:    TC3 = TC3+BitTime;    
+  0005 dc00         [3]     LDD   _TC3
+  0007 f30000       [3]     ADDD  BitTime
+  000a 5c00         [2]     STD   _TC3
+  170:    if(TxCount==0){
+  000c fc0000       [3]     LDD   TxCount
+  000f 261a         [3/1]   BNE   *+28 ;abs = 002b
+  171:      if(TxFifob_Get(&data)){
+  0011 b774         [1]     TFR   SP,D
+  0013 160000       [4]     JSR   TxFifob_Get
+  0016 04442d       [3]     TBEQ  D,*+48 ;abs = 0046
+  172:        TxData = 0x100+(0xFF&data); // one stop bit+data
+  0019 e680         [3]     LDAB  0,SP
+  001b 87           [1]     CLRA  
+  001c c30100       [2]     ADDD  #256
+  001f 7c0000       [3]     STD   TxData
+  173:        PTT &= ~0x08;    // start bit
+  0022 1d000008     [4]     BCLR  _PTT,#8
+  174:        TxCount = 9;
+  0026 c609         [1]     LDAB  #9
+  0028 87           [1]     CLRA  
+  0029 2018         [3]     BRA   *+26 ;abs = 0043
+  175:      }
+  176:    }
+  177:    else {
+  178:      if(TxData&0x0001){
+  002b 1f00000106   [5]     BRCLR TxData:1,#1,*+11 ;abs = 0036
+  179:        PTT |= 0x08;  // data bit high
+  0030 1c000008     [4]     BSET  _PTT,#8
+  180:      } else{
+  0034 2004         [3]     BRA   *+6 ;abs = 003a
+  181:        PTT &= ~0x08; // data bit low
+  0036 1d000008     [4]     BCLR  _PTT,#8
+  182:      }
+  183:      TxData = TxData>>1;
+  003a 740000       [4]     LSR   TxData
+  003d 760000       [4]     ROR   TxData:1
+  184:      TxCount--;
+  0040 830001       [2]     SUBD  #1
+  0043 7c0000       [3]     STD   TxCount
+  185:    }
+  186:  }
+  0046 32           [3]     PULA  
+  0047 0b           [8]     RTI   
+  187:  /*----------------Output Compare 4 Handler---------------*/
+  188:  // used to input virtual RxData
+  189:  interrupt 12 void T4Handler(void){ 
+*** EVALUATION ***
+
+Function: T4Handler
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  190:    TC4 = TC4+BitTime;    
+  0000 dc00         [3]     LDD   _TC4
+  0002 f30000       [3]     ADDD  BitTime
+  0005 5c00         [2]     STD   _TC4
+  191:    RxCount--;
+  0007 730000       [4]     DEC   RxCount
+  192:    if(RxCount==9){       // check start bit
+  000a f60000       [3]     LDAB  RxCount
+  000d c109         [1]     CMPB  #9
+  000f 260a         [3/1]   BNE   *+12 ;abs = 001b
+  193:      if(PTT&0x04){
+  0011 1f00000434   [5]     BRCLR _PTT,#4,*+57 ;abs = 004a
+  194:        NoStart++;        // framing error, no start
+  0016 720000       [4]     INC   NoStart
+  0019 202f         [3]     BRA   *+49 ;abs = 004a
+  195:      }
+  196:    }
+  197:    else{
+  198:      if(RxCount){	 // RxCount is 8,7,6,5,4,3,2,1
+  001b 04410e       [3]     TBEQ  B,*+17 ;abs = 002c
+  199:        RxData = RxData >>1;
+  001e 740000       [4]     LSR   RxData
+  200:        if(PTT&0x04){
+  0021 1f00000424   [5]     BRCLR _PTT,#4,*+41 ;abs = 004a
+  201:          RxData |= 0x80;	 // data bit is high
+  0026 1c000080     [4]     BSET  RxData,#128
+  002a 201e         [3]     BRA   *+32 ;abs = 004a
+  202:        }
+  203:      } 
+  204:      else{				        // RxCount is 0
+  205:        if((PTT&0x04)==0){
+  002c 1e00000403   [5]     BRSET _PTT,#4,*+8 ;abs = 0034
+  206:          NoStop++;       // framing error, no stop
+  0031 720000       [4]     INC   NoStop
+  207:        }
+  208:        if(RxFifob_Put(RxData)==0){
+  0034 f60000       [3]     LDAB  RxData
+  0037 160000       [4]     JSR   RxFifob_Put
+  003a 046407       [3]     TBNE  D,*+10 ;abs = 0044
+  209:          PTT &= ~0x01;   // PT0 LED on means lost data
+  003d 1d000001     [4]     BCLR  _PTT,#1
+  210:          RxFull++;       // RxFifo full
+  0041 720000       [4]     INC   RxFull
+  211:        }
+  212:        TIE  |= 0x04;     // arm IC2
+  0044 4c0004       [4]     BSET  _TIE,#4
+  213:        TIE  &= ~0x10;    // disarm OC4
+  0047 4d0010       [4]     BCLR  _TIE,#16
+  214:  		}
+  215:  	}
+  216:  
+  217:    TFLG1 = 0x14;         // acknowledge IC2,OC4
+  004a c614         [1]     LDAB  #20
+  004c 5b00         [2]     STAB  _TFLG1
+  218:  
+  219:  }
+  004e 0b           [8]     RTI   
+  220:  
+  221:  
+  222:  
+  223:  
+  224:  //-------------------------SCIb_OutString------------------------
+  225:  // Output String (NULL termination), interrupt synchronization
+  226:  // Input: pointer to a NULL-terminated string to be transferred
+  227:  // Output: none
+  228:  void SCIb_OutString(char *pt){
+*** EVALUATION ***
+
+Function: SCIb_OutString
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  229:    while(*pt){
+  0000 b745         [1]     TFR   D,X
+  0002 2006         [3]     BRA   *+8 ;abs = 000a
+  230:      SCIb_OutChar(*pt);
+  0004 34           [2]     PSHX  
+  0005 160000       [4]     JSR   SCIb_OutChar
+  231:      pt++;
+  0008 30           [3]     PULX  
+  0009 08           [1]     INX   
+  000a e600         [3]     LDAB  0,X
+  000c 26f6         [3/1]   BNE   *-8 ;abs = 0004
+  232:    }
+  233:  }
+  000e 3d           [5]     RTS   
+  234:  
+  235:  
+  236:  //----------------------SCIb_InUDec-------------------------------
+  237:  // InUDec accepts ASCII input in unsigned decimal format
+  238:  //     and converts to a 16 bit unsigned number
+  239:  //     valid range is 0 to 65535
+  240:  // Input: none
+  241:  // Output: 16-bit unsigned number
+  242:  // If you enter a number above 65535, it will truncate without an error
+  243:  // Backspace will remove last digit typed
+  244:  unsigned short SCIb_InUDec(void){	
+*** EVALUATION ***
+
+Function: SCIb_InUDec
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  0000 1b9b         [2]     LEAS  -5,SP
+  245:  unsigned short number=0, length=0;
+  0002 c7           [1]     CLRB  
+  0003 87           [1]     CLRA  
+  0004 6c83         [2]     STD   3,SP
+  0006 6c81         [2]     STD   1,SP
+  246:  char character;
+  247:    character = SCIb_InChar();	
+  248:    while(character!=CR){ // accepts until carriage return input
+  0008 203b         [3]     BRA   *+61 ;abs = 0045
+  249:  // The next line checks that the input is a digit, 0-9.
+  250:  // If the character is not 0-9, it is ignored and not echoed
+  251:      if((character>='0') && (character<='9')) {
+  000a c030         [1]     SUBB  #48
+  000c c109         [1]     CMPB  #9
+  000e 2218         [3/1]   BHI   *+26 ;abs = 0028
+  252:        number = 10*number+(character-'0');   // this line overflows if above 65535
+  0010 e680         [3]     LDAB  0,SP
+  0012 b714         [1]     SEX   B,D
+  0014 830030       [2]     SUBD  #48
+  0017 b745         [1]     TFR   D,X
+  0019 c60a         [1]     LDAB  #10
+  001b 87           [1]     CLRA  
+  001c ed83         [3]     LDY   3,SP
+  001e 13           [3]     EMUL  
+  001f 1ae6         [2]     LEAX  D,X
+  0021 6e83         [2]     STX   3,SP
+  253:        length++;
+  0023 ee81         [3]     LDX   1,SP
+  0025 08           [1]     INX   
+  254:        SCIb_OutChar(character);
+  255:      } 
+  0026 2016         [3]     BRA   *+24 ;abs = 003e
+  256:  // If the input is a backspace, then the return number is
+  257:  // changed and a backspace is outputted to the screen
+  258:      else if((character==BS) && length){
+  0028 e680         [3]     LDAB  0,SP
+  002a c108         [1]     CMPB  #8
+  002c 2617         [3/1]   BNE   *+25 ;abs = 0045
+  002e ee81         [3]     LDX   1,SP
+  0030 2713         [3/1]   BEQ   *+21 ;abs = 0045
+  259:        number /= 10;
+  0032 ec83         [3]     LDD   3,SP
+  0034 ce000a       [2]     LDX   #10
+  0037 1810         [12]    IDIV  
+  0039 6e83         [2]     STX   3,SP
+  260:        length--;
+  003b ee81         [3]     LDX   1,SP
+  003d 09           [1]     DEX   
+  003e 6e81         [2]     STX   1,SP
+  261:        SCIb_OutChar(character);
+  0040 e680         [3]     LDAB  0,SP
+  0042 160000       [4]     JSR   SCIb_OutChar
+  262:      }
+  263:      character = SCIb_InChar();	
+  0045 160000       [4]     JSR   SCIb_InChar
+  0048 6b80         [2]     STAB  0,SP
+  004a c10d         [1]     CMPB  #13
+  004c 26bc         [3/1]   BNE   *-66 ;abs = 000a
+  264:    }
+  265:    return number;
+  004e ec83         [3]     LDD   3,SP
+  266:  }
+  0050 1b85         [2]     LEAS  5,SP
+  0052 3d           [5]     RTS   
+  267:  
+  268:  
+  269:  
+  270:  //-----------------------SCIb_OutUDec-----------------------
+  271:  // Output a 16-bit number in unsigned decimal format
+  272:  // Input: 16-bit number to be transferred
+  273:  // Output: none
+  274:  // Variable format 1-5 digits with no space before or after
+  275:  void SCIb_OutUDec(unsigned short n){
+*** EVALUATION ***
+
+Function: SCIb_OutUDec
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  0000 3b           [2]     PSHD  
+  276:  // This function uses recursion to convert decimal number
+  277:  //   of unspecified length as an ASCII string 
+  278:    if(n >= 10){
+  0001 8c000a       [2]     CPD   #10
+  0004 2512         [3/1]   BCS   *+20 ;abs = 0018
+  279:      SCIb_OutUDec(n/10);
+  0006 ce000a       [2]     LDX   #10
+  0009 1810         [12]    IDIV  
+  000b b754         [1]     TFR   X,D
+  000d 0700         [4]     BSR   SCIb_OutUDec
+  280:      n = n%10;
+  000f ec80         [3]     LDD   0,SP
+  0011 ce000a       [2]     LDX   #10
+  0014 1810         [12]    IDIV  
+  0016 6c80         [2]     STD   0,SP
+  281:    }
+  282:    SCIb_OutChar(n+'0'); /* n is between 0 and 9 */
+  0018 e681         [3]     LDAB  1,SP
+  001a cb30         [1]     ADDB  #48
+  001c 160000       [4]     JSR   SCIb_OutChar
+  283:  }
+  001f 3a           [3]     PULD  
+  0020 3d           [5]     RTS   
+  284:  
+  285:  
+  286:  
+  287:  //---------------------SCIb_InUHex----------------------------------------
+  288:  // Accepts ASCII input in unsigned hexadecimal (base 16) format
+  289:  // Input: none
+  290:  // Output: 16-bit unsigned number
+  291:  // No '$' or '0x' need be entered, just the 1 to 4 hex digits
+  292:  // It will convert lower case a-f to uppercase A-F
+  293:  //     and converts to a 16 bit unsigned number
+  294:  //     value range is 0 to FFFF
+  295:  // If you enter a number above FFFF, it will truncate without an error
+  296:  // Backspace will remove last digit typed
+  297:  unsigned short SCIb_InUHex(void){	
+*** EVALUATION ***
+
+Function: SCIb_InUHex
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  0000 1b99         [2]     LEAS  -7,SP
+  298:  unsigned short number=0, digit, length=0;
+  0002 c7           [1]     CLRB  
+  0003 87           [1]     CLRA  
+  0004 6c83         [2]     STD   3,SP
+  0006 6c85         [2]     STD   5,SP
+  299:  char character;
+  300:    character = SCIb_InChar();
+  301:    while(character!=CR){	
+  0008 2068         [3]     BRA   *+106 ;abs = 0072
+  302:      digit = 0x10; // assume bad
+  000a c610         [1]     LDAB  #16
+  000c 87           [1]     CLRA  
+  000d 6c81         [2]     STD   1,SP
+  303:      if((character>='0') && (character<='9')){
+  000f e680         [3]     LDAB  0,SP
+  0011 c030         [1]     SUBB  #48
+  0013 c109         [1]     CMPB  #9
+  0015 2209         [3/1]   BHI   *+11 ;abs = 0020
+  304:        digit = character-'0';
+  0017 e680         [3]     LDAB  0,SP
+  0019 b715         [1]     SEX   B,X
+  001b 1ae1d0       [2]     LEAX  -48,X
+  305:      }
+  001e 2020         [3]     BRA   *+34 ;abs = 0040
+  306:      else if((character>='A') && (character<='F')){ 
+  0020 e680         [3]     LDAB  0,SP
+  0022 c041         [1]     SUBB  #65
+  0024 c105         [1]     CMPB  #5
+  0026 2209         [3/1]   BHI   *+11 ;abs = 0031
+  307:        digit = (character-'A')+0xA;
+  0028 e680         [3]     LDAB  0,SP
+  002a b715         [1]     SEX   B,X
+  002c 1ae1c9       [2]     LEAX  -55,X
+  308:      }
+  002f 200f         [3]     BRA   *+17 ;abs = 0040
+  309:      else if((character>='a') && (character<='f')){ 
+  0031 e680         [3]     LDAB  0,SP
+  0033 c061         [1]     SUBB  #97
+  0035 c105         [1]     CMPB  #5
+  0037 2209         [3/1]   BHI   *+11 ;abs = 0042
+  310:        digit = (character-'a')+0xA;
+  0039 e680         [3]     LDAB  0,SP
+  003b b715         [1]     SEX   B,X
+  003d 1ae1a9       [2]     LEAX  -87,X
+  0040 6e81         [2]     STX   1,SP
+  311:      }
+  312:  // If the character is not 0-9 or A-F, it is ignored and not echoed
+  313:      if(digit<=0xF ){	
+  0042 ec81         [3]     LDD   1,SP
+  0044 8c000f       [2]     CPD   #15
+  0047 220f         [3/1]   BHI   *+17 ;abs = 0058
+  314:        number = number*0x10+digit;
+  0049 ec83         [3]     LDD   3,SP
+  004b 59           [1]     LSLD  
+  004c 59           [1]     LSLD  
+  004d 59           [1]     LSLD  
+  004e 59           [1]     LSLD  
+  004f e381         [3]     ADDD  1,SP
+  0051 6c83         [2]     STD   3,SP
+  315:        length++;
+  0053 ee85         [3]     LDX   5,SP
+  0055 08           [1]     INX   
+  316:        SCIb_OutChar(character);
+  317:      }
+  0056 2013         [3]     BRA   *+21 ;abs = 006b
+  318:  // Backspace outputted and return value changed if a backspace is inputted
+  319:      else if(character==BS && length){
+  0058 e680         [3]     LDAB  0,SP
+  005a c108         [1]     CMPB  #8
+  005c 2614         [3/1]   BNE   *+22 ;abs = 0072
+  005e ee85         [3]     LDX   5,SP
+  0060 2710         [3/1]   BEQ   *+18 ;abs = 0072
+  320:        number /=0x10;
+  0062 ec83         [3]     LDD   3,SP
+  0064 49           [1]     LSRD  
+  0065 49           [1]     LSRD  
+  0066 49           [1]     LSRD  
+  0067 49           [1]     LSRD  
+  0068 6c83         [2]     STD   3,SP
+  321:        length--;
+  006a 09           [1]     DEX   
+  006b 6e85         [2]     STX   5,SP
+  322:        SCIb_OutChar(character);
+  006d e680         [3]     LDAB  0,SP
+  006f 160000       [4]     JSR   SCIb_OutChar
+  323:      }
+  324:      character = SCIb_InChar();
+  0072 160000       [4]     JSR   SCIb_InChar
+  0075 6b80         [2]     STAB  0,SP
+  0077 c10d         [1]     CMPB  #13
+  0079 268f         [3/1]   BNE   *-111 ;abs = 000a
+  325:    }
+  326:    return number;
+  007b ec83         [3]     LDD   3,SP
+  327:  }
+  007d 1b87         [2]     LEAS  7,SP
+  007f 3d           [5]     RTS   
+  328:  
+  329:  //--------------------------SCIb_OutUHex----------------------------
+  330:  // Output a 16 bit number in unsigned hexadecimal format
+  331:  // Input: 16-bit number to be transferred
+  332:  // Output: none
+  333:  // Variable format 1 to 4 digits with no space before or after
+  334:  void SCIb_OutUHex(unsigned short number){
+*** EVALUATION ***
+
+Function: SCIb_OutUHex
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  0000 3b           [2]     PSHD  
+  335:  // This function uses recursion to convert the number of 
+  336:  //   unspecified length as an ASCII string
+  337:    if(number>=0x10)	{
+  0001 8c0010       [2]     CPD   #16
+  0004 250f         [3/1]   BCS   *+17 ;abs = 0015
+  338:      SCIb_OutUHex(number/0x10);
+  0006 49           [1]     LSRD  
+  0007 49           [1]     LSRD  
+  0008 49           [1]     LSRD  
+  0009 49           [1]     LSRD  
+  000a 0700         [4]     BSR   SCIb_OutUHex
+  339:      SCIb_OutUHex(number%0x10);
+  000c ec80         [3]     LDD   0,SP
+  000e c40f         [1]     ANDB  #15
+  0010 87           [1]     CLRA  
+  0011 0700         [4]     BSR   SCIb_OutUHex
+  340:    }
+  0013 2012         [3]     BRA   *+20 ;abs = 0027
+  341:    else if(number<0xA){
+  0015 8c000a       [2]     CPD   #10
+  0018 2406         [3/1]   BCC   *+8 ;abs = 0020
+  342:      SCIb_OutChar(number+'0');
+  001a e681         [3]     LDAB  1,SP
+  001c cb30         [1]     ADDB  #48
+  343:    }
+  001e 2004         [3]     BRA   *+6 ;abs = 0024
+  344:    else{
+  345:      SCIb_OutChar((number-0x0A)+'A');
+  0020 e681         [3]     LDAB  1,SP
+  0022 cb37         [1]     ADDB  #55
+  0024 160000       [4]     JSR   SCIb_OutChar
+  346:    }
+  347:  }
+  0027 3a           [3]     PULD  
+  0028 3d           [5]     RTS   
+  348:  
+  349:  //------------------------SCIb_InString------------------------
+  350:  // This function accepts ASCII characters from the serial port
+  351:  //    and adds them to a string until a carriage return is inputted 
+  352:  //    or until max length of the string is reached.  
+  353:  // It echoes each character as it is inputted.  
+  354:  // If a backspace is inputted, the string is modified 
+  355:  //    and the backspace is echoed
+  356:  // InString terminates the string with a null character
+  357:  // -- Modified by Agustinus Darmawan + Mingjie Qiu --
+  358:  void SCIb_InString(char *string, unsigned short max) {	
+*** EVALUATION ***
+
+Function: SCIb_InString
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  0000 6cab         [2]     STD   5,-SP
+  359:  int length=0;
+  0002 c7           [1]     CLRB  
+  0003 87           [1]     CLRA  
+  0004 6c82         [2]     STD   2,SP
+  360:  char character;
+  361:    character = SCIb_InChar();
+  362:    while(character!=CR){
+  0006 202b         [3]     BRA   *+45 ;abs = 0033
+  363:      if(character==BS){
+  0008 c108         [1]     CMPB  #8
+  000a 2613         [3/1]   BNE   *+21 ;abs = 001f
+  364:        if(length){
+  000c ee82         [3]     LDX   2,SP
+  000e 2723         [3/1]   BEQ   *+37 ;abs = 0033
+  365:          string--;
+  0010 ed87         [3]     LDY   7,SP
+  0012 03           [1]     DEY   
+  0013 6d87         [2]     STY   7,SP
+  366:          length--;
+  0015 09           [1]     DEX   
+  0016 6e82         [2]     STX   2,SP
+  367:          SCIb_OutChar(BS);
+  0018 c608         [1]     LDAB  #8
+  001a 160000       [4]     JSR   SCIb_OutChar
+  368:        }
+  369:      }
+  001d 2014         [3]     BRA   *+22 ;abs = 0033
+  370:      else if(length<max){
+  001f ee82         [3]     LDX   2,SP
+  0021 ae80         [3]     CPX   0,SP
+  0023 240e         [3/1]   BCC   *+16 ;abs = 0033
+  371:        *string++=character;
+  0025 ee87         [3]     LDX   7,SP
+  0027 6b30         [2]     STAB  1,X+
+  0029 6e87         [2]     STX   7,SP
+  372:        length++; 
+  002b ee82         [3]     LDX   2,SP
+  002d 08           [1]     INX   
+  002e 6e82         [2]     STX   2,SP
+  373:        SCIb_OutChar(character);
+  0030 160000       [4]     JSR   SCIb_OutChar
+  374:      }
+  375:      character = SCIb_InChar();
+  0033 160000       [4]     JSR   SCIb_InChar
+  0036 6b84         [2]     STAB  4,SP
+  0038 c10d         [1]     CMPB  #13
+  003a 26cc         [3/1]   BNE   *-50 ;abs = 0008
+  376:    }
+  377:    *string = 0;
+  003c ee87         [3]     LDX   7,SP
+  003e 6900         [2]     CLR   0,X
+  378:  }
+  0040 1b85         [2]     LEAS  5,SP
+  0042 3d           [5]     RTS   
+  379:  
+  380:  
+  381:  

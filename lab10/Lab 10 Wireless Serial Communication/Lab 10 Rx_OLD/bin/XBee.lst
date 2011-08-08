@@ -1,0 +1,228 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.40 Build 10020, Jan 21 2010
+
+    1:  // filename ******** XBee.C ************** 
+    2:  // Reagan Revisore, Michael May
+    3:  // Date Created: 4/13/2011
+    4:  // ZigBee Communication Receiver Driver
+    5:  // Lab Number: 10
+    6:  // TA: Justin Capogna 
+    7:  // Date of Last Revision: 4/13/2011
+    8:  // ***************************************
+    9:  #include "derivative.h"      /* derivative-specific definitions */
+   10:  #include "lcd.h"
+   11:  
+   12:  void sendATCommand(char *command);
+   13:  
+   14:  // initialize the XBee module
+   15:  void XBee_Init(){
+*** EVALUATION ***
+
+Function: XBee_Init
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\XBee.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\XBee.c.o" -WmsgSd1106
+
+   16:    sendATCommand("X");
+  0000 cc0000       [2]     LDD   #"X"
+  0003 160000       [4]     JSR   sendATCommand
+   17:    wait1ms(2980);
+  0006 cc0ba4       [2]     LDD   #2980
+  0009 160000       [4]     JSR   wait1ms
+   18:    sendATCommand("+++"); 
+  000c cc0000       [2]     LDD   #"+++"
+  000f 160000       [4]     JSR   sendATCommand
+   19:    wait1ms(2980);
+  0012 cc0ba4       [2]     LDD   #2980
+  0015 160000       [4]     JSR   wait1ms
+   20:    sendATCommand("ATDL4F\r");   
+  0018 cc0000       [2]     LDD   #"ATDL4F\015"
+  001b 160000       [4]     JSR   sendATCommand
+   21:    sendATCommand("ATDH0\r");     // Sets destination high address to 0
+  001e cc0000       [2]     LDD   #"ATDH0\015"
+  0021 160000       [4]     JSR   sendATCommand
+   22:    sendATCommand("ATMY4E\r");    // Sets my address to 78
+  0024 cc0000       [2]     LDD   #"ATMY4E\015"
+  0027 160000       [4]     JSR   sendATCommand
+   23:    sendATCommand("ATAP1\r");     // API mode 1 (sends/receive packets)
+  002a cc0000       [2]     LDD   #"ATAP1\015"
+  002d 160000       [4]     JSR   sendATCommand
+   24:    sendATCommand("ATCN\r");      // Ends command mode
+  0030 cc0000       [2]     LDD   #"ATCN\015"
+  0033 060000       [3]     JMP   sendATCommand
+   25:    
+   26:  }
+   27:  
+   28:  
+   29:  #define MFRAME_SIZE 64
+   30:  //accepts messages into the receiver 
+   31:  //When the XBee module receives an API data frame it sends a message to the 9S12
+   32:  unsigned char* XBee_ReceiveRxFrame(){ 
+*** EVALUATION ***
+
+Function: XBee_ReceiveRxFrame
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\XBee.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\XBee.c.o" -WmsgSd1106
+
+  0000 1bf1b6       [2]     LEAS  -74,SP
+   33:    unsigned char i;
+   34:    unsigned char message[MFRAME_SIZE];
+   35:    unsigned short length, source;
+   36:    unsigned char frameID, api, rssi, opt, checkSum;
+   37:    frameID = SCIb_InChar2();//FrameID
+  0003 160000       [4]     JSR   SCIb_InChar2
+  0006 6b89         [2]     STAB  9,SP
+   38:    length = SCIb_InChar2()*256; //MS length
+  0008 160000       [4]     JSR   SCIb_InChar2
+  000b 6b83         [2]     STAB  3,SP
+  000d 6984         [2]     CLR   4,SP
+   39:    length += (SCIb_InChar2()-5);    //LS length
+  000f 160000       [4]     JSR   SCIb_InChar2
+  0012 830005       [2]     SUBD  #5
+  0015 e383         [3]     ADDD  3,SP
+  0017 6c83         [2]     STD   3,SP
+   40:    api = SCIb_InChar2();//API
+  0019 160000       [4]     JSR   SCIb_InChar2
+  001c 6b87         [2]     STAB  7,SP
+   41:    source = SCIb_InChar2()*256;//SourceMSB
+  001e 160000       [4]     JSR   SCIb_InChar2
+  0021 6b81         [2]     STAB  1,SP
+  0023 6982         [2]     CLR   2,SP
+   42:    source += SCIb_InChar2();//SourceLSB
+  0025 160000       [4]     JSR   SCIb_InChar2
+  0028 e381         [3]     ADDD  1,SP
+  002a 6c81         [2]     STD   1,SP
+   43:    rssi = SCIb_InChar2();//RSSI
+  002c 160000       [4]     JSR   SCIb_InChar2
+  002f 6b86         [2]     STAB  6,SP
+   44:    opt = SCIb_InChar2();//Opt
+  0031 160000       [4]     JSR   SCIb_InChar2
+  0034 6b88         [2]     STAB  8,SP
+   45:    checkSum = 0xFF - (api + source + rssi + opt);
+  0036 a682         [3]     LDAA  2,SP
+  0038 ab87         [3]     ADDA  7,SP
+  003a ab86         [3]     ADDA  6,SP
+  003c 1806         [2]     ABA   
+  003e 36           [2]     PSHA  
+  003f 86ff         [1]     LDAA  #255
+  0041 a080         [3]     SUBA  0,SP
+  0043 6a86         [2]     STAA  6,SP
+   46:    for(i = 0; i < length; i++){ //Message
+  0045 69a0         [2]     CLR   1,+SP
+  0047 201c         [3]     BRA   *+30 ;abs = 0065
+   47:      message[i] = SCIb_InChar2();  
+  0049 1a8a         [2]     LEAX  10,SP
+  004b 19e6         [2]     LEAY  D,X
+  004d 35           [2]     PSHY  
+  004e 34           [2]     PSHX  
+  004f 160000       [4]     JSR   SCIb_InChar2
+  0052 ee82         [3]     LDX   2,SP
+  0054 6b00         [2]     STAB  0,X
+   48:      checkSum -= message[i];  
+  0056 e684         [3]     LDAB  4,SP
+  0058 87           [1]     CLRA  
+  0059 e380         [3]     ADDD  0,SP
+  005b b745         [1]     TFR   D,X
+  005d e689         [3]     LDAB  9,SP
+  005f e000         [3]     SUBB  0,X
+  0061 6b89         [2]     STAB  9,SP
+  0063 62a3         [3]     INC   4,+SP
+  0065 e680         [3]     LDAB  0,SP
+  0067 87           [1]     CLRA  
+  0068 ac83         [3]     CPD   3,SP
+  006a 25dd         [3/1]   BCS   *-33 ;abs = 0049
+   49:    }
+   50:    if(checkSum != SCIb_InChar2()) return 0;//message incorrectly received 
+  006c e685         [3]     LDAB  5,SP
+  006e 3b           [2]     PSHD  
+  006f 160000       [4]     JSR   SCIb_InChar2
+  0072 3b           [2]     PSHD  
+  0073 ee82         [3]     LDX   2,SP
+  0075 aeb3         [3]     CPX   4,SP+
+  0077 2704         [3/1]   BEQ   *+6 ;abs = 007d
+  0079 c7           [1]     CLRB  
+  007a 87           [1]     CLRA  
+  007b 2004         [3]     BRA   *+6 ;abs = 0081
+   51:    return message; 
+  007d 1a8a         [2]     LEAX  10,SP
+  007f b754         [1]     TFR   X,D
+   52:  }
+  0081 1bf04a       [2]     LEAS  74,SP
+  0084 3d           [5]     RTS   
+   53:  
+   54:  
+   55:  // create an API frame 
+   56:  // This routine creates an API transmit data frame consisting of a 
+   57:  // start delimiter, frame length, frame data, and checksum fields.
+   58:  // The frame data field contains destination address and 
+   59:  // transmission options information
+   60:  void XBee_CreateTxFrame() {
+*** EVALUATION ***
+
+Function: XBee_CreateTxFrame
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\XBee.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\XBee.c.o" -WmsgSd1106
+
+   61:    
+   62:  }
+  0000 3d           [5]     RTS   
+   63:  
+   64:  // send an API frame 
+   65:  // This routine transmits the API transmit data frame 
+   66:  // to the XBee module via the  virtual port.
+   67:  void XBee_SendTxFrame(){
+*** EVALUATION ***
+
+Function: XBee_SendTxFrame
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\XBee.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\XBee.c.o" -WmsgSd1106
+
+   68:  
+   69:  }
+  0000 3d           [5]     RTS   
+   70:  
+   71:  // determine transmit status
+   72:  void XBee_TxStatus(){
+*** EVALUATION ***
+
+Function: XBee_TxStatus
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\XBee.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\XBee.c.o" -WmsgSd1106
+
+   73:  
+   74:  }
+  0000 3d           [5]     RTS   
+   75:  
+   76:  // sends an AT command repeatedly until it receives 
+   77:  // a reply that it was correctly received
+   78:  void sendATCommand(char *command){
+*** EVALUATION ***
+
+Function: sendATCommand
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\XBee.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\XBee.c.o" -WmsgSd1106
+
+   79:    SCIb_OutString(command);
+  0000 160000       [4]     JSR   SCIb_OutString
+   80:    wait1ms(20);
+  0003 c614         [1]     LDAB  #20
+  0005 87           [1]     CLRA  
+  0006 160000       [4]     JSR   wait1ms
+   81:    while(SCIb_InChar2() != 'O'){ 
+  0009 160000       [4]     JSR   SCIb_InChar2
+  000c 8c004f       [2]     CPD   #79
+  000f 26f8         [3/1]   BNE   *-6 ;abs = 0009
+   82:    }  
+   83:    while(SCIb_InChar2() != 'K'){ 
+  0011 160000       [4]     JSR   SCIb_InChar2
+  0014 8c004b       [2]     CPD   #75
+  0017 26f8         [3/1]   BNE   *-6 ;abs = 0011
+   84:    }  
+   85:    while(SCIb_InChar2() != '\r'){ 
+  0019 160000       [4]     JSR   SCIb_InChar2
+  001c 8c000d       [2]     CPD   #13
+  001f 26f8         [3/1]   BNE   *-6 ;abs = 0019
+   86:    }    
+   87:  }
+  0021 3d           [5]     RTS   
+   88:  
+   89:  

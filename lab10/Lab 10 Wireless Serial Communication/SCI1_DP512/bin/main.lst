@@ -1,0 +1,141 @@
+ANSI-C/cC++ Compiler for HC12 V-5.0.35 Build 8093, Apr  3 2008
+
+    1:  // filename ******** main.C ************** 
+    2:  // Busy-wait SCI1 driver for the 9S12DP512,
+    3:  // Jonathan W. Valvano 8/10/09
+    4:  
+    5:  //  This example accompanies the books
+    6:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+    7:  //        Thompson, copyright (c) 2006,
+    8:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+    9:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   10:  
+   11:  // Copyright 2009 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   12:  //    You may use, edit, run or distribute this file 
+   13:  //    as long as the above copyright notice remains 
+   14:  
+   15:  // how to run programs that use the SCI1 port
+   16:  // 1) connect SCI0 on 9S12DP512 to PC's COM port, 
+   17:  //    connect SCI1 on 9S12DP512 to a different COM port on PC, 
+   18:  //     set 9S12DP512 to LOAD mode
+   19:  //     reset 9S12DP512
+   20:  // 2) execute Project->Debug (compiles and downloads code to 9S12DP512)
+   21:  // 3) start a terminal program (like HyperTerminal)
+   22:  //    specify proper COM port, 115200 bits/sec, no flow control
+   23:  // 4) run either in debugger or set to RUN mode and hit reset
+   24:  
+   25:  #include <hidef.h>      /* common defines and macros */
+   26:  #include <mc9s12dp512.h>     /* derivative information */
+   27:  #pragma LINK_INFO DERIVATIVE "mc9s12dp512"
+   28:  #include "SCI1.h"
+   29:  #include "PLL.h"
+   30:  
+   31:  // If you want to communicate from one 9S12DP512 to another, then you can build the following 4-pin 
+   32:  // cable to connect the RS232 SCI1 ports between the two 9S12 systems. 
+   33:  // You would need two 4-pin female headers (All Electronics part number CON-244)
+   34:  // 9S12 Computer 1                                             9S12 Computer 2
+   35:  //   1 RxD ------ black ------------------------- yellow ------  3 TxD
+   36:  //   2 Ground --- green ------------------------- green -------  2 Ground
+   37:  //   3 TxD 	----- yellow ------------------------ black -------  1 RxD
+   38:  //   4 NC                                                        4 NC
+   39:  
+   40:  // If you wish to connect SCI1 to a personal computer, you could build this cable. 
+   41:  // You would need a 4-pin female header (All Electronics part number CON-244) and 
+   42:  // a 9-pin female DP9 header (All Electronic part number DB-9S). 
+   43:  // Three wires must be connected in the cable, they are:
+   44:  // 9S12 J2                                           COM port on a PC
+   45:  //   1 RxD ------------------------------------------   3 TxD
+   46:  //   2 Ground ---------------------------------------   5 Ground
+   47:  //   3 TxD 	------------------------------------------  2 RxD
+   48:  
+   49:  //---------------------OutCRLF---------------------
+   50:  // Output a CR,LF to SCI to go to a new line
+   51:  // Input: none
+   52:  // Output: none
+   53:  void OutCRLF(void){
+
+Function: OutCRLF
+Source  : D:\EE345L\9S12DP512\SCI1_DP512\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\9S12DP512\SCI1_DP512;D:\EE345L\9S12DP512\SCI1_DP512\bin;D:\EE345L\9S12DP512\SCI1_DP512\prm;D:\EE345L\9S12DP512\SCI1_DP512\cmd;D:\EE345L\9S12DP512\SCI1_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\SCI1_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\SCI1_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\SCI1_DP512\SCI1_DP512_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+   54:    SCI1_OutChar(CR);
+  0000 c60d         [1]     LDAB  #13
+  0002 160000       [4]     JSR   SCI1_OutChar
+   55:    SCI1_OutChar(LF);
+  0005 c60a         [1]     LDAB  #10
+  0007 160000       [4]     JSR   SCI1_OutChar
+   56:    PTP_PTP7 ^= 1;
+  000a f60000       [3]     LDAB  _PTP
+  000d c880         [1]     EORB  #128
+  000f 7b0000       [3]     STAB  _PTP
+   57:  }
+  0012 3d           [5]     RTS   
+   58:  
+   59:  char string[20];  // global to assist in debugging  
+   60:  unsigned short n;  
+   61:  void main(void) {		
+
+Function: main
+Source  : D:\EE345L\9S12DP512\SCI1_DP512\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\9S12DP512\SCI1_DP512;D:\EE345L\9S12DP512\SCI1_DP512\bin;D:\EE345L\9S12DP512\SCI1_DP512\prm;D:\EE345L\9S12DP512\SCI1_DP512\cmd;D:\EE345L\9S12DP512\SCI1_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\SCI1_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\SCI1_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\SCI1_DP512\SCI1_DP512_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+   62:    DDRP |= 0x80;     // PortP bit 7 is output to LED
+  0000 1c000080     [4]     BSET  _DDRP,#128
+   63:    PLL_Init();       // running at 24 MHz
+  0004 160000       [4]     JSR   PLL_Init
+   64:    SCI1_Init(115200);	// fastest standard baud rate on run mode 9S12DP512
+  0007 86c2         [1]     LDAA  #194
+  0009 c7           [1]     CLRB  
+  000a ce0001       [2]     LDX   #1
+  000d 160000       [4]     JSR   SCI1_Init
+   65:    asm cli
+  0010 10ef         [1]     CLI   
+   66:    SCI1_OutString("TechArts DP512, SCI demo 8/10/09 -JWV"); OutCRLF();
+  0012 cc0000       [2]     LDD   #"TechArts DP512, SCI demo 8/10/09 -JWV"
+  0015 160000       [4]     JSR   SCI1_OutString
+  0018 0700         [4]     BSR   OutCRLF
+   67:    for(;;) {
+   68:      SCI1_OutString("InString: "); 
+  001a cc0000       [2]     LDD   #"InString: "
+  001d 160000       [4]     JSR   SCI1_OutString
+   69:      SCI1_InString(string,19);   
+  0020 cc0000       [2]     LDD   #string
+  0023 3b           [2]     PSHD  
+  0024 c613         [1]     LDAB  #19
+  0026 87           [1]     CLRA  
+  0027 160000       [4]     JSR   SCI1_InString
+  002a 3a           [3]     PULD  
+   70:      SCI1_OutString(" OutString="); SCI1_OutString(string); OutCRLF();
+  002b cc0000       [2]     LDD   #" OutString="
+  002e 160000       [4]     JSR   SCI1_OutString
+  0031 cc0000       [2]     LDD   #string
+  0034 160000       [4]     JSR   SCI1_OutString
+  0037 0700         [4]     BSR   OutCRLF
+   71:      
+   72:      SCI1_OutString("InUDec: ");  n=SCI1_InUDec(); 
+  0039 cc0000       [2]     LDD   #"InUDec: "
+  003c 160000       [4]     JSR   SCI1_OutString
+  003f 160000       [4]     JSR   SCI1_InUDec
+  0042 7c0000       [3]     STD   n
+   73:      SCI1_OutString(" OutUDec="); SCI1_OutUDec(n); OutCRLF();
+  0045 cc0000       [2]     LDD   #" OutUDec="
+  0048 160000       [4]     JSR   SCI1_OutString
+  004b fc0000       [3]     LDD   n
+  004e 160000       [4]     JSR   SCI1_OutUDec
+  0051 0700         [4]     BSR   OutCRLF
+   74:       
+   75:      SCI1_OutString("InUHex: ");  n=SCI1_InUHex(); 
+  0053 cc0000       [2]     LDD   #"InUHex: "
+  0056 160000       [4]     JSR   SCI1_OutString
+  0059 160000       [4]     JSR   SCI1_InUHex
+  005c 7c0000       [3]     STD   n
+   76:      SCI1_OutString(" OutUHex="); SCI1_OutUHex(n); OutCRLF();
+  005f cc0000       [2]     LDD   #" OutUHex="
+  0062 160000       [4]     JSR   SCI1_OutString
+  0065 fc0000       [3]     LDD   n
+  0068 160000       [4]     JSR   SCI1_OutUHex
+  006b 20ab         [3]     BRA   *-83 ;abs = 0018
+   77:    }
+   78:  
+   79:  }
+   80:  

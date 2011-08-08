@@ -1,0 +1,41 @@
+short off_index = -1; 	//initialized to -1 since all lights are off
+unsigned short on_index = 0;
+void	(*lightRing[28]) = 
+{
+	&ToggleLED_top,
+	&ToggleLED_a,
+	&ToggleLED_b,
+	&ToggleLED_c,
+	&ToggleLED_d,
+	&ToggleLED_e,
+	&ToggleLED_f,
+	&ToggleLED_right,
+	&ToggleLED_g,
+	&ToggleLED_h,
+	&ToggleLED_i,
+	&ToggleLED_j,
+	&ToggleLED_k,
+	&ToggleLED_l,
+	&ToggleLED_bottom,
+	&ToggleLED_m,
+	&ToggleLED_n,
+	&ToggleLED_o,
+	&ToggleLED_p,
+	&ToggleLED_q,
+	&ToggleLED_r,
+	&ToggleLED_left,
+	&ToggleLED_s,
+	&ToggleLED_t,
+	&ToggleLED_u,
+	&ToggleLED_v,
+	&ToggleLED_w,
+	&ToggleLED_x,
+}
+
+//interrupt alg
+if (off_index> 0){
+	(lightRing[off_index]);
+}
+lightRing[on_index];
+off_index= (off_index+ 1) % 28;
+on_index = (on_index + 1) % 28;

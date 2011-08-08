@@ -1,0 +1,68 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.40 Build 10020, Jan 21 2010
+
+    1:  // filename ******** main.C ************** 
+    2:  // Reagan Revisore, Michael May
+    3:  // Date Created: 4/13/2011
+    4:  // This Project implements the Reciever portion 
+    5:  // of ZigBee communication
+    6:  // Lab Number: 10
+    7:  // TA: Justin Capogna 
+    8:  // Date of Last Revision: 4/13/2011
+    9:  // ***************************************
+   10:  
+   11:  
+   12:  // Rx System Design
+   13:  // The Rx DP512 initializes the virtual port, the XBee module, and the LCD display.  Data from the XBee module 
+   14:  // is stored in the Rx FIFO.  The main program on the Rx DP512 continually polls the Rx FIFO and any available data is 
+   15:  // displayed on the LCD using the LCD driver routines. 
+   16:  
+   17:  #include <hidef.h>      /* common defines and macros */
+   18:  #include <mc9s12dp512.h>     /* derivative information */
+   19:  #pragma LINK_INFO DERIVATIVE "mc9s12dp512"
+   20:  //#include "derivative.h"      /* derivative-specific definitions */
+   21:  #include "PLL.h"
+   22:  #include "XBee.h"
+   23:  #include "LCD.h"
+   24:  #include "SCIb.h"
+   25:  
+   26:  void main(void) {
+*** EVALUATION ***
+
+Function: main
+Source  : \\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources\main.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\prm;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\cmd;\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\mkm2324\Desktop\Lab 10 Wireless Serial Communication\Lab_10_Wireless_Serial_Communication_Data\Standard\ObjectCode\main.c.o" -WmsgSd1106
+
+  0000 36           [2]     PSHA  
+   27:    PLL_Init();
+  0001 160000       [4]     JSR   PLL_Init
+   28:    XBee_Init();
+  0004 160000       [4]     JSR   XBee_Init
+   29:    SCIb_Init(9600);
+  0007 cc2580       [2]     LDD   #9600
+  000a 160000       [4]     JSR   SCIb_Init
+   30:    LCD_Open();
+  000d 160000       [4]     JSR   LCD_Open
+   31:    RxFifob_Init();
+  0010 160000       [4]     JSR   RxFifob_Init
+   32:  
+   33:  	EnableInterrupts;
+  0013 10ef         [1]     CLI   
+   34:    for(;;) {
+  0015 200e         [3]     BRA   *+16 ;abs = 0025
+   35:     // Rx DP512 continually polls the Rx FIFO and any available data is 
+   36:     // displayed on the LCD using the LCD driver routines.
+   37:      unsigned char data;
+   38:      if(SCIb_InStatus()) {
+  0017 160000       [4]     JSR   SCIb_InStatus
+  001a 044408       [3]     TBEQ  D,*+11 ;abs = 0025
+   39:        data = SCIb_InChar();
+  001d 160000       [4]     JSR   SCIb_InChar
+  0020 6b80         [2]     STAB  0,SP
+   40:        LCD_OutChar(data);
+  0022 160000       [4]     JSR   LCD_OutChar
+   41:      }
+   42:    }
+  0025 20f0         [3]     BRA   *-14 ;abs = 0017
+   43:  }
+   44:  

@@ -1,0 +1,117 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  //**********STEPPER.C********
+    2:  //stepper motor drivers
+    3:  //implements a stepper motor state machine
+    4:  //and functions for moving the motor
+    5:  //authors: Aaron Alaniz (aa28877)
+    6:  //         Denis Sokolov (dks574)
+    7:  
+    8:  #include <mc9s12dp512.h>
+    9:  #include "stepper.h"
+   10:  #include "switches.h"
+   11:  
+   12:  #define STATE_HOLD 20000
+   13:  #define FAST_HOLD 5000
+   14:  #define JERK_HOLD 8000
+   15:  
+   16:  #define S0 &stepper_fsm[0]
+   17:  #define S1 &stepper_fsm[1]
+   18:  #define S2 &stepper_fsm[2]
+   19:  #define S3 &stepper_fsm[3]
+   20:  #define S4 &stepper_fsm[4]
+   21:  #define S5 &stepper_fsm[5]
+   22:  #define S6 &stepper_fsm[6]
+   23:  #define S7 &stepper_fsm[7]
+   24:  #define S8 &stepper_fsm[8]
+   25:  #define S9 &stepper_fsm[9]
+   26:  #define S10 &stepper_fsm[10]
+   27:  #define S11 &stepper_fsm[11]
+   28:  #define S12 &stepper_fsm[12]
+   29:  #define S13 &stepper_fsm[13]
+   30:  #define S14 &stepper_fsm[14]
+   31:  #define S15 &stepper_fsm[15]
+   32:  #define S16 &stepper_fsm[16]
+   33:  #define S17 &stepper_fsm[17]
+   34:  #define S18 &stepper_fsm[18]
+   35:  #define S19 &stepper_fsm[19]
+   36:  #define S20 &stepper_fsm[20]
+   37:  #define S21 &stepper_fsm[21]
+   38:  #define S22 &stepper_fsm[22]
+   39:  
+   40:  const struct State stepper_fsm[] = 
+   41:  {                 //000     001   010   011   100   101   110   111
+   42:  {0,   STATE_HOLD,   {S1,    S1,   S1,   S1,   S1,   S1,   S1,   S1}},     //S0   
+   43:  {5,   STATE_HOLD,   {S1,    S10,  S8,   S8,   S2,   S2,   S4,   S4}},     //S1
+   44:  {6,   STATE_HOLD,   {S2,    S11,  S5,   S5,   S3,   S3,   S1,   S1}},     //S2
+   45:  {10,  STATE_HOLD,   {S3,    S12,  S6,   S6,   S4,   S4,   S2,   S2}},     //S3
+   46:  {9,   STATE_HOLD,   {S4,    S9,   S7,   S7,   S1,   S1,   S3,   S3}},     //S4
+   47:  {6,   STATE_HOLD,   {S1,    S1,   S5,   S5,   S1,   S1,   S5,   S5}},     //S5
+   48:  {10,  STATE_HOLD,   {S2,    S2,   S6,   S6,   S2,   S2,   S6,   S6}},     //S6
+   49:  {9,   STATE_HOLD,   {S3,    S3,   S7,   S7,   S3,   S3,   S7,   S7}},     //S7
+   50:  {5,   STATE_HOLD,   {S4,    S4,   S8,   S8,   S4,   S4,   S8,   S8}},     //S8
+   51:  {5,   JERK_HOLD,    {S9,    S10,  S8,   S9,   S2,   S9,   S2,   S9}},     //S9
+   52:  {6,   FAST_HOLD,    {S10,   S11,  S5,   S10,  S3,   S10,  S3,   S10}},    //S10
+   53:  {10,  FAST_HOLD,    {S11,   S12,  S6,   S11,  S4,   S11,  S4,   S11}},    //S11
+   54:  {9,   FAST_HOLD,    {S12,   S13,  S7,   S12,  S1,   S12,  S1,   S12}},    //S12
+   55:  {5,   FAST_HOLD,    {S13,   S14,  S8,   S13,  S2,   S13,  S2,   S13}},    //S13
+   56:  {6,   FAST_HOLD,    {S14,   S15,  S5,   S14,  S3,   S14,  S3,   S14}},    //S14
+   57:  {10,  JERK_HOLD,    {S15,   S16,  S6,   S15,  S4,   S15,  S4,   S15}},    //S15
+   58:  {6,   FAST_HOLD,    {S16,   S17,  S5,   S16,  S3,   S16,  S3,   S16}},    //S16
+   59:  {5,   FAST_HOLD,    {S17,   S18,  S8,   S17,  S2,   S17,  S2,   S17}},    //S17
+   60:  {9,   FAST_HOLD,    {S18,   S19,  S7,   S18,  S1,   S18,  S1,   S18}},    //S18
+   61:  {10,  FAST_HOLD,    {S19,   S20,  S6,   S19,  S4,   S19,  S4,   S19}},    //S19
+   62:  {6,   FAST_HOLD,    {S20,   S21,  S5,   S20,  S3,   S20,  S3,   S20}},    //S20
+   63:  {5,   FAST_HOLD,    {S21,   S22,  S8,   S21,  S2,   S21,  S2,   S21}},    //S21
+   64:  {9,   JERK_HOLD,    {S22,   S9,   S7,   S22,  S4,   S22,  S4,   S22}}     //S22
+   65:  };  
+   66:  
+   67:  const struct State* Cur_State;                                                                                                   
+   68:                                                                                                                        
+   69:  //---------Stepper_Init------------------
+   70:  // initialize stepper motor state machine and port
+   71:  // inputs: none 
+   72:  // outputs: none
+   73:  void Stepper_Init(void)
+   74:  {
+*** EVALUATION ***
+
+Function: Stepper_Init
+Source  : C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\Sources\stepper.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512;C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\bin;C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\prm;C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\cmd;C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\Moore_DP512_Data\Standard\ObjectCode\stepper.c.o -WmsgSd1106
+
+   75:    DDRT |= 0x0F;   //low four pins output to motor
+  0000 1c00000f     [4]     BSET  _DDRT,#15
+   76:    Cur_State = S0;  //goto default state (5)
+  0004 180300000000 [5]     MOVW  #stepper_fsm,Cur_State
+   77:  }
+  000a 3d           [5]     RTS   
+   78:  
+   79:  //---------Stepper_Step------------------
+   80:  // Steps the stepper motor forward or backward
+   81:  // inputs: dir is the direction to step (0 for backward, 1 for forward) 
+   82:  // outputs: none
+   83:  void Stepper_Step(void)
+   84:  {
+*** EVALUATION ***
+
+Function: Stepper_Step
+Source  : C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\Sources\stepper.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512;C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\bin;C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\prm;C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\cmd;C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Desktop\Lab4\Moore_DP512\Moore_DP512\Moore_DP512_Data\Standard\ObjectCode\stepper.c.o -WmsgSd1106
+
+   85:    PTT = (PTT & 0xF0) + (Cur_State->output);          //set output
+  0000 f60000       [3]     LDAB  _PTT
+  0003 c4f0         [1]     ANDB  #240
+  0005 ebfb0000     [6]     ADDB  [Cur_State,PCR]
+  0009 7b0000       [3]     STAB  _PTT
+   86:    Cur_State = Cur_State->next[Get_Switches()];       //step to next state
+  000c 160000       [4]     JSR   Get_Switches
+  000f 87           [1]     CLRA  
+  0010 59           [1]     LSLD  
+  0011 f30000       [3]     ADDD  Cur_State
+  0014 b745         [1]     TFR   D,X
+  0016 ee03         [3]     LDX   3,X
+  0018 7e0000       [3]     STX   Cur_State
+   87:  }
+  001b 3d           [5]     RTS   

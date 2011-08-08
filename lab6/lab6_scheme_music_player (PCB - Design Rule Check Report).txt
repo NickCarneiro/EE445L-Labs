@@ -1,0 +1,43 @@
+Design Rule Check Report
+------------------------
+
+Report File    : C:\Users\Owner\Dropbox\EE445L\lab6\lab6_scheme_music_player (PCB - Design Rule Check Report).txt
+Report Written : Wednesday, March 02, 2011
+Design Path    : C:\Users\Owner\Dropbox\EE445L\lab6\lab6_scheme_music_player.pcb
+Design Title   : 
+Created        : 3/3/2011 12:58:24 AM
+Last Saved     : 3/3/2011 1:50:27 AM
+Editing Time   : 55 min
+Units          : mil (precision 0)
+
+Results
+-------
+
+
+No errors found
+
+Settings
+--------
+
+Spacings
+    Tracks                             No
+    Pads and Vias                      No
+    Shapes                             No
+    Text                               No
+    Board                              No
+    Drills                             No
+    Components                         No
+
+Manufacturing
+    Min Drill Hole Size                Yes
+    Min Track Width                    Yes
+    Min Annular Ring                   Yes
+    Drill Breakout                     Yes
+
+Nets
+    Net Completion                     No
+    Dangling Tracks                    No
+    Net Track Length Differences       No
+
+
+End Of Report.

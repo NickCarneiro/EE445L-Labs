@@ -1,0 +1,834 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  // filename ************** SCIb.C *****************************
+    2:  // Interrupting I/O routines to 9S12DP512 virtual serial port 
+    3:  
+    4:  // 9S12DP512 PT2 is RxD (input to 9S12DP512) 
+    5:  // 9S12DP512 PT3 is TxD (output from 9S12DP512)
+    6:  // 9S12DP512 channel 4 output compare interrupt used 
+    7:  // baud rate can be from 1000 to 50000 bits/sec
+    8:  // 1 start bit, 8 bit data, 1 stop
+    9:  // Jonathan W. Valvano 10/25/09
+   10:  
+   11:  //  This example accompanies the books
+   12:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+   13:  //        Thompson, copyright (c) 2006,
+   14:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+   15:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   16:  
+   17:  // Copyright 2009 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   18:  //    You may use, edit, run or distribute this file 
+   19:  //    as long as the above copyright notice remains 
+   20:  
+   21:  #include "derivative.h"      /* derivative-specific definitions */
+   22:  #include "SCIb.h"
+   23:  #include "RxFifob.h"  
+   24:  #include "TxFifob.h" 
+   25:   
+   26:  // Tx interrupt rate at the baud rate
+   27:  // Rx interrupt rate at the baud rate
+   28:  // change the following two defines in order to adjust baud rate
+   29:  unsigned short BitTime;     // 24000000/baudrate
+   30:  unsigned short HalfBitTime; // 24000000/baudrate/2
+   31:  // E.g., for 9600, BitTime=2500 
+   32:  
+   33:  static unsigned short TxCount,TxData; // transmit shift register
+   34:  static unsigned char RxCount,RxData;  // receive shift register
+   35:  unsigned char RxFull,NoStart,NoStop;  // number of receiver errors
+   36:  
+   37:  //-------------------------SCIb_Init------------------------
+   38:  // Initialize virtual Serial port SCI
+   39:  // baudrate can be from 1000 to 50000 bits/sec
+   40:  // 1 start, 8 data, 1 stop bit
+   41:  // Input: none
+   42:  // Output: none
+   43:  // assumes a module clock frequency of 24 MHz
+   44:  void SCIb_Init(unsigned short baudrate){
+*** EVALUATION ***
+
+Function: SCIb_Init
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  0000 3b           [2]     PSHD  
+   45:    RxFifob_Init();
+  0001 160000       [4]     JSR   RxFifob_Init
+   46:    TxFifob_Init();
+  0004 160000       [4]     JSR   TxFifob_Init
+   47:    BitTime = (unsigned short)(24000000L/(unsigned long)baudrate);
+  0007 ec80         [3]     LDD   0,SP
+  0009 3b           [2]     PSHD  
+  000a c7           [1]     CLRB  
+  000b 87           [1]     CLRA  
+  000c 3b           [2]     PSHD  
+  000d 8636         [1]     LDAA  #54
+  000f ce016e       [2]     LDX   #366
+  0012 160000       [4]     JSR   _LDIVU
+  0015 7c0000       [3]     STD   BitTime
+   48:    HalfBitTime = BitTime/2;
+  0018 49           [1]     LSRD  
+  0019 7c0000       [3]     STD   HalfBitTime
+   49:    DDRT |= 0x08;     // PT3 is TxD output
+  001c 1c000008     [4]     BSET  _DDRT,#8
+   50:    DDRT &= ~0x04;    // PT2 RxD input
+  0020 1d000004     [4]     BCLR  _DDRT,#4
+   51:    PERT |= 0x04;     // internal pullup on PT2
+  0024 1c000004     [4]     BSET  _PERT,#4
+   52:    PTT  |= 0x08;     // PT3 high TxD idle
+  0028 1c000008     [4]     BSET  _PTT,#8
+   53:    RxFull = 0; NoStart = 0; NoStop = 0; 
+  002c 790000       [3]     CLR   RxFull
+  002f 790000       [3]     CLR   NoStart
+  0032 790000       [3]     CLR   NoStop
+   54:    RxCount =0;       // means receiver is idle
+  0035 790000       [3]     CLR   RxCount
+   55:    TxCount =0;       // means transmitter is idle
+  0038 c7           [1]     CLRB  
+  0039 87           [1]     CLRA  
+  003a 7c0000       [3]     STD   TxCount
+   56:    TIOS  &= ~0x04;   // activate TC2 as input capture
+  003d 4d0004       [4]     BCLR  _TIOS,#4
+   57:    TIOS  |= 0x18;    // activate TC3,TC4 as output compares
+  0040 4c0018       [4]     BSET  _TIOS,#24
+   58:    TSCR1 = 0x80;     // Enable TCNT, 24MHz 
+  0043 c680         [1]     LDAB  #128
+  0045 5b00         [2]     STAB  _TSCR1
+   59:    TSCR2 = 0x00;     // divide by 1 TCNT prescale, TOI disarm
+  0047 5a00         [2]     STAA  _TSCR2
+   60:    PACTL = 0;        // timer prescale used for TCNT
+  0049 5a00         [2]     STAA  _PACTL
+   61:    TCTL4 = 0x20;     // falling edge IC2
+  004b c620         [1]     LDAB  #32
+  004d 5b00         [2]     STAB  _TCTL4
+   62:    TIE  |= 0x0C;     // arm OC3, IC2
+  004f 4c000c       [4]     BSET  _TIE,#12
+   63:    TC3   = TCNT+50;  // first interrupt right away
+  0052 de00         [3]     LDX   _TCNT
+  0054 1ae032       [2]     LEAX  50,X
+  0057 5e00         [2]     STX   _TC3
+   64:    asm cli   /* enable interrupts */
+  0059 10ef         [1]     CLI   
+   65:  }
+  005b 3a           [3]     PULD  
+  005c 3d           [5]     RTS   
+   66:  
+   67:  //-------------------------SCIb_Clear------------------------
+   68:  // Initialize buffers, halt activity
+   69:  // Input: none
+   70:  // Output: none
+   71:  void SCIb_Clear(void){
+*** EVALUATION ***
+
+Function: SCIb_Clear
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+   72:    RxFifob_Init();
+  0000 160000       [4]     JSR   RxFifob_Init
+   73:    TxFifob_Init();
+  0003 160000       [4]     JSR   TxFifob_Init
+   74:    PTT  |= 0x08;     // PT3 high TxD idle
+  0006 1c000008     [4]     BSET  _PTT,#8
+   75:    RxFull = 0; NoStart = 0; NoStop = 0; 
+  000a 790000       [3]     CLR   RxFull
+  000d 790000       [3]     CLR   NoStart
+  0010 790000       [3]     CLR   NoStop
+   76:    RxCount =0;       // means receiver is idle
+  0013 790000       [3]     CLR   RxCount
+   77:    TxCount =0;       // means transmitter is idle
+  0016 c7           [1]     CLRB  
+  0017 87           [1]     CLRA  
+  0018 7c0000       [3]     STD   TxCount
+   78:  }  
+  001b 3d           [5]     RTS   
+   79:    
+   80:  //-------------------------SCIb_InChar-----------------------
+   81:  // Wait for new serial port input, interrupt synchronization
+   82:  // Input: none
+   83:  // Output: ASCII code for key typed
+   84:  unsigned char SCIb_InChar(void){ 
+*** EVALUATION ***
+
+Function: SCIb_InChar
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  0000 36           [2]     PSHA  
+   85:  unsigned char letter;
+   86:    while (RxFifob_Get(&letter) == 0){};
+  0001 b774         [1]     TFR   SP,D
+  0003 160000       [4]     JSR   RxFifob_Get
+  0006 0454f8       [3]     TBEQ  D,*-5 ;abs = 0001
+   87:    return(letter);
+  0009 e680         [3]     LDAB  0,SP
+   88:  }
+  000b 32           [3]     PULA  
+  000c 3d           [5]     RTS   
+   89:  
+   90:  //-------------------------SCIb_InChar2------------------------
+   91:  // Wait for new serial port input, interrupt synchronization
+   92:  // Input: none
+   93:  // Output: ASCII code for key typed
+   94:  // Worst case response time is 20 ms
+   95:  // so it returns with 0xFE if no response in 20 ms
+   96:  unsigned char SCIb_InChar2(void){ 
+*** EVALUATION ***
+
+Function: SCIb_InChar2
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+   97:  unsigned char letter;
+   98:  short TimeLeft,EndT;
+   99:  unsigned short timeOut=2000; // 20ms
+  0000 cc07d0       [2]     LDD   #2000
+  0003 6ca9         [2]     STD   7,-SP
+  100:    while (RxFifob_Get(&letter) == 0){
+  0005 201f         [3]     BRA   *+33 ;abs = 0026
+  101:      EndT = TCNT+240;       // 240 counts (42ns cycles) in 10us 
+  0007 dc00         [3]     LDD   _TCNT
+  0009 c300f0       [2]     ADDD  #240
+  000c 6c83         [2]     STD   3,SP
+  102:      do{
+  103:        TimeLeft = (short)TCNT-EndT;
+  000e dc00         [3]     LDD   _TCNT
+  0010 a383         [3]     SUBD  3,SP
+  0012 6c85         [2]     STD   5,SP
+  104:      }
+  105:      while((TimeLeft<0)||(TimeLeft>100));   // wait 10us
+  0014 2df8         [3/1]   BLT   *-6 ;abs = 000e
+  0016 8c0064       [2]     CPD   #100
+  0019 2ef3         [3/1]   BGT   *-11 ;abs = 000e
+  106:      timeOut--;
+  001b ee80         [3]     LDX   0,SP
+  001d 09           [1]     DEX   
+  001e 6e80         [2]     STX   0,SP
+  107:      if(timeOut == 0){
+  0020 2604         [3/1]   BNE   *+6 ;abs = 0026
+  108:        return(0xFE);
+  0022 c6fe         [1]     LDAB  #254
+  0024 200c         [3]     BRA   *+14 ;abs = 0032
+  0026 1a82         [2]     LEAX  2,SP
+  0028 b754         [1]     TFR   X,D
+  002a 160000       [4]     JSR   RxFifob_Get
+  002d 0454d7       [3]     TBEQ  D,*-38 ;abs = 0007
+  109:      }
+  110:    }
+  111:    return(letter);
+  0030 e682         [3]     LDAB  2,SP
+  112:  
+  113:  }
+  0032 1b87         [2]     LEAS  7,SP
+  0034 3d           [5]     RTS   
+  114:  
+  115:  
+  116:  //-------------------------SCIb_OutChar------------------------
+  117:  // Wait for buffer to be empty, output 8-bit to serial port
+  118:  // interrupt synchronization
+  119:  // Input: 8-bit data to be transferred
+  120:  // Output: none
+  121:  void SCIb_OutChar(unsigned char data){
+*** EVALUATION ***
+
+Function: SCIb_OutChar
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  0000 37           [2]     PSHB  
+  122:    while (TxFifob_Put(data) == 0){}; // spin if TxFifo is full
+  0001 e680         [3]     LDAB  0,SP
+  0003 160000       [4]     JSR   TxFifob_Put
+  0006 0454f8       [3]     TBEQ  D,*-5 ;abs = 0001
+  123:  }
+  0009 32           [3]     PULA  
+  000a 3d           [5]     RTS   
+  124:      
+  125:  //-------------------------SCIb_InStatus--------------------------
+  126:  // Checks if new input is ready, TRUE if new input is ready
+  127:  // Input: none
+  128:  // Output: TRUE if a call to InChar will return right away with data
+  129:  //         FALSE if a call to InChar will wait for input
+  130:  int SCIb_InStatus(void){  
+*** EVALUATION ***
+
+Function: SCIb_InStatus
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  131:    return(RxFifob_Status());
+  0000 160000       [4]     JSR   RxFifob_Status
+  132:  }
+  0003 3d           [5]     RTS   
+  133:  
+  134:  //-----------------------SCIb_OutStatus----------------------------
+  135:  // Checks if there is room in the FIFO, 
+  136:  // TRUE if a call to OutChar will not spin
+  137:  int SCIb_OutStatus(void){
+*** EVALUATION ***
+
+Function: SCIb_OutStatus
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  138:    return(TxFifob_Status());
+  0000 160000       [4]     JSR   TxFifob_Status
+  139:  }
+  0003 3d           [5]     RTS   
+  140:  
+  141:  /*----------------Input Capture 2 Handler---------------*/
+  142:  // used to detect start bit on RxD input
+  143:  // PT2=RxD input
+  144:  // ______			 ____ ____ ____ ____ ____ ____ ____ ____ ______
+  145:  //       |  S | 0  | 1  | 2  | 3  | 4  | 5  | 6  | 7  | Stop  
+  146:  //       |____|____|____|____|____|____|____|____|____|
+  147:  // 			
+  148:  // IC2   ^
+  149:  // OC4      ^    ^    ^    ^    ^    ^    ^    ^    ^    ^
+  150:  interrupt 10 void T2Handler(void){
+*** EVALUATION ***
+
+Function: T2Handler
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  151:    TC4 = TC2+HalfBitTime;   // 1/2 bit time later
+  0000 dc00         [3]     LDD   _TC2
+  0002 f30000       [3]     ADDD  HalfBitTime
+  0005 5c00         [2]     STD   _TC4
+  152:    TIE  |= 0x10;            // arm OC4
+  0007 4c0010       [4]     BSET  _TIE,#16
+  153:    TIE  &= ~0x04;           // disarm IC2
+  000a 4d0004       [4]     BCLR  _TIE,#4
+  154:    RxCount = 10;            // 10 bits/frame
+  000d c60a         [1]     LDAB  #10
+  000f 7b0000       [3]     STAB  RxCount
+  155:    TFLG1 = 0x14;            // acknowledge OC4,IC2
+  0012 58           [1]     LSLB  
+  0013 5b00         [2]     STAB  _TFLG1
+  156:  }
+  0015 0b           [8]     RTI   
+  157:  
+  158:  /*----------------Output Compare 3 Handler---------------*/
+  159:  // used to output virtual TxData
+  160:  // PT3=TxD output
+  161:  // ______			 ____ ____ ____ ____ ____ ____ ____ ____ ______
+  162:  //       |  S | 0  | 1  | 2  | 3  | 4  | 5  | 6  | 7  | Stop  
+  163:  //       |____|____|____|____|____|____|____|____|____|
+  164:  // 			
+  165:  // OC3   ^    ^    ^    ^    ^    ^    ^    ^    ^    ^
+  166:  interrupt 11 void T3Handler(void){ unsigned char data;
+*** EVALUATION ***
+
+Function: T3Handler
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  0000 36           [2]     PSHA  
+  167:    TFLG1 = 0x08;         // acknowledge OC3
+  0001 c608         [1]     LDAB  #8
+  0003 5b00         [2]     STAB  _TFLG1
+  168:    TC3 = TC3+BitTime;    
+  0005 dc00         [3]     LDD   _TC3
+  0007 f30000       [3]     ADDD  BitTime
+  000a 5c00         [2]     STD   _TC3
+  169:    if(TxCount==0){
+  000c fc0000       [3]     LDD   TxCount
+  000f 261a         [3/1]   BNE   *+28 ;abs = 002b
+  170:      if(TxFifob_Get(&data)){
+  0011 b774         [1]     TFR   SP,D
+  0013 160000       [4]     JSR   TxFifob_Get
+  0016 04442d       [3]     TBEQ  D,*+48 ;abs = 0046
+  171:        TxData = 0x100+(0xFF&data); // one stop bits
+  0019 e680         [3]     LDAB  0,SP
+  001b 87           [1]     CLRA  
+  001c c30100       [2]     ADDD  #256
+  001f 7c0000       [3]     STD   TxData
+  172:        PTT &= ~0x08;    // start bit
+  0022 1d000008     [4]     BCLR  _PTT,#8
+  173:        TxCount = 9;
+  0026 c609         [1]     LDAB  #9
+  0028 87           [1]     CLRA  
+  0029 2018         [3]     BRA   *+26 ;abs = 0043
+  174:      }
+  175:    }
+  176:    else {
+  177:      if(TxData&0x0001){
+  002b 1f00000106   [5]     BRCLR TxData:1,#1,*+11 ;abs = 0036
+  178:        PTT |= 0x08;  // data bit high
+  0030 1c000008     [4]     BSET  _PTT,#8
+  179:      } else{
+  0034 2004         [3]     BRA   *+6 ;abs = 003a
+  180:        PTT &= ~0x08; // data bit low
+  0036 1d000008     [4]     BCLR  _PTT,#8
+  181:      }
+  182:      TxData = TxData>>1;
+  003a 740000       [4]     LSR   TxData
+  003d 760000       [4]     ROR   TxData:1
+  183:      TxCount--;
+  0040 830001       [2]     SUBD  #1
+  0043 7c0000       [3]     STD   TxCount
+  184:    }
+  185:  
+  186:  }
+  0046 32           [3]     PULA  
+  0047 0b           [8]     RTI   
+  187:  
+  188:  /*----------------Output Compare 4 Handler---------------*/
+  189:  // used to input virtual RxData
+  190:  interrupt 12 void T4Handler(void){ 
+*** EVALUATION ***
+
+Function: T4Handler
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  191:    TC4 = TC4+BitTime;    
+  0000 dc00         [3]     LDD   _TC4
+  0002 f30000       [3]     ADDD  BitTime
+  0005 5c00         [2]     STD   _TC4
+  192:    RxCount--;
+  0007 730000       [4]     DEC   RxCount
+  193:    if(RxCount==9){       // check start bit
+  000a f60000       [3]     LDAB  RxCount
+  000d c109         [1]     CMPB  #9
+  000f 260a         [3/1]   BNE   *+12 ;abs = 001b
+  194:      if(PTT&0x04){
+  0011 1f00000434   [5]     BRCLR _PTT,#4,*+57 ;abs = 004a
+  195:        NoStart++;        // framing error, no start
+  0016 720000       [4]     INC   NoStart
+  0019 202f         [3]     BRA   *+49 ;abs = 004a
+  196:      }
+  197:    }                                                                  
+  198:    else{
+  199:      if(RxCount){	 // RxCount is 8,7,6,5,4,3,2,1
+  001b 04410e       [3]     TBEQ  B,*+17 ;abs = 002c
+  200:        RxData = RxData >>1;
+  001e 740000       [4]     LSR   RxData
+  201:        if(PTT&0x04){
+  0021 1f00000424   [5]     BRCLR _PTT,#4,*+41 ;abs = 004a
+  202:          RxData |= 0x80;	 // data bit is high
+  0026 1c000080     [4]     BSET  RxData,#128
+  002a 201e         [3]     BRA   *+32 ;abs = 004a
+  203:        }
+  204:      } 
+  205:      else{				        // RxCount is 0
+  206:        if((PTT&0x04)==0){
+  002c 1e00000403   [5]     BRSET _PTT,#4,*+8 ;abs = 0034
+  207:          NoStop++;       // framing error, no stop
+  0031 720000       [4]     INC   NoStop
+  208:        }
+  209:        if(RxFifob_Put(RxData)==0){
+  0034 f60000       [3]     LDAB  RxData
+  0037 160000       [4]     JSR   RxFifob_Put
+  003a 046407       [3]     TBNE  D,*+10 ;abs = 0044
+  210:          PTT &= ~0x01;   // PT0 LED on means lost data
+  003d 1d000001     [4]     BCLR  _PTT,#1
+  211:          RxFull++;       // RxFifo full
+  0041 720000       [4]     INC   RxFull
+  212:        }
+  213:        TIE  |= 0x04;     // arm IC2
+  0044 4c0004       [4]     BSET  _TIE,#4
+  214:        TIE  &= ~0x10;    // disarm OC4
+  0047 4d0010       [4]     BCLR  _TIE,#16
+  215:  		}
+  216:  	}
+  217:  
+  218:    TFLG1 = 0x14;         // acknowledge IC2,OC4
+  004a c614         [1]     LDAB  #20
+  004c 5b00         [2]     STAB  _TFLG1
+  219:  
+  220:  }
+  004e 0b           [8]     RTI   
+  221:  
+  222:  
+  223:  
+  224:  
+  225:  //-------------------------SCIb_OutString------------------------
+  226:  // Output String (NULL termination), interrupt synchronization
+  227:  // Input: pointer to a NULL-terminated string to be transferred
+  228:  // Output: none
+  229:  void SCIb_OutString(char *pt){
+*** EVALUATION ***
+
+Function: SCIb_OutString
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  230:    while(*pt){
+  0000 b745         [1]     TFR   D,X
+  0002 2006         [3]     BRA   *+8 ;abs = 000a
+  231:      SCIb_OutChar(*pt);
+  0004 34           [2]     PSHX  
+  0005 160000       [4]     JSR   SCIb_OutChar
+  232:      pt++;
+  0008 30           [3]     PULX  
+  0009 08           [1]     INX   
+  000a e600         [3]     LDAB  0,X
+  000c 26f6         [3/1]   BNE   *-8 ;abs = 0004
+  233:    }
+  234:  }
+  000e 3d           [5]     RTS   
+  235:  
+  236:  
+  237:  //----------------------SCIb_InUDec-------------------------------
+  238:  // InUDec accepts ASCII input in unsigned decimal format
+  239:  //     and converts to a 16 bit unsigned number
+  240:  //     valid range is 0 to 65535
+  241:  // Input: none
+  242:  // Output: 16-bit unsigned number
+  243:  // If you enter a number above 65535, it will truncate without an error
+  244:  // Backspace will remove last digit typed
+  245:  unsigned short SCIb_InUDec(void){	
+*** EVALUATION ***
+
+Function: SCIb_InUDec
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  0000 1b9b         [2]     LEAS  -5,SP
+  246:  unsigned short number=0, length=0;
+  0002 c7           [1]     CLRB  
+  0003 87           [1]     CLRA  
+  0004 6c83         [2]     STD   3,SP
+  0006 6c81         [2]     STD   1,SP
+  247:  char character;
+  248:    character = SCIb_InChar();	
+  249:    while(character!=CR){ // accepts until carriage return input
+  0008 203b         [3]     BRA   *+61 ;abs = 0045
+  250:  // The next line checks that the input is a digit, 0-9.
+  251:  // If the character is not 0-9, it is ignored and not echoed
+  252:      if((character>='0') && (character<='9')) {
+  000a c030         [1]     SUBB  #48
+  000c c109         [1]     CMPB  #9
+  000e 2218         [3/1]   BHI   *+26 ;abs = 0028
+  253:        number = 10*number+(character-'0');   // this line overflows if above 65535
+  0010 e680         [3]     LDAB  0,SP
+  0012 b714         [1]     SEX   B,D
+  0014 830030       [2]     SUBD  #48
+  0017 b745         [1]     TFR   D,X
+  0019 c60a         [1]     LDAB  #10
+  001b 87           [1]     CLRA  
+  001c ed83         [3]     LDY   3,SP
+  001e 13           [3]     EMUL  
+  001f 1ae6         [2]     LEAX  D,X
+  0021 6e83         [2]     STX   3,SP
+  254:        length++;
+  0023 ee81         [3]     LDX   1,SP
+  0025 08           [1]     INX   
+  255:        SCIb_OutChar(character);
+  256:      } 
+  0026 2016         [3]     BRA   *+24 ;abs = 003e
+  257:  // If the input is a backspace, then the return number is
+  258:  // changed and a backspace is outputted to the screen
+  259:      else if((character==BS) && length){
+  0028 e680         [3]     LDAB  0,SP
+  002a c108         [1]     CMPB  #8
+  002c 2617         [3/1]   BNE   *+25 ;abs = 0045
+  002e ee81         [3]     LDX   1,SP
+  0030 2713         [3/1]   BEQ   *+21 ;abs = 0045
+  260:        number /= 10;
+  0032 ec83         [3]     LDD   3,SP
+  0034 ce000a       [2]     LDX   #10
+  0037 1810         [12]    IDIV  
+  0039 6e83         [2]     STX   3,SP
+  261:        length--;
+  003b ee81         [3]     LDX   1,SP
+  003d 09           [1]     DEX   
+  003e 6e81         [2]     STX   1,SP
+  262:        SCIb_OutChar(character);
+  0040 e680         [3]     LDAB  0,SP
+  0042 160000       [4]     JSR   SCIb_OutChar
+  263:      }
+  264:      character = SCIb_InChar();	
+  0045 160000       [4]     JSR   SCIb_InChar
+  0048 6b80         [2]     STAB  0,SP
+  004a c10d         [1]     CMPB  #13
+  004c 26bc         [3/1]   BNE   *-66 ;abs = 000a
+  265:    }
+  266:    return number;
+  004e ec83         [3]     LDD   3,SP
+  267:  }
+  0050 1b85         [2]     LEAS  5,SP
+  0052 3d           [5]     RTS   
+  268:  
+  269:  
+  270:  
+  271:  //-----------------------SCIb_OutUDec-----------------------
+  272:  // Output a 16-bit number in unsigned decimal format
+  273:  // Input: 16-bit number to be transferred
+  274:  // Output: none
+  275:  // Variable format 1-5 digits with no space before or after
+  276:  void SCIb_OutUDec(unsigned short n){
+*** EVALUATION ***
+
+Function: SCIb_OutUDec
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  0000 3b           [2]     PSHD  
+  277:  // This function uses recursion to convert decimal number
+  278:  //   of unspecified length as an ASCII string 
+  279:    if(n >= 10){
+  0001 8c000a       [2]     CPD   #10
+  0004 2512         [3/1]   BCS   *+20 ;abs = 0018
+  280:      SCIb_OutUDec(n/10);
+  0006 ce000a       [2]     LDX   #10
+  0009 1810         [12]    IDIV  
+  000b b754         [1]     TFR   X,D
+  000d 0700         [4]     BSR   SCIb_OutUDec
+  281:      n = n%10;
+  000f ec80         [3]     LDD   0,SP
+  0011 ce000a       [2]     LDX   #10
+  0014 1810         [12]    IDIV  
+  0016 6c80         [2]     STD   0,SP
+  282:    }
+  283:    SCIb_OutChar(n+'0'); /* n is between 0 and 9 */
+  0018 e681         [3]     LDAB  1,SP
+  001a cb30         [1]     ADDB  #48
+  001c 160000       [4]     JSR   SCIb_OutChar
+  284:  }
+  001f 3a           [3]     PULD  
+  0020 3d           [5]     RTS   
+  285:  
+  286:  
+  287:  
+  288:  //---------------------SCIb_InUHex----------------------------------------
+  289:  // Accepts ASCII input in unsigned hexadecimal (base 16) format
+  290:  // Input: none
+  291:  // Output: 16-bit unsigned number
+  292:  // No '$' or '0x' need be entered, just the 1 to 4 hex digits
+  293:  // It will convert lower case a-f to uppercase A-F
+  294:  //     and converts to a 16 bit unsigned number
+  295:  //     value range is 0 to FFFF
+  296:  // If you enter a number above FFFF, it will truncate without an error
+  297:  // Backspace will remove last digit typed
+  298:  unsigned short SCIb_InUHex(void){	
+*** EVALUATION ***
+
+Function: SCIb_InUHex
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  0000 1b99         [2]     LEAS  -7,SP
+  299:  unsigned short number=0, digit, length=0;
+  0002 c7           [1]     CLRB  
+  0003 87           [1]     CLRA  
+  0004 6c83         [2]     STD   3,SP
+  0006 6c85         [2]     STD   5,SP
+  300:  char character;
+  301:    character = SCIb_InChar();
+  302:    while(character!=CR){	
+  0008 2068         [3]     BRA   *+106 ;abs = 0072
+  303:      digit = 0x10; // assume bad
+  000a c610         [1]     LDAB  #16
+  000c 87           [1]     CLRA  
+  000d 6c81         [2]     STD   1,SP
+  304:      if((character>='0') && (character<='9')){
+  000f e680         [3]     LDAB  0,SP
+  0011 c030         [1]     SUBB  #48
+  0013 c109         [1]     CMPB  #9
+  0015 2209         [3/1]   BHI   *+11 ;abs = 0020
+  305:        digit = character-'0';
+  0017 e680         [3]     LDAB  0,SP
+  0019 b715         [1]     SEX   B,X
+  001b 1ae1d0       [2]     LEAX  -48,X
+  306:      }
+  001e 2020         [3]     BRA   *+34 ;abs = 0040
+  307:      else if((character>='A') && (character<='F')){ 
+  0020 e680         [3]     LDAB  0,SP
+  0022 c041         [1]     SUBB  #65
+  0024 c105         [1]     CMPB  #5
+  0026 2209         [3/1]   BHI   *+11 ;abs = 0031
+  308:        digit = (character-'A')+0xA;
+  0028 e680         [3]     LDAB  0,SP
+  002a b715         [1]     SEX   B,X
+  002c 1ae1c9       [2]     LEAX  -55,X
+  309:      }
+  002f 200f         [3]     BRA   *+17 ;abs = 0040
+  310:      else if((character>='a') && (character<='f')){ 
+  0031 e680         [3]     LDAB  0,SP
+  0033 c061         [1]     SUBB  #97
+  0035 c105         [1]     CMPB  #5
+  0037 2209         [3/1]   BHI   *+11 ;abs = 0042
+  311:        digit = (character-'a')+0xA;
+  0039 e680         [3]     LDAB  0,SP
+  003b b715         [1]     SEX   B,X
+  003d 1ae1a9       [2]     LEAX  -87,X
+  0040 6e81         [2]     STX   1,SP
+  312:      }
+  313:  // If the character is not 0-9 or A-F, it is ignored and not echoed
+  314:      if(digit<=0xF ){	
+  0042 ec81         [3]     LDD   1,SP
+  0044 8c000f       [2]     CPD   #15
+  0047 220f         [3/1]   BHI   *+17 ;abs = 0058
+  315:        number = number*0x10+digit;
+  0049 ec83         [3]     LDD   3,SP
+  004b 59           [1]     LSLD  
+  004c 59           [1]     LSLD  
+  004d 59           [1]     LSLD  
+  004e 59           [1]     LSLD  
+  004f e381         [3]     ADDD  1,SP
+  0051 6c83         [2]     STD   3,SP
+  316:        length++;
+  0053 ee85         [3]     LDX   5,SP
+  0055 08           [1]     INX   
+  317:        SCIb_OutChar(character);
+  318:      }
+  0056 2013         [3]     BRA   *+21 ;abs = 006b
+  319:  // Backspace outputted and return value changed if a backspace is inputted
+  320:      else if(character==BS && length){
+  0058 e680         [3]     LDAB  0,SP
+  005a c108         [1]     CMPB  #8
+  005c 2614         [3/1]   BNE   *+22 ;abs = 0072
+  005e ee85         [3]     LDX   5,SP
+  0060 2710         [3/1]   BEQ   *+18 ;abs = 0072
+  321:        number /=0x10;
+  0062 ec83         [3]     LDD   3,SP
+  0064 49           [1]     LSRD  
+  0065 49           [1]     LSRD  
+  0066 49           [1]     LSRD  
+  0067 49           [1]     LSRD  
+  0068 6c83         [2]     STD   3,SP
+  322:        length--;
+  006a 09           [1]     DEX   
+  006b 6e85         [2]     STX   5,SP
+  323:        SCIb_OutChar(character);
+  006d e680         [3]     LDAB  0,SP
+  006f 160000       [4]     JSR   SCIb_OutChar
+  324:      }
+  325:      character = SCIb_InChar();
+  0072 160000       [4]     JSR   SCIb_InChar
+  0075 6b80         [2]     STAB  0,SP
+  0077 c10d         [1]     CMPB  #13
+  0079 268f         [3/1]   BNE   *-111 ;abs = 000a
+  326:    }
+  327:    return number;
+  007b ec83         [3]     LDD   3,SP
+  328:  }
+  007d 1b87         [2]     LEAS  7,SP
+  007f 3d           [5]     RTS   
+  329:  
+  330:  //--------------------------SCIb_OutUHex----------------------------
+  331:  // Output a 16 bit number in unsigned hexadecimal format
+  332:  // Input: 16-bit number to be transferred
+  333:  // Output: none
+  334:  // Variable format 1 to 4 digits with no space before or after
+  335:  void SCIb_OutUHex(unsigned short number){
+*** EVALUATION ***
+
+Function: SCIb_OutUHex
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  0000 3b           [2]     PSHD  
+  336:  // This function uses recursion to convert the number of 
+  337:  //   unspecified length as an ASCII string
+  338:    if(number>=0x10)	{
+  0001 8c0010       [2]     CPD   #16
+  0004 250f         [3/1]   BCS   *+17 ;abs = 0015
+  339:      SCIb_OutUHex(number/0x10);
+  0006 49           [1]     LSRD  
+  0007 49           [1]     LSRD  
+  0008 49           [1]     LSRD  
+  0009 49           [1]     LSRD  
+  000a 0700         [4]     BSR   SCIb_OutUHex
+  340:      SCIb_OutUHex(number%0x10);
+  000c ec80         [3]     LDD   0,SP
+  000e c40f         [1]     ANDB  #15
+  0010 87           [1]     CLRA  
+  0011 0700         [4]     BSR   SCIb_OutUHex
+  341:    }
+  0013 2012         [3]     BRA   *+20 ;abs = 0027
+  342:    else if(number<0xA){
+  0015 8c000a       [2]     CPD   #10
+  0018 2406         [3/1]   BCC   *+8 ;abs = 0020
+  343:      SCIb_OutChar(number+'0');
+  001a e681         [3]     LDAB  1,SP
+  001c cb30         [1]     ADDB  #48
+  344:    }
+  001e 2004         [3]     BRA   *+6 ;abs = 0024
+  345:    else{
+  346:      SCIb_OutChar((number-0x0A)+'A');
+  0020 e681         [3]     LDAB  1,SP
+  0022 cb37         [1]     ADDB  #55
+  0024 160000       [4]     JSR   SCIb_OutChar
+  347:    }
+  348:  }
+  0027 3a           [3]     PULD  
+  0028 3d           [5]     RTS   
+  349:  
+  350:  //------------------------SCIb_InString------------------------
+  351:  // This function accepts ASCII characters from the serial port
+  352:  //    and adds them to a string until a carriage return is inputted 
+  353:  //    or until max length of the string is reached.  
+  354:  // It echoes each character as it is inputted.  
+  355:  // If a backspace is inputted, the string is modified 
+  356:  //    and the backspace is echoed
+  357:  // InString terminates the string with a null character
+  358:  // -- Modified by Agustinus Darmawan + Mingjie Qiu --
+  359:  void SCIb_InString(char *string, unsigned short max) {	
+*** EVALUATION ***
+
+Function: SCIb_InString
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources\SCIb.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\prm;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Env"TEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\aaron\Dropbox\EE445L\lab10\Lab 10 Wireless Serial Communication\xbee_proj_Tx\xbee_proj_Tx_Data\HCS12_Serial_Monitor\ObjectCode\SCIb.C.o" -WmsgSd1106
+
+  0000 6cab         [2]     STD   5,-SP
+  360:  int length=0;
+  0002 c7           [1]     CLRB  
+  0003 87           [1]     CLRA  
+  0004 6c82         [2]     STD   2,SP
+  361:  char character;
+  362:    character = SCIb_InChar();
+  363:    while(character!=CR){
+  0006 202b         [3]     BRA   *+45 ;abs = 0033
+  364:      if(character==BS){
+  0008 c108         [1]     CMPB  #8
+  000a 2613         [3/1]   BNE   *+21 ;abs = 001f
+  365:        if(length){
+  000c ee82         [3]     LDX   2,SP
+  000e 2723         [3/1]   BEQ   *+37 ;abs = 0033
+  366:          string--;
+  0010 ed87         [3]     LDY   7,SP
+  0012 03           [1]     DEY   
+  0013 6d87         [2]     STY   7,SP
+  367:          length--;
+  0015 09           [1]     DEX   
+  0016 6e82         [2]     STX   2,SP
+  368:          SCIb_OutChar(BS);
+  0018 c608         [1]     LDAB  #8
+  001a 160000       [4]     JSR   SCIb_OutChar
+  369:        }
+  370:      }
+  001d 2014         [3]     BRA   *+22 ;abs = 0033
+  371:      else if(length<max){
+  001f ee82         [3]     LDX   2,SP
+  0021 ae80         [3]     CPX   0,SP
+  0023 240e         [3/1]   BCC   *+16 ;abs = 0033
+  372:        *string++=character;
+  0025 ee87         [3]     LDX   7,SP
+  0027 6b30         [2]     STAB  1,X+
+  0029 6e87         [2]     STX   7,SP
+  373:        length++; 
+  002b ee82         [3]     LDX   2,SP
+  002d 08           [1]     INX   
+  002e 6e82         [2]     STX   2,SP
+  374:        SCIb_OutChar(character);
+  0030 160000       [4]     JSR   SCIb_OutChar
+  375:      }
+  376:      character = SCIb_InChar();
+  0033 160000       [4]     JSR   SCIb_InChar
+  0036 6b84         [2]     STAB  4,SP
+  0038 c10d         [1]     CMPB  #13
+  003a 26cc         [3/1]   BNE   *-50 ;abs = 0008
+  377:    }
+  378:    *string = 0;
+  003c ee87         [3]     LDX   7,SP
+  003e 6900         [2]     CLR   0,X
+  379:  }
+  0040 1b85         [2]     LEAS  5,SP
+  0042 3d           [5]     RTS   
+  380:  
+  381:  
+  382:  

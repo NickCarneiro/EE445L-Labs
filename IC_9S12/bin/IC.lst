@@ -1,0 +1,286 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.40 Build 10020, Jan 21 2010
+
+    1:  // filename ******** IC.C ************** 
+    2:  // Interrupt Input Capture program for the 9S12C32   
+    3:  // 2 by 2 matrix keyboard
+    4:  // PT3,PT2 are inputs from a keyboard column, with internal +5pullup
+    5:  // PT7,PT6 are outputs to keyboard row
+    6:  // uses OC4 interrupt to debounce
+    7:  
+    8:  //  This example accompanies the books
+    9:  //   "Embedded Microcomputer Systems: Real Time Interfacing", 
+   10:  //     Thomsen, copyright (c) 2006,
+   11:  //   "Introduction to Embedded Microcomputer Systems: 
+   12:  //    Motorola 6811 and 6812 Simulation", Brooks-Cole, copyright (c) 2002,
+   13:  //    Jonathan W. Valvano 3/17/07
+   14:  
+   15:  // You may use, edit, run or distribute this file 
+   16:  //    as long as the above copyright notices remain
+   17:  
+   18:  #include <hidef.h>         /* common defines and macros */
+   19:  #include <mc9s12c32.h>     /* derivative information */
+   20:  
+   21:  #pragma LINK_INFO DERIVATIVE "mc9s12c32"
+   22:  #include "PLL.H"
+   23:  //---------Wait------------------
+   24:  // fixed time delay
+   25:  // inputs: time to wait in 667ns cycles
+   26:  // outputs: none
+   27:  void Wait(unsigned short delay){ 
+*** EVALUATION ***
+
+Function: Wait
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\IC.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\IC.c.o" -WmsgSd1106
+
+  0000 6cac         [2]     STD   4,-SP
+   28:  unsigned short startTime;
+   29:    startTime = TCNT;
+  0002 dc00         [3]     LDD   _TCNT
+  0004 6c82         [2]     STD   2,SP
+   30:    while((TCNT-startTime) <= delay){} 
+  0006 dc00         [3]     LDD   _TCNT
+  0008 a382         [3]     SUBD  2,SP
+  000a ac80         [3]     CPD   0,SP
+  000c 23f8         [3/1]   BLS   *-6 ;abs = 0006
+   31:  }
+  000e 1b84         [2]     LEAS  4,SP
+  0010 3d           [5]     RTS   
+   32:  
+   33:  unsigned char Count;
+   34:  unsigned char LastKey;
+   35:  // -------------Key_Init--------------
+   36:  // enable input capture 2,3 interrupts on falling edge
+   37:  // inputs: none
+   38:  // outputs: none
+   39:  // will enable IC3.IC2 interrupts
+   40:  // enable OC4, disarm OC4
+   41:  // assumes all of PORTT used for this interface
+   42:  // so it will not be friendly accessing PORTT 
+   43:  void Key_Init(void){  
+*** EVALUATION ***
+
+Function: Key_Init
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\IC.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\IC.c.o" -WmsgSd1106
+
+   44:  asm sei           // make atomic
+  0000 1410         [1]     SEI   
+   45:    DDRT = 0xC0;    // PT7,PT6 all rows are output
+  0002 cc0cc0       [2]     LDD   #3264
+  0005 7b0000       [3]     STAB  _DDRT
+   46:    PERT = 0x0C;    // internal pullup on PT3,PT2
+  0008 7a0000       [3]     STAA  _PERT
+   47:    PTT  = 0x00;    // PT7=PT6=0 enable all rows
+  000b 790000       [3]     CLR   _PTT
+   48:    TSCR1 = 0x80;   // enable TCNT, 667ns
+  000e 58           [1]     LSLB  
+  000f 5b00         [2]     STAB  _TSCR1
+   49:    TSCR2 = 0x04;   // divide by 16 TCNT prescale, TOI disarm
+  0011 c604         [1]     LDAB  #4
+  0013 5b00         [2]     STAB  _TSCR2
+   50:    PACTL = 0;      // timer prescale used for TCNT
+  0015 790000       [3]     CLR   _PACTL
+   51:  /* Bottom three bits of TSCR2 (PR2,PR1,PR0) determine TCNT period
+   52:      divide TCNT    at 24MHz  
+   53:  000   1     42ns  TOF  2.73ms 
+   54:  001   2     84ns  TOF  5.46ms  
+   55:  010   4    167ns  TOF  10.9ms      
+   56:  011   8    333ns  TOF  21.8ms 	 
+   57:  100  16    667ns  TOF  43.7ms 
+   58:  101  32   1.33us  TOF  87.4ms		
+   59:  110  64   2.67us  TOF 174.8ms  
+   60:  111 128   5.33us  TOF 349.5ms  */ 
+   61:    TCTL4 = 0xA0;   // falling edges IC3,IC2
+  0018 c6a0         [1]     LDAB  #160
+  001a 5b00         [2]     STAB  _TCTL4
+   62:    TIE = 0x0C;     // Arm only IC3,IC2
+  001c 5a00         [2]     STAA  _TIE
+   63:    Count = 0;  
+  001e 790000       [3]     CLR   Count
+   64:    LastKey = 0;
+  0021 790000       [3]     CLR   LastKey
+   65:    TIOS = 0x10;   // PT4 output compare,  PT3,PT2 input capture
+  0024 c610         [1]     LDAB  #16
+  0026 5b00         [2]     STAB  _TIOS
+   66:  asm cli
+  0028 10ef         [1]     CLI   
+   67:  }
+  002a 3d           [5]     RTS   
+   68:  
+   69:  void main(void) {	
+*** EVALUATION ***
+
+Function: main
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\IC.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\IC.c.o" -WmsgSd1106
+
+   70:    PLL_Init();       // running at 24MHz
+  0000 160000       [4]     JSR   PLL_Init
+   71:    Key_Init(); // start IC thread
+  0003 0700         [4]     BSR   Key_Init
+   72:    for(;;) {	
+  0005 20fe         [3]     BRA   *+0 ;abs = 0005
+   73:    }
+   74:  }
+   75:  /* Returns ASCII code for key pressed, 
+   76:     return zero if no key pressed
+   77:     returns 0xFF if more than one is pressed */
+   78:  unsigned char KeyScan(void){
+*** EVALUATION ***
+
+Function: KeyScan
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\IC.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\IC.c.o" -WmsgSd1106
+
+  0000 1b9d         [2]     LEAS  -3,SP
+   79:  unsigned char numKey;
+   80:  unsigned char key,column; 
+   81:    numKey = 0;           // no key pressed yet
+  0002 6981         [2]     CLR   1,SP
+   82:    key = 0;              // default value for no key
+  0004 6980         [2]     CLR   0,SP
+   83:  //*********** Row 3 *******************************
+   84:    DDRT = 0x80;  	      // select row 3 
+  0006 c680         [1]     LDAB  #128
+  0008 0738         [4]     BSR   *+58 ;abs = 0042
+   85:    Wait(5);              // 4 us
+   86:    column = PTT;         // read columns
+   87:    if((column&0x08)==0){  
+  000a 2607         [3/1]   BNE   *+9 ;abs = 0013
+   88:      key = '1';          // row 3, column 3
+  000c cc0131       [2]     LDD   #305
+  000f 6b80         [2]     STAB  0,SP
+   89:      numKey++;
+  0011 6a81         [2]     STAA  1,SP
+   90:    }
+   91:    if((column&0x04)==0){  
+  0013 0e820406     [4]     BRSET 2,SP,#4,*+10 ;abs = 001d
+   92:      key = '2';          // row 3, column 2
+  0017 c632         [1]     LDAB  #50
+  0019 6b80         [2]     STAB  0,SP
+   93:      numKey++;
+  001b 6281         [3]     INC   1,SP
+   94:    }
+   95:  //*********** Row 2 *******************************
+   96:    DDRT = 0x40;  	      // select row 2 
+  001d c640         [1]     LDAB  #64
+  001f 0721         [4]     BSR   *+35 ;abs = 0042
+   97:    Wait(5);              // 4 us
+   98:    column = PTT;         // read columns
+   99:    if((column&0x08)==0){  
+  0021 2606         [3/1]   BNE   *+8 ;abs = 0029
+  100:      key = '4';          // row 2, column 3
+  0023 c634         [1]     LDAB  #52
+  0025 6b80         [2]     STAB  0,SP
+  101:      numKey++;
+  0027 6281         [3]     INC   1,SP
+  102:    }
+  103:    if((column&0x04)==0){  
+  0029 0e820406     [4]     BRSET 2,SP,#4,*+10 ;abs = 0033
+  104:      key = '5';          // row 2, column 2
+  002d c635         [1]     LDAB  #53
+  002f 6b80         [2]     STAB  0,SP
+  105:      numKey++;
+  0031 6281         [3]     INC   1,SP
+  106:    }
+  107:    if(numKey>1){
+  0033 e681         [3]     LDAB  1,SP
+  0035 c101         [1]     CMPB  #1
+  0037 2304         [3/1]   BLS   *+6 ;abs = 003d
+  108:      key = 0xFF;         // multiple key error
+  0039 c6ff         [1]     LDAB  #255
+  003b 6b80         [2]     STAB  0,SP
+  109:    }
+  110:    return key;
+  003d e680         [3]     LDAB  0,SP
+  111:  }
+  003f 1b83         [2]     LEAS  3,SP
+  0041 3d           [5]     RTS   
+  0042 7b0000       [3]     STAB  _DDRT
+  0045 c605         [1]     LDAB  #5
+  0047 87           [1]     CLRA  
+  0048 160000       [4]     JSR   Wait
+  004b f60000       [3]     LDAB  _PTT
+  004e 6b84         [2]     STAB  4,SP
+  0050 c408         [1]     ANDB  #8
+  0052 3d           [5]     RTS   
+  112:  
+  113:  void interrupt 10 IC2Han(void){ 
+*** EVALUATION ***
+
+Function: IC2Han
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\IC.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\IC.c.o" -WmsgSd1106
+
+  114:    TC4 = TCNT+15000; // 10 ms later
+  0000 dc00         [3]     LDD   _TCNT
+  0002 c33a98       [2]     ADDD  #15000
+  0005 5c00         [2]     STD   _TC4
+  115:    TIE = 0x10;       // arm OC4, disarm IC3,IC2
+  0007 ccff10       [2]     LDD   #65296
+  000a 5b00         [2]     STAB  _TIE
+  116:    TFLG1 = 0xFF;     // clear all flags
+  000c 5a00         [2]     STAA  _TFLG1
+  117:  }
+  000e 0b           [8]     RTI   
+  118:  void interrupt 11 IC3Han(void){ 
+*** EVALUATION ***
+
+Function: IC3Han
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\IC.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\IC.c.o" -WmsgSd1106
+
+  119:    TC4 = TCNT+15000; // 10 ms later
+  0000 dc00         [3]     LDD   _TCNT
+  0002 c33a98       [2]     ADDD  #15000
+  0005 5c00         [2]     STD   _TC4
+  120:    TIE = 0x10;       // arm OC4, disarm IC3,IC2
+  0007 ccff10       [2]     LDD   #65296
+  000a 5b00         [2]     STAB  _TIE
+  121:    TFLG1 = 0xFF;     // clear all flags
+  000c 5a00         [2]     STAA  _TFLG1
+  122:  }
+  000e 0b           [8]     RTI   
+  123:  void interrupt 12 OC4Han(void){
+*** EVALUATION ***
+
+Function: OC4Han
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\IC.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\IC.c.o" -WmsgSd1106
+
+  0000 36           [2]     PSHA  
+  124:  unsigned char mykey;
+  125:    mykey = KeyScan();
+  0001 0700         [4]     BSR   KeyScan
+  0003 6b80         [2]     STAB  0,SP
+  126:    if(mykey==0xFF){     // more than one
+  0005 04a109       [3]     IBNE  B,*+12 ;abs = 0011
+  127:      TC4 = TCNT+10000;   // wait for there to be one
+  0008 dc00         [3]     LDD   _TCNT
+  000a c32710       [2]     ADDD  #10000
+  000d 5c00         [2]     STD   _TC4
+  128:    } else{            
+  000f 200e         [3]     BRA   *+16 ;abs = 001f
+  129:      TIE = 0x0C;        // arm IC3,IC2, disarm OC4
+  0011 c60c         [1]     LDAB  #12
+  0013 5b00         [2]     STAB  _TIE
+  130:      if(mykey){         // exactly one
+  0015 a680         [3]     LDAA  0,SP
+  0017 2706         [3/1]   BEQ   *+8 ;abs = 001f
+  131:        LastKey = mykey; // should be fifo Put
+  0019 7a0000       [3]     STAA  LastKey
+  132:        Count++;
+  001c 720000       [4]     INC   Count
+  133:      }
+  134:    }
+  135:    DDRT = 0xC0;         // all rows zero
+  001f ccffc0       [2]     LDD   #65472
+  0022 7b0000       [3]     STAB  _DDRT
+  136:    TFLG1 = 0xFF;        // clear all flags
+  0025 5a00         [2]     STAA  _TFLG1
+  137:  }
+  0027 32           [3]     PULA  
+  0028 0b           [8]     RTI   
+  138:  

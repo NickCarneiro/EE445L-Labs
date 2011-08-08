@@ -1,0 +1,939 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.40 Build 10020, Jan 21 2010
+
+    1:  /* ************************ Main.c *****************************
+    2:   * AGM1264 example
+    3:   * ************************************************************ */
+    4:   
+    5:  // 9S12DP512
+    6:  // Jonathan W. Valvano 11/20/09 
+    7:  
+    8:  // Copyright 2009 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+    9:  //    You may use, edit, run or distribute this file 
+   10:  //    as long as the above copyright notice remains 
+   11:  
+   12:  // Input on PAD4, from slide pot connected to to +5 and ground
+   13:  // heartbeats, PP7 every 3000, PP5 at sampling rate
+   14:  
+   15:  // AGM1264 graphics interface
+   16:  // gnd    =  1- AGM1264F ground
+   17:  // +5V    =  2- AGM1264F Vcc (with 0.1uF cap to ground)
+   18:  // pot    =  3- AGM1264F Vo (center pin of 10k pot)
+   19:  // PP2    =  4- AGM1264F D/I (0 for command, 1 for data)
+   20:  // gnd    =  5- AGM1264F R/W (blind cycle synchronization)
+   21:  // PP3    =  6- AGM1264F E   (1 to latch in data/command)
+   22:  // PH0    =  7- AGM1264F DB0
+   23:  // PH1    =  8- AGM1264F DB1
+   24:  // PH2    =  9- AGM1264F DB2
+   25:  // PH3    = 10- AGM1264F DB3
+   26:  // PH4    = 11- AGM1264F DB4
+   27:  // PH5    = 12- AGM1264F DB5
+   28:  // PH6    = 13- AGM1264F DB6
+   29:  // PH7    = 14- AGM1264F DB7
+   30:  // PP0    = 15- AGM1264F CS1 (controls left half of LCD)
+   31:  // PP1    = 16- AGM1264F CS2 (controls right half of LCD)
+   32:  // +5V    = 17- AGM1264F RES (reset)
+   33:  // pot    = 18- ADM1264F Vee (-10V)
+   34:  // 10k pot from pin 18 to ground, with center to pin 3
+   35:  // references   http://www.azdisplays.com/prod/g1264f.php
+   36:  // sample code  http://www.azdisplays.com/PDF/agm1264f_code.pdf
+   37:  // data sheet   http://www.azdisplays.com/PDF/agm1264f.pdf
+   38:  
+   39:  
+   40:  // TCNT will become 1.5 MHz, calling LCD_Init, which calls Timer_Init
+   41:  
+   42:  //Game mechanics based on the Allegro pong implementation written by Remi Bernotavicius
+   43:  //http://blog.kunugiken.com/?p=66
+   44:  
+   45:  #include <hidef.h>      /* common defines and macros */
+   46:  #include <mc9s12c32.h>     /* derivative information */
+   47:  #include <math.h>     /* derivative information */
+   48:  #pragma LINK_INFO DERIVATIVE "mc9s12c32"
+   49:  #include "PLL.H"
+   50:  
+   51:  #include "PLL.h"
+   52:  #include "adc.h"
+   53:  #include "LCDG.h"
+   54:  #include "Timer.h"
+   55:  
+   56:  #define M_PI 3.141592654
+   57:  #define UP 0
+   58:  #define CENTER 1
+   59:  #define DOWN 2
+   60:  #define PADDLE_HEIGHT 16
+   61:  #define paddle_width 4
+   62:  #define BALL_SPEED 100
+   63:  #define SCREEN_WIDTH 128 
+   64:  #define SCREEN_HEIGHT 64
+   65:  #define paddle_speed 1
+   66:  #define ball_size 4
+   67:  #define FPS 20
+   68:  
+   69:  //states
+   70:  #define ST_MENU 0
+   71:  #define ST_START 1
+   72:  #define ST_PLAY 2
+   73:  
+   74:  //sample 60 times per second
+   75:  #define SAMPLING_FREQUENCY 60 
+   76:  
+   77:  unsigned short ADCsample;	// ADC sample, 0 to 1023
+   78:  unsigned short Voltage;   // 0.01 volts, 0 to 500
+   79:  unsigned short ADCcount;  // 0 to 2999
+   80:  unsigned short StartTime; // in seconds
+   81:  
+   82:  unsigned short interruptRate = 1500000/SAMPLING_FREQUENCY;
+   83:  //coordinate system starts at (0,0) in upper left corner
+   84:  short ball_x = 0;
+   85:  short ball_y = 0;
+   86:  short ball_x_vel = 0;
+   87:  short ball_y_vel = 0;
+   88:  short start_x_vel = 2;
+   89:  short start_y_vel =2;
+   90:  
+   91:  
+   92:  short left_paddle_y = 0;
+   93:  short right_paddle_y = 0;
+   94:  
+   95:  short score_left = 0;
+   96:  short score_right = 0;
+   97:  
+   98:  
+   99:  char Start_Button;
+  100:  char Select_Button;
+  101:  
+  102:  unsigned char screen_buffer[1024] ={0};
+  103:  char state = ST_MENU; //initialize game state
+  104:  
+  105:  int powi(int base, int exponent){
+*** EVALUATION ***
+
+Function: powi
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\main.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\main.c.o" -WmsgSd1106
+
+  0000 3b           [2]     PSHD  
+  106:      int i = 0;
+  107:      int result = 1;
+  108:      for(i = 0; i < exponent; i++){
+  0001 ce0000       [2]     LDX   #0
+  0004 c601         [1]     LDAB  #1
+  0006 87           [1]     CLRA  
+  0007 2004         [3]     BRA   *+6 ;abs = 000d
+  109:          result *= base;    
+  0009 ed84         [3]     LDY   4,SP
+  000b 13           [3]     EMUL  
+  000c 08           [1]     INX   
+  000d ae80         [3]     CPX   0,SP
+  000f 2df8         [3/1]   BLT   *-6 ;abs = 0009
+  110:      }
+  111:      return result;
+  112:  }
+  0011 30           [3]     PULX  
+  0012 3d           [5]     RTS   
+  113:  
+  114:  
+  115:  void clearBuffer(){
+*** EVALUATION ***
+
+Function: clearBuffer
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\main.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\main.c.o" -WmsgSd1106
+
+  116:    int i;
+  117:    for(i = 0; i < 1024; i++){
+  0000 ce0000       [2]     LDX   #0
+  118:      screen_buffer[i] = 0x00;  
+  0003 69e20000     [3]     CLR   screen_buffer,X
+  0007 08           [1]     INX   
+  0008 8e0400       [2]     CPX   #1024
+  000b 2df6         [3/1]   BLT   *-8 ;abs = 0003
+  119:    }
+  120:    
+  121:  }  
+  000d 3d           [5]     RTS   
+  122:           
+  123:  void updatePaddles(){
+*** EVALUATION ***
+
+Function: updatePaddles
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\main.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\main.c.o" -WmsgSd1106
+
+  124:      unsigned short left;
+  125:      unsigned short right;
+  126:      left = ADC_In(0);
+  0000 c7           [1]     CLRB  
+  0001 87           [1]     CLRA  
+  0002 160000       [4]     JSR   ADC_In
+  127:      right = ADC_In(1);
+  0005 3b           [2]     PSHD  
+  0006 c601         [1]     LDAB  #1
+  0008 87           [1]     CLRA  
+  0009 160000       [4]     JSR   ADC_In
+  128:      
+  129:      //convert to 0-48
+  130:      left_paddle_y = left * 48 / 1003; 
+  000c 3b           [2]     PSHD  
+  000d c630         [1]     LDAB  #48
+  000f 87           [1]     CLRA  
+  0010 ed82         [3]     LDY   2,SP
+  0012 13           [3]     EMUL  
+  0013 ce03eb       [2]     LDX   #1003
+  0016 1810         [12]    IDIV  
+  0018 7e0000       [3]     STX   left_paddle_y
+  131:      right_paddle_y = right * 48 / 1003;
+  001b cd0030       [2]     LDY   #48
+  001e 3a           [3]     PULD  
+  001f 13           [3]     EMUL  
+  0020 ce03eb       [2]     LDX   #1003
+  0023 1810         [12]    IDIV  
+  0025 7e0000       [3]     STX   right_paddle_y
+  0028 3a           [3]     PULD  
+  132:             
+  133:  }
+  0029 3d           [5]     RTS   
+  134:  
+  135:  
+  136:  void drawLeftPaddle(){
+*** EVALUATION ***
+
+Function: drawLeftPaddle
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\main.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\main.c.o" -WmsgSd1106
+
+  0000 1bf1ee       [2]     LEAS  -18,SP
+  137:      unsigned short result1 = 0;
+  0003 c7           [1]     CLRB  
+  0004 87           [1]     CLRA  
+  0005 6c88         [2]     STD   8,SP
+  138:      unsigned short result2 = 0;
+  0007 6c86         [2]     STD   6,SP
+  139:      unsigned short result3 = 0;
+  0009 6c84         [2]     STD   4,SP
+  140:      unsigned short i = 0;
+  141:      unsigned short dest1 = 0;
+  142:      unsigned short dest2 = 0;
+  143:      unsigned short dest3 = 0;
+  144:      unsigned short width = 4;
+  000b c604         [1]     LDAB  #4
+  000d 6cf010       [3]     STD   16,SP
+  145:      //left paddle
+  146:      if(left_paddle_y > 56){
+  147:         // left_paddle_y = 56;    
+  148:      }
+  149:      
+  150:      //contents of first bucket
+  151:      for(i = left_paddle_y % 8; i < 8; i++){
+  0010 160000       [4]     JSR   drawLeftPaddle:0x00b8
+  0013 200c         [3]     BRA   *+14 ;abs = 0021
+  152:          result1 += powi(2,i);
+  0015 160000       [4]     JSR   drawLeftPaddle:0x00ac
+  0018 e388         [3]     ADDD  8,SP
+  001a 6c88         [2]     STD   8,SP
+  001c ee80         [3]     LDX   0,SP
+  001e 08           [1]     INX   
+  001f b754         [1]     TFR   X,D
+  0021 8c0008       [2]     CPD   #8
+  0024 25ef         [3/1]   BCS   *-15 ;abs = 0015
+  153:      }
+  154:      
+  155:      //contents second bucket
+  156:      for(i = 0; i < 8; i++){
+  0026 c7           [1]     CLRB  
+  0027 87           [1]     CLRA  
+  157:          result2 += powi(2,i);    
+  0028 160000       [4]     JSR   drawLeftPaddle:0x00ac
+  002b e386         [3]     ADDD  6,SP
+  002d 6c86         [2]     STD   6,SP
+  002f ee80         [3]     LDX   0,SP
+  0031 08           [1]     INX   
+  0032 8e0008       [2]     CPX   #8
+  0035 b754         [1]     TFR   X,D
+  0037 25ef         [3/1]   BCS   *-15 ;abs = 0028
+  158:      }
+  159:      //contents of third bucket
+  160:      for(i = 0; i < left_paddle_y % 8; i++){
+  0039 c7           [1]     CLRB  
+  003a 87           [1]     CLRA  
+  003b 6c82         [2]     STD   2,SP
+  003d 2013         [3]     BRA   *+21 ;abs = 0052
+  161:          result3 += powi(2,i);
+  003f c602         [1]     LDAB  #2
+  0041 87           [1]     CLRA  
+  0042 3b           [2]     PSHD  
+  0043 ec84         [3]     LDD   4,SP
+  0045 160000       [4]     JSR   powi
+  0048 30           [3]     PULX  
+  0049 e384         [3]     ADDD  4,SP
+  004b 6c84         [2]     STD   4,SP
+  004d ee82         [3]     LDX   2,SP
+  004f 08           [1]     INX   
+  0050 6e82         [2]     STX   2,SP
+  0052 0764         [4]     BSR   *+102 ;abs = 00b8
+  0054 ac82         [3]     CPD   2,SP
+  0056 22e7         [3/1]   BHI   *-23 ;abs = 003f
+  162:      }
+  163:      
+  164:      //determine location of first bucket
+  165:      dest1 = (left_paddle_y / 8) * 64;
+  0058 fc0000       [3]     LDD   left_paddle_y
+  005b ce0008       [2]     LDX   #8
+  005e 1815         [12]    IDIVS 
+  0060 b756         [1]     TFR   X,Y
+  0062 cc0040       [2]     LDD   #64
+  0065 13           [3]     EMUL  
+  0066 6c8e         [2]     STD   14,SP
+  166:      dest2 = dest1 + 64;
+  0068 c30040       [2]     ADDD  #64
+  006b 6c8c         [2]     STD   12,SP
+  167:      dest3 = dest2 + 64;
+  006d c30040       [2]     ADDD  #64
+  0070 6c8a         [2]     STD   10,SP
+  168:      for(i = 0; i < width; i++){
+  0072 c7           [1]     CLRB  
+  0073 87           [1]     CLRA  
+  0074 6c82         [2]     STD   2,SP
+  0076 2029         [3]     BRA   *+43 ;abs = 00a1
+  169:        screen_buffer[dest1 + i] = result1;
+  0078 ec8e         [3]     LDD   14,SP
+  007a e382         [3]     ADDD  2,SP
+  007c b745         [1]     TFR   D,X
+  007e e689         [3]     LDAB  9,SP
+  0080 6be20000     [3]     STAB  screen_buffer,X
+  170:        screen_buffer[dest2 + i] = result2;
+  0084 ec8c         [3]     LDD   12,SP
+  0086 e382         [3]     ADDD  2,SP
+  0088 b745         [1]     TFR   D,X
+  008a e687         [3]     LDAB  7,SP
+  008c 6be20000     [3]     STAB  screen_buffer,X
+  171:        screen_buffer[dest3 + i] = result3;
+  0090 ec8a         [3]     LDD   10,SP
+  0092 e382         [3]     ADDD  2,SP
+  0094 b745         [1]     TFR   D,X
+  0096 e685         [3]     LDAB  5,SP
+  0098 6be20000     [3]     STAB  screen_buffer,X
+  009c ee82         [3]     LDX   2,SP
+  009e 08           [1]     INX   
+  009f 6e82         [2]     STX   2,SP
+  00a1 ec82         [3]     LDD   2,SP
+  00a3 acf010       [3]     CPD   16,SP
+  00a6 25d0         [3/1]   BCS   *-46 ;abs = 0078
+  172:      }
+  173:      
+  174:      if(result2 > 0){
+  175:          //if left_paddle_y % 8 is zero, only one page is used
+  176:          
+  177:      } 
+  178:      
+  179:  }
+  00a8 1bf012       [2]     LEAS  18,SP
+  00ab 3d           [5]     RTS   
+  00ac ce0002       [2]     LDX   #2
+  00af 34           [2]     PSHX  
+  00b0 6c84         [2]     STD   4,SP
+  00b2 160000       [4]     JSR   powi
+  00b5 1b82         [2]     LEAS  2,SP
+  00b7 3d           [5]     RTS   
+  00b8 fc0000       [3]     LDD   left_paddle_y
+  00bb ce0008       [2]     LDX   #8
+  00be 1815         [12]    IDIVS 
+  00c0 3d           [5]     RTS   
+  180:  
+  181:  
+  182:  void drawRightPaddle(){
+*** EVALUATION ***
+
+Function: drawRightPaddle
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\main.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\main.c.o" -WmsgSd1106
+
+  0000 1bf1ee       [2]     LEAS  -18,SP
+  183:      unsigned short result1 = 0;
+  0003 c7           [1]     CLRB  
+  0004 87           [1]     CLRA  
+  0005 6c88         [2]     STD   8,SP
+  184:      unsigned short result2 = 0;
+  0007 6c86         [2]     STD   6,SP
+  185:      unsigned short result3 = 0;
+  0009 6c84         [2]     STD   4,SP
+  186:      unsigned short i = 0;
+  187:      unsigned short dest1 = 0;
+  188:      unsigned short dest2 = 0;
+  189:      unsigned short dest3 = 0;
+  190:      unsigned short width = 4;
+  000b c604         [1]     LDAB  #4
+  000d 6cf010       [3]     STD   16,SP
+  191:      
+  192:      
+  193:      //contents of first bucket
+  194:      for(i = right_paddle_y % 8; i < 8; i++){
+  0010 160000       [4]     JSR   drawRightPaddle:0x00bb
+  0013 200c         [3]     BRA   *+14 ;abs = 0021
+  195:          result1 += powi(2,i);
+  0015 160000       [4]     JSR   drawRightPaddle:0x00af
+  0018 e388         [3]     ADDD  8,SP
+  001a 6c88         [2]     STD   8,SP
+  001c ee80         [3]     LDX   0,SP
+  001e 08           [1]     INX   
+  001f b754         [1]     TFR   X,D
+  0021 8c0008       [2]     CPD   #8
+  0024 25ef         [3/1]   BCS   *-15 ;abs = 0015
+  196:      }
+  197:      
+  198:      //contents second bucket
+  199:      for(i = 0; i < 8; i++){
+  0026 c7           [1]     CLRB  
+  0027 87           [1]     CLRA  
+  200:          result2 += powi(2,i);    
+  0028 160000       [4]     JSR   drawRightPaddle:0x00af
+  002b e386         [3]     ADDD  6,SP
+  002d 6c86         [2]     STD   6,SP
+  002f ee80         [3]     LDX   0,SP
+  0031 08           [1]     INX   
+  0032 8e0008       [2]     CPX   #8
+  0035 b754         [1]     TFR   X,D
+  0037 25ef         [3/1]   BCS   *-15 ;abs = 0028
+  201:      }
+  202:      //contents of third bucket
+  203:      for(i = 0; i < right_paddle_y % 8; i++){
+  0039 c7           [1]     CLRB  
+  003a 87           [1]     CLRA  
+  003b 6c82         [2]     STD   2,SP
+  003d 2013         [3]     BRA   *+21 ;abs = 0052
+  204:          result3 += powi(2,i);
+  003f c602         [1]     LDAB  #2
+  0041 87           [1]     CLRA  
+  0042 3b           [2]     PSHD  
+  0043 ec84         [3]     LDD   4,SP
+  0045 160000       [4]     JSR   powi
+  0048 30           [3]     PULX  
+  0049 e384         [3]     ADDD  4,SP
+  004b 6c84         [2]     STD   4,SP
+  004d ee82         [3]     LDX   2,SP
+  004f 08           [1]     INX   
+  0050 6e82         [2]     STX   2,SP
+  0052 0767         [4]     BSR   *+105 ;abs = 00bb
+  0054 ac82         [3]     CPD   2,SP
+  0056 22e7         [3/1]   BHI   *-23 ;abs = 003f
+  205:      }
+  206:      
+  207:      //determine location of first bucket
+  208:      dest1 = (right_paddle_y / 8) * 64 + 572;
+  0058 fc0000       [3]     LDD   right_paddle_y
+  005b ce0008       [2]     LDX   #8
+  005e 1815         [12]    IDIVS 
+  0060 b756         [1]     TFR   X,Y
+  0062 cc0040       [2]     LDD   #64
+  0065 13           [3]     EMUL  
+  0066 c3023c       [2]     ADDD  #572
+  0069 6c8e         [2]     STD   14,SP
+  209:      dest2 = dest1 + 64;
+  006b c30040       [2]     ADDD  #64
+  006e 6c8c         [2]     STD   12,SP
+  210:      dest3 = dest2 + 64;
+  0070 c30040       [2]     ADDD  #64
+  0073 6c8a         [2]     STD   10,SP
+  211:      for(i = 0; i < width; i++){
+  0075 c7           [1]     CLRB  
+  0076 87           [1]     CLRA  
+  0077 6c82         [2]     STD   2,SP
+  0079 2029         [3]     BRA   *+43 ;abs = 00a4
+  212:        screen_buffer[dest1 + i] = result1;
+  007b ec8e         [3]     LDD   14,SP
+  007d e382         [3]     ADDD  2,SP
+  007f b745         [1]     TFR   D,X
+  0081 e689         [3]     LDAB  9,SP
+  0083 6be20000     [3]     STAB  screen_buffer,X
+  213:        screen_buffer[dest2 + i] = result2;
+  0087 ec8c         [3]     LDD   12,SP
+  0089 e382         [3]     ADDD  2,SP
+  008b b745         [1]     TFR   D,X
+  008d e687         [3]     LDAB  7,SP
+  008f 6be20000     [3]     STAB  screen_buffer,X
+  214:        screen_buffer[dest3 + i] = result3;
+  0093 ec8a         [3]     LDD   10,SP
+  0095 e382         [3]     ADDD  2,SP
+  0097 b745         [1]     TFR   D,X
+  0099 e685         [3]     LDAB  5,SP
+  009b 6be20000     [3]     STAB  screen_buffer,X
+  009f ee82         [3]     LDX   2,SP
+  00a1 08           [1]     INX   
+  00a2 6e82         [2]     STX   2,SP
+  00a4 ec82         [3]     LDD   2,SP
+  00a6 acf010       [3]     CPD   16,SP
+  00a9 25d0         [3/1]   BCS   *-46 ;abs = 007b
+  215:      }
+  216:      
+  217:      if(result2 > 0){
+  218:          //if left_paddle_y % 8 is zero, only one page is used
+  219:          
+  220:      } 
+  221:      
+  222:  }
+  00ab 1bf012       [2]     LEAS  18,SP
+  00ae 3d           [5]     RTS   
+  00af ce0002       [2]     LDX   #2
+  00b2 34           [2]     PSHX  
+  00b3 6c84         [2]     STD   4,SP
+  00b5 160000       [4]     JSR   powi
+  00b8 1b82         [2]     LEAS  2,SP
+  00ba 3d           [5]     RTS   
+  00bb fc0000       [3]     LDD   right_paddle_y
+  00be ce0008       [2]     LDX   #8
+  00c1 1815         [12]    IDIVS 
+  00c3 3d           [5]     RTS   
+  223:  
+  224:  void drawBall(){
+*** EVALUATION ***
+
+Function: drawBall
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\main.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\main.c.o" -WmsgSd1106
+
+  225:    unsigned short dest = 0;
+  226:    unsigned short result = 0;
+  227:    result = powi(2,ball_y % 8);
+  0000 c602         [1]     LDAB  #2
+  0002 87           [1]     CLRA  
+  0003 6caa         [2]     STD   6,-SP
+  0005 fc0000       [3]     LDD   ball_y
+  0008 ce0008       [2]     LDX   #8
+  000b 1815         [12]    IDIVS 
+  000d 160000       [4]     JSR   powi
+  0010 1b82         [2]     LEAS  2,SP
+  0012 6c82         [2]     STD   2,SP
+  228:    if(ball_x < 64){
+  0014 fc0000       [3]     LDD   ball_x
+  0017 8c0040       [2]     CPD   #64
+  001a 2c04         [3/1]   BGE   *+6 ;abs = 0020
+  229:      dest = ball_y / 8 * 64 + ball_x;
+  001c 0714         [4]     BSR   *+22 ;abs = 0032
+  230:    } else {
+  001e 2005         [3]     BRA   *+7 ;abs = 0025
+  231:      dest = ball_y /8 * 64 + ball_x + 512 - 64;
+  0020 0710         [4]     BSR   *+18 ;abs = 0032
+  0022 c301c0       [2]     ADDD  #448
+  0025 6c80         [2]     STD   0,SP
+  232:    }
+  233:    
+  234:    screen_buffer[dest] = result;
+  0027 ee80         [3]     LDX   0,SP
+  0029 e683         [3]     LDAB  3,SP
+  002b 6be20000     [3]     STAB  screen_buffer,X
+  235:  }
+  002f 1b84         [2]     LEAS  4,SP
+  0031 3d           [5]     RTS   
+  0032 fc0000       [3]     LDD   ball_y
+  0035 ce0008       [2]     LDX   #8
+  0038 1815         [12]    IDIVS 
+  003a b756         [1]     TFR   X,Y
+  003c cc0040       [2]     LDD   #64
+  003f 13           [3]     EMUL  
+  0040 f30000       [3]     ADDD  ball_x
+  0043 3d           [5]     RTS   
+  236:  
+  237:  void updateBall(){
+*** EVALUATION ***
+
+Function: updateBall
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\main.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\main.c.o" -WmsgSd1106
+
+  238:  
+  239:    //ball hit left paddle
+  240:    if(ball_x < 4 && (left_paddle_y <= ball_y && left_paddle_y + PADDLE_HEIGHT >= ball_y)){
+  0000 fc0000       [3]     LDD   ball_x
+  0003 8c0004       [2]     CPD   #4
+  0006 2c10         [3/1]   BGE   *+18 ;abs = 0018
+  0008 fc0000       [3]     LDD   left_paddle_y
+  000b bc0000       [3]     CPD   ball_y
+  000e 2e08         [3/1]   BGT   *+10 ;abs = 0018
+  0010 c30010       [2]     ADDD  #16
+  0013 bc0000       [3]     CPD   ball_y
+  0016 2c18         [3/1]   BGE   *+26 ;abs = 0030
+  241:        //negative x vel
+  242:        ball_x_vel = -1 * ball_x_vel; 
+  243:    } else if(ball_x > 122 && (right_paddle_y <= ball_y && right_paddle_y + PADDLE_HEIGHT >= ball_y)){
+  0018 fc0000       [3]     LDD   ball_x
+  001b 8c007a       [2]     CPD   #122
+  001e 2f1c         [3/1]   BLE   *+30 ;abs = 003c
+  0020 fc0000       [3]     LDD   right_paddle_y
+  0023 bc0000       [3]     CPD   ball_y
+  0026 2e14         [3/1]   BGT   *+22 ;abs = 003c
+  0028 c30010       [2]     ADDD  #16
+  002b bc0000       [3]     CPD   ball_y
+  002e 2d0c         [3/1]   BLT   *+14 ;abs = 003c
+  244:    //ball hit right paddle
+  245:      //negative x vel
+  246:      ball_x_vel = -1 * ball_x_vel;
+  0030 fc0000       [3]     LDD   ball_x_vel
+  0033 40           [1]     NEGA  
+  0034 50           [1]     NEGB  
+  0035 8200         [1]     SBCA  #0
+  0037 7c0000       [3]     STD   ball_x_vel
+  003a 205a         [3]     BRA   *+92 ;abs = 0096
+  247:    } else if(ball_x <4){
+  003c fc0000       [3]     LDD   ball_x
+  003f 8c0004       [2]     CPD   #4
+  0042 2c1c         [3/1]   BGE   *+30 ;abs = 0060
+  248:    //ball hit left wall
+  249:      score_right++;
+  0044 fe0000       [3]     LDX   score_right
+  0047 08           [1]     INX   
+  0048 7e0000       [3]     STX   score_right
+  250:      LCD_GoTo(4,5);
+  004b 0770         [4]     BSR   *+114 ;abs = 00bd
+  251:      LCD_OutString("Player 2 Scores!");
+  004d cc0000       [2]     LDD   #"Player 2 Scores!"
+  0050 0757         [4]     BSR   *+89 ;abs = 00a9
+  252:      Timer_Wait1ms(1000);  
+  253:      ball_x = 63;
+  254:      ball_y = 31;
+  255:      ball_x_vel = start_x_vel;
+  0052 fe0000       [3]     LDX   start_x_vel
+  0055 7e0000       [3]     STX   ball_x_vel
+  256:      ball_y_vel = start_x_vel; 
+  0058 fe0000       [3]     LDX   start_x_vel
+  005b 7e0000       [3]     STX   ball_y_vel
+  257:    
+  258:    
+  259:    } else if(ball_x > 122){
+  005e 2036         [3]     BRA   *+56 ;abs = 0096
+  0060 8c007a       [2]     CPD   #122
+  0063 2f1d         [3/1]   BLE   *+31 ;abs = 0082
+  260:     //ball hit right wall
+  261:      score_left++;
+  0065 fe0000       [3]     LDX   score_left
+  0068 08           [1]     INX   
+  0069 7e0000       [3]     STX   score_left
+  262:      LCD_GoTo(4,5);
+  006c 074f         [4]     BSR   *+81 ;abs = 00bd
+  263:      LCD_OutString("Player 1 Scores!");
+  006e cc0000       [2]     LDD   #"Player 1 Scores!"
+  0071 0736         [4]     BSR   *+56 ;abs = 00a9
+  264:      Timer_Wait1ms(1000);
+  265:      
+  266:      ball_x = 63;
+  267:      ball_y = 31;
+  268:      ball_x_vel = -1 * start_x_vel;
+  0073 fc0000       [3]     LDD   start_x_vel
+  0076 40           [1]     NEGA  
+  0077 50           [1]     NEGB  
+  0078 8200         [1]     SBCA  #0
+  007a 7c0000       [3]     STD   ball_x_vel
+  269:      ball_y_vel = start_y_vel; 
+  007d fc0000       [3]     LDD   start_y_vel
+  270:    } else if(ball_y <= 0){
+  0080 2011         [3]     BRA   *+19 ;abs = 0093
+  0082 fc0000       [3]     LDD   ball_y
+  0085 2f05         [3/1]   BLE   *+7 ;abs = 008c
+  271:     //ball hit top
+  272:     //negative y vel
+  273:     ball_y_vel = -1 * ball_y_vel;
+  274:    } else if(ball_y >= 63){
+  0087 8c003f       [2]     CPD   #63
+  008a 2d0a         [3/1]   BLT   *+12 ;abs = 0096
+  275:     //ball hit bottom
+  276:     ball_y_vel = -1 * ball_y_vel;
+  008c fc0000       [3]     LDD   ball_y_vel
+  008f 40           [1]     NEGA  
+  0090 50           [1]     NEGB  
+  0091 8200         [1]     SBCA  #0
+  0093 7c0000       [3]     STD   ball_y_vel
+  277:    }
+  278:    
+  279:    
+  280:    
+  281:    
+  282:    
+  283:    
+  284:    //apply velocity
+  285:    ball_x += ball_x_vel;
+  0096 fc0000       [3]     LDD   ball_x
+  0099 f30000       [3]     ADDD  ball_x_vel
+  009c 7c0000       [3]     STD   ball_x
+  286:    ball_y += ball_y_vel;
+  009f fc0000       [3]     LDD   ball_y
+  00a2 f30000       [3]     ADDD  ball_y_vel
+  00a5 7c0000       [3]     STD   ball_y
+  287:  }
+  00a8 3d           [5]     RTS   
+  00a9 160000       [4]     JSR   LCD_OutString
+  00ac cc03e8       [2]     LDD   #1000
+  00af 160000       [4]     JSR   Timer_Wait1ms
+  00b2 c63f         [1]     LDAB  #63
+  00b4 87           [1]     CLRA  
+  00b5 7c0000       [3]     STD   ball_x
+  00b8 57           [1]     ASRB  
+  00b9 7c0000       [3]     STD   ball_y
+  00bc 3d           [5]     RTS   
+  00bd c604         [1]     LDAB  #4
+  00bf 87           [1]     CLRA  
+  00c0 3b           [2]     PSHD  
+  00c1 52           [1]     INCB  
+  00c2 160000       [4]     JSR   LCD_GoTo
+  00c5 1b82         [2]     LEAS  2,SP
+  00c7 3d           [5]     RTS   
+  288:  
+  289:  void drawScore(){
+*** EVALUATION ***
+
+Function: drawScore
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\main.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\main.c.o" -WmsgSd1106
+
+  290:    LCD_GoTo(1,3);
+  0000 c601         [1]     LDAB  #1
+  0002 87           [1]     CLRA  
+  0003 3b           [2]     PSHD  
+  0004 c603         [1]     LDAB  #3
+  0006 160000       [4]     JSR   LCD_GoTo
+  0009 3a           [3]     PULD  
+  291:    LCD_OutDec(score_left);
+  000a fc0000       [3]     LDD   score_left
+  000d 160000       [4]     JSR   LCD_OutDec
+  292:    
+  293:    LCD_GoTo(1,10);
+  0010 c601         [1]     LDAB  #1
+  0012 87           [1]     CLRA  
+  0013 3b           [2]     PSHD  
+  0014 c60a         [1]     LDAB  #10
+  0016 160000       [4]     JSR   LCD_GoTo
+  0019 3a           [3]     PULD  
+  294:    LCD_OutDec(score_right);
+  001a fc0000       [3]     LDD   score_right
+  001d 060000       [3]     JMP   LCD_OutDec
+  295:  }
+  296:   void main(void){
+*** EVALUATION ***
+
+Function: main
+Source  : \\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources\main.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\prm;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\cmd;\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"OBJPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Env"TEXTPATH=\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\bin" -Lasm=%n.lst -Ms -ObjN="\\austin.utexas.edu\disk\engrstu\ece\njc487\My Documents\Downloads\IC_9S12\IC_Data\Monitor\ObjectCode\main.c.o" -WmsgSd1106
+
+  297:   
+  298:      
+  299:      
+  300:      
+  301:      //start ball in middle
+  302:      ball_x = 63;
+  0000 c63f         [1]     LDAB  #63
+  0002 87           [1]     CLRA  
+  0003 7c0000       [3]     STD   ball_x
+  303:      ball_y = 31;
+  0006 57           [1]     ASRB  
+  0007 7c0000       [3]     STD   ball_y
+  304:      ball_x_vel = start_x_vel;
+  000a fe0000       [3]     LDX   start_x_vel
+  000d 7e0000       [3]     STX   ball_x_vel
+  305:      ball_y_vel = start_y_vel;
+  0010 fe0000       [3]     LDX   start_y_vel
+  0013 7e0000       [3]     STX   ball_y_vel
+  306:      
+  307:      PLL_Init();
+  0016 160000       [4]     JSR   PLL_Init
+  308:      LCD_Init();
+  0019 160000       [4]     JSR   LCD_Init
+  309:      ADC_Init();
+  001c 160000       [4]     JSR   ADC_Init
+  310:      DDRP &= ~(0xC0);
+  001f 1d0000c0     [4]     BCLR  _DDRP,#192
+  311:      
+  312:      LCD_Clear(0);
+  0023 c7           [1]     CLRB  
+  0024 160000       [4]     JSR   LCD_Clear
+  313:      LCD_GoTo(1,3);
+  0027 c601         [1]     LDAB  #1
+  0029 87           [1]     CLRA  
+  002a 3b           [2]     PSHD  
+  002b c603         [1]     LDAB  #3
+  002d 160000       [4]     JSR   LCD_GoTo
+  0030 3a           [3]     PULD  
+  314:      LCD_OutString("#Distortion Pong#");
+  0031 cc0000       [2]     LDD   #"#Distortion Pong#"
+  0034 160000       [4]     JSR   LCD_OutString
+  315:      LCD_GoTo(3,4);
+  0037 c603         [1]     LDAB  #3
+  0039 87           [1]     CLRA  
+  003a 3b           [2]     PSHD  
+  003b 52           [1]     INCB  
+  003c 160000       [4]     JSR   LCD_GoTo
+  003f 3a           [3]     PULD  
+  316:      LCD_OutString("Tim Osborne");
+  0040 cc0000       [2]     LDD   #"Tim Osborne"
+  0043 160000       [4]     JSR   LCD_OutString
+  317:      LCD_GoTo(4,3);
+  0046 c604         [1]     LDAB  #4
+  0048 87           [1]     CLRA  
+  0049 3b           [2]     PSHD  
+  004a 53           [1]     DECB  
+  004b 160000       [4]     JSR   LCD_GoTo
+  004e 3a           [3]     PULD  
+  318:      LCD_OutString("Nick Carneiro");
+  004f cc0000       [2]     LDD   #"Nick Carneiro"
+  0052 160000       [4]     JSR   LCD_OutString
+  319:      LCD_GoTo(6,1);
+  0055 c606         [1]     LDAB  #6
+  0057 87           [1]     CLRA  
+  0058 3b           [2]     PSHD  
+  0059 c601         [1]     LDAB  #1
+  005b 160000       [4]     JSR   LCD_GoTo
+  005e 3a           [3]     PULD  
+  320:      LCD_OutString("Press RED to start");
+  005f cc0000       [2]     LDD   #"Press RED to start"
+  0062 160000       [4]     JSR   LCD_OutString
+  321:      
+  322:      while(PTP_PTP6 ==0){
+  0065 1f000040fb   [5]     BRCLR _PTP,#64,*+0 ;abs = 0065
+  323:      }
+  324:      LCD_Clear(0);
+  006a c7           [1]     CLRB  
+  006b 160000       [4]     JSR   LCD_Clear
+  325:      LCD_GoTo(4,1);
+  006e c604         [1]     LDAB  #4
+  0070 87           [1]     CLRA  
+  0071 160000       [4]     JSR   main:0x0108
+  326:      LCD_OutString("Starting...");
+  0074 cc0000       [2]     LDD   #"Starting..."
+  0077 160000       [4]     JSR   LCD_OutString
+  327:      Timer_Wait1ms(1000);
+  007a cc03e8       [2]     LDD   #1000
+  007d 160000       [4]     JSR   Timer_Wait1ms
+  328:      while (1){ 
+  329:        updatePaddles(); //read in paddle values from lcd and update state variables
+  0080 160000       [4]     JSR   updatePaddles
+  330:         
+  331:        //draw paddles, ball, score, render to lcd
+  332:         //draw paddles
+  333:        drawLeftPaddle();
+  0083 160000       [4]     JSR   drawLeftPaddle
+  334:        drawRightPaddle();
+  0086 160000       [4]     JSR   drawRightPaddle
+  335:        
+  336:        
+  337:        //draw ball
+  338:        //find new position
+  339:        updateBall();
+  0089 160000       [4]     JSR   updateBall
+  340:        drawBall();
+  008c 160000       [4]     JSR   drawBall
+  341:        
+  342:                       
+  343:    
+  344:        
+  345:        
+  346:        //render buffer to lcd
+  347:        LCD_DrawImage(screen_buffer);
+  008f cc0000       [2]     LDD   #screen_buffer
+  0092 160000       [4]     JSR   LCD_DrawImage
+  348:        drawScore();
+  0095 160000       [4]     JSR   drawScore
+  349:        clearBuffer();
+  0098 160000       [4]     JSR   clearBuffer
+  350:  
+  351:    //check for winner
+  352:    if(score_left > 9){
+  009b fc0000       [3]     LDD   score_left
+  009e 8c0009       [2]     CPD   #9
+  00a1 2f14         [3/1]   BLE   *+22 ;abs = 00b7
+  353:        LCD_Clear(0);
+  00a3 0754         [4]     BSR   *+86 ;abs = 00f9
+  354:        LCD_GoTo(4,3);
+  355:        LCD_OutString("Player 1 wins!");
+  00a5 cc0000       [2]     LDD   #"Player 1 wins!"
+  00a8 0736         [4]     BSR   *+56 ;abs = 00e0
+  356:        
+  357:        score_left = 0;
+  358:        score_right = 0;
+  359:        ball_x = 63;
+  360:        ball_y = 31;
+  361:        LCD_GoTo(5,1);
+  362:        LCD_OutString("Press RED for rematch");
+  00aa cc0000       [2]     LDD   #"Press RED for rematch"
+  00ad 160000       [4]     JSR   LCD_OutString
+  363:        
+  364:        while(PTP_PTP6 == 0){
+  00b0 1f000040fb   [5]     BRCLR _PTP,#64,*+0 ;abs = 00b0
+  365:        }
+  366:      } else if(score_right > 9){
+  00b5 201a         [3]     BRA   *+28 ;abs = 00d1
+  00b7 fc0000       [3]     LDD   score_right
+  00ba 8c0009       [2]     CPD   #9
+  00bd 2f12         [3/1]   BLE   *+20 ;abs = 00d1
+  367:        LCD_Clear(0);
+  00bf 0738         [4]     BSR   *+58 ;abs = 00f9
+  368:        LCD_GoTo(4,3);
+  369:        LCD_OutString("Player 2 wins!");
+  00c1 cc0000       [2]     LDD   #"Player 2 wins!"
+  00c4 071a         [4]     BSR   *+28 ;abs = 00e0
+  370:        
+  371:        score_left = 0;
+  372:        score_right = 0;
+  373:        ball_x = 63;
+  374:        ball_y = 31;
+  375:        LCD_GoTo(5,1);
+  376:        LCD_OutString("Press RED for rematch");
+  00c6 cc0000       [2]     LDD   #"Press RED for rematch"
+  00c9 160000       [4]     JSR   LCD_OutString
+  377:        while(PTP_PTP6 == 0){
+  00cc 1f000040fb   [5]     BRCLR _PTP,#64,*+0 ;abs = 00cc
+  378:        }
+  379:      }
+  380:       
+  381:       //check for pause
+  382:       if(PTP_PTP7 == 0){
+  00d1 1e00008005   [5]     BRSET _PTP,#128,*+10 ;abs = 00db
+  383:        while(PTP_PTP6 == 0){
+  00d6 1f000040fb   [5]     BRCLR _PTP,#64,*+0 ;abs = 00d6
+  384:        }
+  385:       }
+  386:        Timer_Wait1ms(1000/FPS); //20 fps
+  00db c632         [1]     LDAB  #50
+  00dd 87           [1]     CLRA  
+  00de 209d         [3]     BRA   *-97 ;abs = 007d
+  00e0 160000       [4]     JSR   LCD_OutString
+  00e3 c7           [1]     CLRB  
+  00e4 87           [1]     CLRA  
+  00e5 7c0000       [3]     STD   score_left
+  00e8 7c0000       [3]     STD   score_right
+  00eb c63f         [1]     LDAB  #63
+  00ed 7c0000       [3]     STD   ball_x
+  00f0 57           [1]     ASRB  
+  00f1 7c0000       [3]     STD   ball_y
+  00f4 c605         [1]     LDAB  #5
+  00f6 0710         [4]     BSR   *+18 ;abs = 0108
+  00f8 3d           [5]     RTS   
+  00f9 c7           [1]     CLRB  
+  00fa 160000       [4]     JSR   LCD_Clear
+  00fd c604         [1]     LDAB  #4
+  00ff 87           [1]     CLRA  
+  0100 3b           [2]     PSHD  
+  0101 53           [1]     DECB  
+  0102 160000       [4]     JSR   LCD_GoTo
+  0105 1b82         [2]     LEAS  2,SP
+  0107 3d           [5]     RTS   
+  0108 3b           [2]     PSHD  
+  0109 c601         [1]     LDAB  #1
+  010b 160000       [4]     JSR   LCD_GoTo
+  010e 1b82         [2]     LEAS  2,SP
+  0110 3d           [5]     RTS   
+  387:        
+  388:       
+  389:      }
+  390:       
+  391:  }
+  392:   
+  393:  
+  394:  
+  395:  
+  396:          
+  397:              
+  398:                  
+  399:  
+  400:                  
+  401:           
+  402:          
+  403:      
+  404:  
+  405:  

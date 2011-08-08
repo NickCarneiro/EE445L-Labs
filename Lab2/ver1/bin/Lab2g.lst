@@ -1,0 +1,298 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  // filename ******** Lab2g.C ************** 
+    2:  // output compare interrupt program for the 9S12DP512, Lab2g
+    3:  // Starter project for EE445L Lab2g
+    4:  // Jonathan W. Valvano 8/29/10
+    5:  
+    6:  //  This example accompanies the books
+    7:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+    8:  //        Thompson, copyright (c) 2006,
+    9:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+   10:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   11:  
+   12:  // Copyright 2010 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   13:  //    You may use, edit, run or distribute this file 
+   14:  //    as long as the above copyright notice remains 
+   15:    
+   16:  #include <hidef.h>           /* common defines and macros */
+   17:  #include <mc9s12dp512.h>     /* derivative information */
+   18:  #pragma LINK_INFO DERIVATIVE "mc9s12dp512"
+   19:  
+   20:  
+   21:  #include "pll.h"
+   22:  #include "Fifo.h"
+   23:  
+   24:  // background variables
+   25:  dataType BackData;           // set in the background
+   26:  unsigned short NumLost;      // number of data points lost, FIFO full
+   27:  unsigned short BackPeriod;   // variable interrupt period
+   28:  unsigned long NumInterrupts;
+   29:  
+   30:  // foreground variables
+   31:  dataType ForeData;          // set in the foreground
+   32:  dataType ForeExpected;      // expected data
+   33:  unsigned short Errors;      // number of out-of-sequence points 
+   34:    
+   35:  //---------OC0_Init--------------------------
+   36:  // start output compare interrupt
+   37:  // 10kHz making the TCNT timer 24 MHz 
+   38:  // Inputs: none
+   39:  // Ouputs: none
+   40:  void OC0_Init(void){
+*** EVALUATION ***
+
+Function: OC0_Init
+Source  : C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Sources\Lab2g.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\prm;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\cmd;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin" -Env"TEXTPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Lab2g_DP512_Data\HCS12_Serial_Monitor\ObjectCode\Lab2g.c.o" -WmsgSd1106
+
+   41:    asm sei         // Make ritual atomic
+  0000 1410         [1]     SEI   
+   42:    TIOS  |= 0x01;  // activate TC0 as output compare
+  0002 4c0001       [4]     BSET  _TIOS,#1
+   43:    TSCR1 = 0x80;   // Enable TCNT, 24MHz assumming PLL is active
+  0005 c680         [1]     LDAB  #128
+  0007 5b00         [2]     STAB  _TSCR1
+   44:    TSCR2 = 0x00;   // divide by 1 TCNT prescale, TOI disarm
+  0009 790000       [3]     CLR   _TSCR2
+   45:    PACTL = 0;      // timer prescale used for TCNT
+  000c 790000       [3]     CLR   _PACTL
+   46:  /* Bottom three bits of TSCR2 (PR2,PR1,PR0) determine TCNT period
+   47:      divide  FastMode(24MHz)    Slow Mode (8MHz)
+   48:  000   1     42ns  TOF  2.73ms  125ns TOF 8.192ms
+   49:  001   2     84ns  TOF  5.46ms  250ns TOF 16.384ms 
+   50:  010   4    167ns  TOF  10.9ms  500ns TOF 32.768ms   
+   51:  011   8    333ns  TOF  21.8ms 	 1us TOF 65.536ms
+   52:  100  16    667ns  TOF  43.7ms 	 2us TOF 131.072ms
+   53:  101  32   1.33us  TOF  87.4ms		 4us TOF 262.144ns
+   54:  110  64   2.67us  TOF 174.8ms    8us TOF 524.288ms
+   55:  111 128   5.33us  TOF 349.5ms   16us TOF 1.048576s */ 
+   56:    TIE  |= 0x01;     // arm OC0
+  000f 4c0001       [4]     BSET  _TIE,#1
+   57:    TC0   = TCNT+50;  // first interrupt right away
+  0012 dc00         [3]     LDD   _TCNT
+  0014 c30032       [2]     ADDD  #50
+  0017 5c00         [2]     STD   _TC0
+   58:    BackData = 0;   
+  0019 790000       [3]     CLR   BackData
+   59:    BackPeriod = 200;  // 8us
+  001c c6c8         [1]     LDAB  #200
+  001e 87           [1]     CLRA  
+  001f 7c0000       [3]     STD   BackPeriod
+   60:    NumLost = 0;
+  0022 c7           [1]     CLRB  
+  0023 7c0000       [3]     STD   NumLost
+   61:    NumInterrupts = 0;
+  0026 7c0000       [3]     STD   NumInterrupts:2
+  0029 7c0000       [3]     STD   NumInterrupts
+   62:    asm cli
+  002c 10ef         [1]     CLI   
+   63:  }
+  002e 3d           [5]     RTS   
+   64:  
+   65:  //------------Debug_Profile------------
+   66:  // saves place and time
+   67:  // inputs: 8-bit number identifying where the software is executing
+   68:  // outputs: none
+   69:  unsigned short timeBuf[100];
+   70:  unsigned short placeBuf[100];
+   71:  unsigned short Debug_n=0;
+   72:  void Debug_Profile(unsigned short thePlace){
+*** EVALUATION ***
+
+Function: Debug_Profile
+Source  : C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Sources\Lab2g.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\prm;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\cmd;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin" -Env"TEXTPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Lab2g_DP512_Data\HCS12_Serial_Monitor\ObjectCode\Lab2g.c.o" -WmsgSd1106
+
+  0000 3b           [2]     PSHD  
+   73:    if(Debug_n>99) return;
+  0001 fc0000       [3]     LDD   Debug_n
+  0004 8c0063       [2]     CPD   #99
+  0007 2216         [3/1]   BHI   *+24 ;abs = 001f
+   74:    timeBuf[Debug_n] = TCNT;        // record current time
+  0009 59           [1]     LSLD  
+  000a de00         [3]     LDX   _TCNT
+  000c b746         [1]     TFR   D,Y
+  000e 6eea0000     [3]     STX   timeBuf,Y
+   75:    placeBuf[Debug_n] = thePlace;   // record place from which it is called
+  0012 ee80         [3]     LDX   0,SP
+  0014 6eea0000     [3]     STX   placeBuf,Y
+   76:    Debug_n++;
+  0018 fe0000       [3]     LDX   Debug_n
+  001b 08           [1]     INX   
+  001c 7e0000       [3]     STX   Debug_n
+   77:  }
+  001f 3a           [3]     PULD  
+  0020 3d           [5]     RTS   
+   78:  
+   79:  unsigned short Delay,First;
+   80:  void main(void){  	 
+*** EVALUATION ***
+
+Function: main
+Source  : C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Sources\Lab2g.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\prm;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\cmd;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin" -Env"TEXTPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Lab2g_DP512_Data\HCS12_Serial_Monitor\ObjectCode\Lab2g.c.o" -WmsgSd1106
+
+   81:    PLL_Init();         // running at 24MHz
+  0000 160000       [4]     JSR   PLL_Init
+   82:    DDRT |= 0x03;       // debugging outputs
+  0003 1c000003     [4]     BSET  _DDRT,#3
+   83:    PTT &= ~0x03;
+  0007 1d000003     [4]     BCLR  _PTT,#3
+   84:    Debug_Profile(0);   // 0 means initialization phase
+  000b c7           [1]     CLRB  
+  000c 87           [1]     CLRA  
+  000d 0700         [4]     BSR   Debug_Profile
+   85:    Fifo_Init();        // Initialize fifo
+  000f 160000       [4]     JSR   Fifo_Init
+   86:    OC0_Init();         // variable rate interrupt
+  0012 0700         [4]     BSR   OC0_Init
+   87:    ForeExpected = 0;   // expected data
+  0014 790000       [3]     CLR   ForeExpected
+   88:    for(;;){
+  0017 2046         [3]     BRA   *+72 ;abs = 005f
+   89:      Debug_Profile(1); // 1 means start of foreground waiting 
+  0019 c601         [1]     LDAB  #1
+  001b 87           [1]     CLRA  
+  001c 0700         [4]     BSR   Debug_Profile
+   90:      PTT_PTT1 = 0;     // falling edge of PT1 means start of foreground waiting
+  001e 1d000002     [4]     BCLR  _PTT,#2
+   91:      while(Fifo_Get(&ForeData)==FIFOFAIL){
+  0022 cc0000       [2]     LDD   #ForeData
+  0025 160000       [4]     JSR   Fifo_Get
+  0028 0454f7       [3]     TBEQ  D,*-6 ;abs = 0022
+   92:      }
+   93:      Debug_Profile(2); // 2 means foreground has new data
+  002b c602         [1]     LDAB  #2
+  002d 87           [1]     CLRA  
+  002e 0700         [4]     BSR   Debug_Profile
+   94:      PTT_PTT1 = 1;     // rising edge of PT1 means start of foreground processing
+  0030 1c000002     [4]     BSET  _PTT,#2
+   95:      if(ForeExpected != ForeData){
+  0034 f60000       [3]     LDAB  ForeExpected
+  0037 f10000       [3]     CMPB  ForeData
+  003a 2710         [3/1]   BEQ   *+18 ;abs = 004c
+   96:        Errors++;                  // critical section found
+  003c fe0000       [3]     LDX   Errors
+  003f 08           [1]     INX   
+  0040 7e0000       [3]     STX   Errors
+   97:        ForeExpected = ForeData+1; // resych to lost/bad data
+  0043 f60000       [3]     LDAB  ForeData
+  0046 52           [1]     INCB  
+  0047 7b0000       [3]     STAB  ForeExpected
+   98:      }  
+  004a 2003         [3]     BRA   *+5 ;abs = 004f
+   99:      else{
+  100:        ForeExpected++;  // sequence is 0,1,2,3,...,254,255,0,1,...
+  004c 720000       [4]     INC   ForeExpected
+  101:      }
+  102:      if((ForeData%10)==0){
+  004f f60000       [3]     LDAB  ForeData
+  0052 860a         [1]     LDAA  #10
+  0054 160000       [4]     JSR   _BDIVMODU
+  0057 0471bf       [3]     TBNE  B,*-62 ;abs = 0019
+  103:        Debug_Profile(3); // 3 means foreground has 10th data
+  005a c603         [1]     LDAB  #3
+  005c 87           [1]     CLRA  
+  005d 0700         [4]     BSR   Debug_Profile
+  104:      }
+  105:    }
+  005f 20b8         [3]     BRA   *-70 ;abs = 0019
+  106:  }          
+  107:  interrupt 8 void OC0Han(void){ // periodic interrupt
+*** EVALUATION ***
+
+Function: OC0Han
+Source  : C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Sources\Lab2g.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\prm;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\cmd;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin" -Env"TEXTPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Lab2g_DP512_Data\HCS12_Serial_Monitor\ObjectCode\Lab2g.c.o" -WmsgSd1106
+
+  108:    Debug_Profile(4);  // 4 means background thread active
+  0000 c604         [1]     LDAB  #4
+  0002 87           [1]     CLRA  
+  0003 160000       [4]     JSR   Debug_Profile
+  109:    PTT_PTT0 = 1;      // rising edge of PT0 means start of interrupt
+  0006 1c000001     [4]     BSET  _PTT,#1
+  110:    TFLG1 = 0x01;      // acknowledge OC0
+  000a c601         [1]     LDAB  #1
+  000c 5b00         [2]     STAB  _TFLG1
+  111:    TC0 = TC0 +BackPeriod;   // varies from 10us to 1ms
+  000e dc00         [3]     LDD   _TC0
+  0010 f30000       [3]     ADDD  BackPeriod
+  0013 5c00         [2]     STD   _TC0
+  112:    if(Fifo_Put(BackData)==FIFOFAIL){
+  0015 f60000       [3]     LDAB  BackData
+  0018 160000       [4]     JSR   Fifo_Put
+  001b 046407       [3]     TBNE  D,*+10 ;abs = 0025
+  113:      NumLost++;
+  001e fe0000       [3]     LDX   NumLost
+  0021 08           [1]     INX   
+  0022 7e0000       [3]     STX   NumLost
+  114:    }
+  115:    BackData++; // sequence is 0,1,2,3,...,254,255,0,1,...
+  0025 720000       [4]     INC   BackData
+  116:    if(BackPeriod > 500){
+  0028 fc0000       [3]     LDD   BackPeriod
+  002b 8c01f4       [2]     CPD   #500
+  002e 2305         [3/1]   BLS   *+7 ;abs = 0035
+  117:      BackPeriod = 200;
+  0030 c6c8         [1]     LDAB  #200
+  0032 87           [1]     CLRA  
+  118:    } else{
+  0033 2003         [3]     BRA   *+5 ;abs = 0038
+  119:      BackPeriod = BackPeriod+23;
+  0035 c30017       [2]     ADDD  #23
+  0038 7c0000       [3]     STD   BackPeriod
+  120:    }
+  121:    NumInterrupts++;
+  003b fc0000       [3]     LDD   NumInterrupts:2
+  003e fe0000       [3]     LDX   NumInterrupts
+  0041 160000       [4]     JSR   _LINC
+  0044 7c0000       [3]     STD   NumInterrupts:2
+  0047 7e0000       [3]     STX   NumInterrupts
+  122:    PTT_PTT0 = 0;	    // falling edge of PT0 means end of interrupt
+  004a 1d000001     [4]     BCLR  _PTT,#1
+  123:  }
+  004e 0b           [8]     RTI   
+  124:  
+  125:  // main program for Procedure part D
+  126:  void main2(void){
+*** EVALUATION ***
+
+Function: main2
+Source  : C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Sources\Lab2g.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\prm;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\cmd;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin" -Env"TEXTPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab2\ver1\Lab2g_DP512_Data\HCS12_Serial_Monitor\ObjectCode\Lab2g.c.o" -WmsgSd1106
+
+  0000 36           [2]     PSHA  
+  127:  dataType data;
+  128:    DDRT |= 0x01;       
+  0001 1c000001     [4]     BSET  _DDRT,#1
+  129:    Fifo_Init();    // initialize 
+  0005 160000       [4]     JSR   Fifo_Init
+  130:    TSCR1 = 0x80;   // Enable TCNT, 24MHz assumming PLL is active
+  0008 c680         [1]     LDAB  #128
+  000a 5b00         [2]     STAB  _TSCR1
+  131:    First = TCNT;
+  000c dc00         [3]     LDD   _TCNT
+  000e 7c0000       [3]     STD   First
+  132:    Delay = TCNT-First;
+  0011 dc00         [3]     LDD   _TCNT
+  0013 b30000       [3]     SUBD  First
+  0016 7c0000       [3]     STD   Delay
+  133:  asm cli     
+  0019 10ef         [1]     CLI   
+  134:    for(;;){
+  135:      Fifo_Put(1);
+  001b c601         [1]     LDAB  #1
+  001d 160000       [4]     JSR   Fifo_Put
+  136:      PTT_PTT0 = 1;     
+  0020 1c000001     [4]     BSET  _PTT,#1
+  137:      Fifo_Get(&data);
+  0024 b774         [1]     TFR   SP,D
+  0026 160000       [4]     JSR   Fifo_Get
+  138:      PTT_PTT0 = 0;   
+  0029 1d000001     [4]     BCLR  _PTT,#1
+  002d 20ec         [3]     BRA   *-18 ;abs = 001b
+  139:    }
+  140:  }
+  141:  

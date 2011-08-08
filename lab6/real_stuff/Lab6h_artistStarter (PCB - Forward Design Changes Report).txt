@@ -1,0 +1,68 @@
+Forward Design Changes Report
+-----------------------------
+
+Report File    : C:\Users\Denis\My Dropbox\EE445L\lab6\real_stuff\Lab6h_artistStarter (PCB - Forward Design Changes Report).txt
+Report Written : Sunday, March 06, 2011
+Design Path    : C:\Users\Denis\My Dropbox\EE445L\lab6\real_stuff\Lab6h_artistStarter.pcb
+Design Title   : 
+Created        : 9/11/2009 4:58:24 PM
+Last Saved     : 3/5/2011 8:20:17 PM
+Editing Time   : 1871 min
+Units          : mil (precision 0)
+
+Disconnected pin "Rbr.1" from net "N0288".
+Disconnected pin "Rbs.1" from net "N0288".
+Disconnected pin "Rbp.1" from net "N0288".
+Disconnected pin "Rewind.3" from net "N0291".
+Disconnected pin "Stop.2" from net "N0291".
+Disconnected pin "Play.2" from net "N0291".
+Disconnected pin "zener.3" from net "N0288".
+Disconnected pin "Rz2.1" from net "N0288".
+Disconnected pin "Rs.2" from net "N0291".
+Disconnected pin "DAC.5" from net "N0288".
+Disconnected pin "DAC.8" from net "N0291".
+Disconnected pin "Amp.6" from net "N0288".
+Disconnected pin "Amp.7" from net "N0291".
+Disconnected pin "Cbig.2" from net "N0288".
+Disconnected pin "Csmall.2" from net "N0288".
+
+Deleted net "N0288".
+Deleted net "N0291".
+
+Connected pin "DAC.5" to net "GND".
+Connected pin "DAC.8" to net "VCC".
+Connected pin "zener.3" to net "GND".
+Connected pin "Rbr.1" to net "GND".
+Connected pin "Rbs.1" to net "GND".
+Connected pin "Rbp.1" to net "GND".
+Connected pin "Amp.7" to net "VCC".
+Connected pin "Amp.6" to net "GND".
+Connected pin "Rewind.3" to net "VCC".
+Connected pin "Stop.2" to net "VCC".
+Connected pin "Play.2" to net "VCC".
+Connected pin "Cbig.2" to net "GND".
+Connected pin "Csmall.2" to net "GND".
+Connected pin "Rz2.1" to net "GND".
+Connected pin "Rs.2" to net "VCC".
+
+Net N0292 renamed to Stop_button_1
+Net N0293 renamed to Stop_button_2
+Net N0294 renamed to Rewind_button_1
+Net N0295 renamed to DAC_OUT_1
+Net N0296 renamed to DAC_OUT_2
+Net N0289 renamed to Refin
+Net N0290 renamed to FB
+Net N0297 renamed to Spkr1
+Net N0298 renamed to Spkr2
+Net N0299 renamed to DAC_OUT_3
+Net N0300 renamed to Noise_reduce_1
+Net N0301 renamed to Noise_reduce_2
+Net N0311 renamed to Stop_button_0
+Net N0312 renamed to Rewind_button_0
+Net N0313 renamed to Play_button_0
+Net N0314 renamed to SS
+Net N0315 renamed to MOSI
+Net N0316 renamed to SCLK
+
+
+End Of Report.

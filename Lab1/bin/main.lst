@@ -1,0 +1,282 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  //******Main Program*******
+    2:  //Used to test the fixed.c functions and verify
+    3:  //proper functionality sending output to lcd
+    4:  //Authors: Aaron Alaniz (aa28877), Denis Sokolov (dks574)
+    5:  #include <stdio.h>
+    6:  #include <stdlib.h>
+    7:  #include <string.h>
+    8:  #include <MC9S12DP512.h>
+    9:  #include "fixed.h"
+   10:  #include "lcd.h"
+   11:  
+   12:  #define NUMUDECTESTS 11
+   13:  #define NUMSDECTESTS 11
+   14:  #define NUMUBINTESTS 13
+   15:  
+   16:  void PLL_Init(void);
+   17:                                              
+   18:  //Data used to verify uDecOut2 and uBinOut8 in fixed.c
+   19:  typedef const struct {
+   20:    unsigned short test_input;
+   21:    char *test_output;
+   22:  }uFixed_C_Test;
+   23:  
+   24:  //Data used to verify sDecOut3 in fixed.c
+   25:  typedef const struct {
+   26:    signed short test_input;
+   27:    char *test_output;
+   28:  }sFixed_C_Test;
+   29:  
+   30:  //test data for Fixed_uDecOut2
+   31:  uFixed_C_Test uDecOutTests[] = { 
+   32:    {0,"0.00"}, 
+   33:    {1,      "0.01"},
+   34:    {15,     "0.15"},
+   35:    {99,     "0.99"},
+   36:    {110,    "1.10"},
+   37:    {999,    "9.99"},
+   38:    {1200,   "12.00"},
+   39:    {9999,   "99.99"},
+   40:    {10000,  "100.00"},
+   41:    {65534,  "655.34"},
+   42:    {65535,  "***.**"}
+   43:  };
+   44:  
+   45:  //test data for Fixed_sDecOut3
+   46:  sFixed_C_Test sDecOutTests[] = {
+   47:    {-32768,        "*.***"},
+   48:    {-10000,        "*.***"},
+   49:    {-9999,         "-9.999"},
+   50:    {-999,          "-0.999"},
+   51:    {-10,           "-0.010"},
+   52:    {-1,            "-0.001"},
+   53:    {0,             "0.000"},
+   54:    {123,           "0.123"},
+   55:    {1234,          "1.234"},
+   56:    {9999,          "9.999"},
+   57:    {32767,         "*.***"}
+   58:  };
+   59:  
+   60:  //test data for Fixed_uBinOut8
+   61:  uFixed_C_Test uBinOut8Tests[] = {
+   62:    {0,           "0.00"},
+   63:    {4,           "0.01"},
+   64:    {10,          "0.03"},
+   65:    {200,         "0.78"},
+   66:    {254,         "0.99"},
+   67:    {505,         "1.97"},
+   68:    {1070,        "4.17"},
+   69:    {26000,       "101.56"},
+   70:    {32767,       "127.99"},
+   71:    {32768,       "128.00"},
+   72:    {34567,       "135.02"},
+   73:    {65534,       "255.99"},
+   74:    {65535,       "***.**"} 
+   75:  };
+   76:  
+   77:  unsigned short i;                //loop counter     
+   78:  char *converted_input;  //holds fixed point output
+   79:    
+   80:  int main(void){                                             
+*** EVALUATION ***
+
+Function: main
+Source  : C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\bin;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\prm;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\cmd;C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"OBJPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\bin" -Env"TEXTPATH=C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\webheadz3\Documents\My Dropbox\EE445L\Lab1\Lab1_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o" -WmsgSd1106
+
+   81:    
+   82:    letter_cnt = 0;   //init letter_cnt
+  0000 c7           [1]     CLRB  
+  0001 87           [1]     CLRA  
+  0002 7c0000       [3]     STD   letter_cnt
+   83:    PLL_Init();
+  0005 160000       [4]     JSR   PLL_Init
+   84:    LCD_Init();       //start the lcd and timer
+  0008 160000       [4]     JSR   LCD_Init
+   85:    DDRT &= 0xFE;     //PT0 is a button input
+  000b 1d000001     [4]     BCLR  _DDRT,#1
+   86:    LCD_Clear();      //clears lcd display
+  000f 160000       [4]     JSR   LCD_Clear
+   87:      
+   88:    asm cli       
+  0012 10ef         [1]     CLI   
+   89:    for(i = 0;;){
+  0014 160000       [4]     JSR   main:0x0155
+   90:      printf("uDecOut2 Tests");
+  0017 cc0000       [2]     LDD   #"uDecOut2 Tests"
+  001a 3b           [2]     PSHD  
+  001b 160000       [4]     JSR   printf
+  001e 1b82         [2]     LEAS  2,SP
+   91:      while (!(PTT & 0x01));   //wait for button push
+  0020 1f000001fb   [5]     BRCLR _PTT,#1,*+0 ;abs = 0020
+   92:      while(PTT & 0x01);       //wait for button release
+  0025 1e000001fb   [5]     BRSET _PTT,#1,*+0 ;abs = 0025
+   93:      printf("\n");
+  002a cc0000       [2]     LDD   #"\012"
+  002d 3b           [2]     PSHD  
+  002e 160000       [4]     JSR   printf
+  0031 1b82         [2]     LEAS  2,SP
+   94:      for(i = 0; i < NUMUDECTESTS; i++){
+  0033 160000       [4]     JSR   main:0x0155
+   95:        converted_input = Fixed_uDecOut2(uDecOutTests[i].test_input);  //retrieve fixed point output
+  0036 160000       [4]     JSR   main:0x0142
+  0039 ece20000     [4]     LDD   uDecOutTests,X
+  003d 160000       [4]     JSR   Fixed_uDecOut2
+  0040 7c0000       [3]     STD   converted_input
+   96:        printf("%u",uDecOutTests[i].test_input);
+  0043 160000       [4]     JSR   main:0x0142
+  0046 eee20000     [4]     LDX   uDecOutTests,X
+  004a 34           [2]     PSHX  
+  004b cc0000       [2]     LDD   #"%u"
+  004e 3b           [2]     PSHD  
+  004f 160000       [4]     JSR   printf
+  0052 1b84         [2]     LEAS  4,SP
+   97:        LCD_GoTo(0x40);
+  0054 160000       [4]     JSR   main:0x0133
+   98:        letter_cnt = 0;
+   99:        printf("%s",converted_input);
+  0057 34           [2]     PSHX  
+  0058 ce0000       [2]     LDX   #"%s"
+  005b 34           [2]     PSHX  
+  005c 160000       [4]     JSR   printf
+  005f 1b84         [2]     LEAS  4,SP
+  100:        while (!(PTT & 0x01));   //wait for button push
+  0061 1f000001fb   [5]     BRCLR _PTT,#1,*+0 ;abs = 0061
+  101:        while(PTT & 0x01);       //wait for button release
+  0066 1e000001fb   [5]     BRSET _PTT,#1,*+0 ;abs = 0066
+  102:        LCD_Clear();             //clear lcd
+  006b 160000       [4]     JSR   main:0x014a
+  006e 8e000b       [2]     CPX   #11
+  0071 25c3         [3/1]   BCS   *-59 ;abs = 0036
+  103:      }
+  104:      printf("sDecOut3 Tests");
+  0073 cc0000       [2]     LDD   #"sDecOut3 Tests"
+  0076 3b           [2]     PSHD  
+  0077 160000       [4]     JSR   printf
+  007a 1b82         [2]     LEAS  2,SP
+  105:      while (!(PTT & 0x01));   //wait for button push
+  007c 1f000001fb   [5]     BRCLR _PTT,#1,*+0 ;abs = 007c
+  106:      while(PTT & 0x01);       //wait for button release
+  0081 1e000001fb   [5]     BRSET _PTT,#1,*+0 ;abs = 0081
+  107:      LCD_Clear();    
+  0086 160000       [4]     JSR   LCD_Clear
+  108:      for(i = 0; i < NUMSDECTESTS; i++){
+  0089 160000       [4]     JSR   main:0x0155
+  109:        converted_input = Fixed_sDecOut3(sDecOutTests[i].test_input);  //retrieve fixed point output
+  008c 160000       [4]     JSR   main:0x0142
+  008f ece20000     [4]     LDD   sDecOutTests,X
+  0093 160000       [4]     JSR   Fixed_sDecOut3
+  0096 7c0000       [3]     STD   converted_input
+  110:        printf("%d",sDecOutTests[i].test_input);
+  0099 160000       [4]     JSR   main:0x0142
+  009c eee20000     [4]     LDX   sDecOutTests,X
+  00a0 34           [2]     PSHX  
+  00a1 cc0000       [2]     LDD   #"%d"
+  00a4 3b           [2]     PSHD  
+  00a5 160000       [4]     JSR   printf
+  00a8 1b84         [2]     LEAS  4,SP
+  111:        LCD_GoTo(0x40);
+  00aa 160000       [4]     JSR   main:0x0133
+  112:        letter_cnt = 0;
+  113:        printf("%s",converted_input);
+  00ad 34           [2]     PSHX  
+  00ae ce0000       [2]     LDX   #"%s"
+  00b1 34           [2]     PSHX  
+  00b2 160000       [4]     JSR   printf
+  00b5 1b84         [2]     LEAS  4,SP
+  114:        while (!(PTT & 0x01));   //wait for button push
+  00b7 1f000001fb   [5]     BRCLR _PTT,#1,*+0 ;abs = 00b7
+  115:        while(PTT & 0x01);       //wait for button release
+  00bc 1e000001fb   [5]     BRSET _PTT,#1,*+0 ;abs = 00bc
+  116:        LCD_Clear();             //clear lcd
+  00c1 160000       [4]     JSR   main:0x014a
+  00c4 8e000b       [2]     CPX   #11
+  00c7 25c3         [3/1]   BCS   *-59 ;abs = 008c
+  117:      }
+  118:      printf("uBinOut8 Tests");
+  00c9 cc0000       [2]     LDD   #"uBinOut8 Tests"
+  00cc 3b           [2]     PSHD  
+  00cd 160000       [4]     JSR   printf
+  00d0 1b82         [2]     LEAS  2,SP
+  119:      while (!(PTT & 0x01));   //wait for button push
+  00d2 1f000001fb   [5]     BRCLR _PTT,#1,*+0 ;abs = 00d2
+  120:      while(PTT & 0x01);       //wait for button release
+  00d7 1e000001fb   [5]     BRSET _PTT,#1,*+0 ;abs = 00d7
+  121:      LCD_Clear();
+  00dc 160000       [4]     JSR   LCD_Clear
+  122:      for(i = 0; i < NUMUBINTESTS; i++){
+  00df 0774         [4]     BSR   *+118 ;abs = 0155
+  123:        converted_input = Fixed_uBinOut8(uBinOut8Tests[i].test_input);  //retrieve fixed point output
+  00e1 075f         [4]     BSR   *+97 ;abs = 0142
+  00e3 ece20000     [4]     LDD   uBinOut8Tests,X
+  00e7 160000       [4]     JSR   Fixed_uBinOut8
+  00ea 7c0000       [3]     STD   converted_input
+  124:        printf("%u",uBinOut8Tests[i].test_input);
+  00ed 0753         [4]     BSR   *+85 ;abs = 0142
+  00ef eee20000     [4]     LDX   uBinOut8Tests,X
+  00f3 34           [2]     PSHX  
+  00f4 cc0000       [2]     LDD   #"%u"
+  00f7 3b           [2]     PSHD  
+  00f8 160000       [4]     JSR   printf
+  00fb 1b84         [2]     LEAS  4,SP
+  125:        LCD_GoTo(0x40);
+  00fd 0734         [4]     BSR   *+54 ;abs = 0133
+  126:        letter_cnt = 0;
+  127:        printf("%s",converted_input);
+  00ff 34           [2]     PSHX  
+  0100 ce0000       [2]     LDX   #"%s"
+  0103 34           [2]     PSHX  
+  0104 160000       [4]     JSR   printf
+  0107 1b84         [2]     LEAS  4,SP
+  128:        while (!(PTT & 0x01));   //wait for button push
+  0109 1f000001fb   [5]     BRCLR _PTT,#1,*+0 ;abs = 0109
+  129:        while(PTT & 0x01);       //wait for button release
+  010e 1e000001fb   [5]     BRSET _PTT,#1,*+0 ;abs = 010e
+  130:        LCD_Clear();             //clear lcd
+  0113 0735         [4]     BSR   *+55 ;abs = 014a
+  0115 8e000d       [2]     CPX   #13
+  0118 25c7         [3/1]   BCS   *-55 ;abs = 00e1
+  131:      }
+  132:      printf("\tend");   //tab demo
+  011a cc0000       [2]     LDD   #"\011end"
+  011d 3b           [2]     PSHD  
+  011e 160000       [4]     JSR   printf
+  0121 1b82         [2]     LEAS  2,SP
+  133:      while (!(PTT & 0x01));   //wait for button push
+  0123 1f000001fb   [5]     BRCLR _PTT,#1,*+0 ;abs = 0123
+  134:      while(PTT & 0x01);       //wait for button release
+  0128 1e000001fb   [5]     BRSET _PTT,#1,*+0 ;abs = 0128
+  135:      LCD_Clear();
+  012d 160000       [4]     JSR   LCD_Clear
+  0130 060000       [3]     JMP   main:0x0017
+  0133 c640         [1]     LDAB  #64
+  0135 87           [1]     CLRA  
+  0136 160000       [4]     JSR   LCD_GoTo
+  0139 c7           [1]     CLRB  
+  013a 87           [1]     CLRA  
+  013b 7c0000       [3]     STD   letter_cnt
+  013e fe0000       [3]     LDX   converted_input
+  0141 3d           [5]     RTS   
+  0142 fc0000       [3]     LDD   i
+  0145 59           [1]     LSLD  
+  0146 59           [1]     LSLD  
+  0147 b745         [1]     TFR   D,X
+  0149 3d           [5]     RTS   
+  014a 160000       [4]     JSR   LCD_Clear
+  014d fe0000       [3]     LDX   i
+  0150 08           [1]     INX   
+  0151 7e0000       [3]     STX   i
+  0154 3d           [5]     RTS   
+  0155 c7           [1]     CLRB  
+  0156 87           [1]     CLRA  
+  0157 7c0000       [3]     STD   i
+  015a 3d           [5]     RTS   
+  136:    }
+  137:    return 0;  
+  138:  }
+  139:  
+  140:  
+  141:  

@@ -1,0 +1,156 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  //*********MUSIC.C*********
+    2:  #include <hidef.h>      /* common defines and macros */
+    3:  #include <mc9s12dp512.h>     /* derivative information */
+    4:  #include "music.h"
+    5:  #include "timer.h"
+    6:  #include "switches.h"
+    7:  #include "dac.h"
+    8:  #pragma LINK_INFO DERIVATIVE "mc9s12dp512"
+    9:  
+   10:  void Debug_Profile(unsigned short thePlace);
+   11:  
+   12:  unsigned short note_index = 0;
+   13:  unsigned short delay = 100;
+   14:  extern Envelope envelope[];
+   15:  //---------------------OC_Init3---------------------
+   16:  // arm output compare 3 for 1000Hz periodic interrupt
+   17:  // Input: none    assumes another ritual enabled the TCNT
+   18:  // Output: none 
+   19:  void OC_Init3(){
+*** EVALUATION ***
+
+Function: OC_Init3
+Source  : C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources\music.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\music.c.o -WmsgSd1106
+
+   20:    TIOS |= 0x08;    // activate TC3 as output compare
+  0000 4c0008       [4]     BSET  _TIOS,#8
+   21:    //TIE |= 0x08;
+   22:    TC3   = TCNT + envelope[note_index].Duration; // first interrupt right away
+  0003 fc0000       [3]     LDD   note_index
+  0006 cd0003       [2]     LDY   #3
+  0009 13           [3]     EMUL  
+  000a b745         [1]     TFR   D,X
+  000c dc00         [3]     LDD   _TCNT
+  000e e3e20000     [4]     ADDD  envelope,X
+  0012 5c00         [2]     STD   _TC3
+   23:  }
+  0014 3d           [5]     RTS   
+   24:  
+   25:  //--------Music_Play------
+   26:  // play the music
+   27:  // inputs: pointer to song envelope
+   28:  // outputs: harmonious melody
+   29:  void Music_Play(unsigned char pitch){//Envelope *song_envelope[]){
+*** EVALUATION ***
+
+Function: Music_Play
+Source  : C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources\music.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\music.c.o -WmsgSd1106
+
+  0000 37           [2]     PSHB  
+   30:    if (!TIE & 0x09){
+  0001 d600         [3]     LDAB  _TIE
+  0003 2603         [3/1]   BNE   *+5 ;abs = 0008
+   31:      TIE |= 0x09;  
+  0005 4c0009       [4]     BSET  _TIE,#9
+   32:    }
+   33:    DAC_Out(pitch);//song_envelope[note_index]->frequency_pitch);
+  0008 e680         [3]     LDAB  0,SP
+  000a 160000       [4]     JSR   DAC_Out
+   34:  }
+  000d 32           [3]     PULA  
+  000e 3d           [5]     RTS   
+   35:  
+   36:  //--------Music_Stop------
+   37:  // stops the music
+   38:  // inputs: none
+   39:  // outputs: none
+   40:  void Music_Stop(void){
+*** EVALUATION ***
+
+Function: Music_Stop
+Source  : C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources\music.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\music.c.o -WmsgSd1106
+
+   41:    TIE &= ~0x09;   //disarm the interrupts  
+  0000 4d0009       [4]     BCLR  _TIE,#9
+   42:  }
+  0003 3d           [5]     RTS   
+   43:  
+   44:  //--------Music_Rewind------
+   45:  // Plays music from the beginning
+   46:  // inputs: none
+   47:  // outputs: none
+   48:  void Music_Rewind(void){
+*** EVALUATION ***
+
+Function: Music_Rewind
+Source  : C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources\music.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\music.c.o -WmsgSd1106
+
+   49:    note_index = 0;   
+  0000 c7           [1]     CLRB  
+  0001 87           [1]     CLRA  
+  0002 7c0000       [3]     STD   note_index
+   50:  }
+  0005 3d           [5]     RTS   
+   51:  
+   52:  interrupt 11 void TOC3handler(void){ // executes at 1000 Hz 
+*** EVALUATION ***
+
+Function: TOC3handler
+Source  : C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources\music.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\prm;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\cmd;C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab5\OC_DP512\OC_DP512\OC_DP512_Data\HCS12_Serial_Monitor\ObjectCode\music.c.o -WmsgSd1106
+
+   53:    TFLG1 = 0x08;         // acknowledge OC3
+  0000 c608         [1]     LDAB  #8
+  0002 5b00         [2]     STAB  _TFLG1
+   54:    //PTP ^= 0x80;
+   55:    TC3 = TC3 + envelope[note_index].Duration;
+  0004 fd0000       [3]     LDY   note_index
+  0007 c603         [1]     LDAB  #3
+  0009 87           [1]     CLRA  
+  000a 13           [3]     EMUL  
+  000b b745         [1]     TFR   D,X
+  000d dc00         [3]     LDD   _TC3
+  000f e3e20000     [4]     ADDD  envelope,X
+  0013 5c00         [2]     STD   _TC3
+   56:    
+   57:    if (delay == 0){
+  0015 fe0000       [3]     LDX   delay
+  0018 2625         [3/1]   BNE   *+39 ;abs = 003f
+   58:      PTP ^= 0x80;
+  001a f60000       [3]     LDAB  _PTP
+  001d c880         [1]     EORB  #128
+  001f 7b0000       [3]     STAB  _PTP
+   59:      note_index++;
+  0022 fe0000       [3]     LDX   note_index
+  0025 08           [1]     INX   
+  0026 7e0000       [3]     STX   note_index
+   60:      if ( note_index == SONG_SIZE ){note_index = 0;}
+  0029 8e001e       [2]     CPX   #30
+  002c 2605         [3/1]   BNE   *+7 ;abs = 0033
+  002e c7           [1]     CLRB  
+  002f 87           [1]     CLRA  
+  0030 7c0000       [3]     STD   note_index
+   61:      delay = 100;
+  0033 c664         [1]     LDAB  #100
+  0035 87           [1]     CLRA  
+  0036 7c0000       [3]     STD   delay
+   62:      Debug_Profile(3);
+  0039 c603         [1]     LDAB  #3
+  003b 160000       [4]     JSR   Debug_Profile
+   63:      return;
+  003e 0b           [8]     RTI   
+   64:    }
+   65:    
+   66:    delay--;
+  003f 09           [1]     DEX   
+  0040 7e0000       [3]     STX   delay
+   67:    return;  
+   68:  }
+  0043 0b           [8]     RTI   

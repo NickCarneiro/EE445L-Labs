@@ -1,0 +1,95 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  //*********** Main.C ********************
+    2:  //Transmit Side
+    3:  
+    4:  #include <hidef.h>
+    5:  #include "derivative.h"
+    6:  #include "SCIb.H"
+    7:  #include "PLL.H"
+    8:  #include "XBeeRx.h"
+    9:  #include "TXFIFOb.h"
+   10:  #include "SCI1.h"
+   11:  
+   12:  //---------------------OutCRLF---------------------
+   13:  // Output a CR,LF to SCI to go to a new line
+   14:  // Input: none
+   15:  // Output: none
+   16:  void OutCRLF(void){
+*** EVALUATION ***
+
+Function: OutCRLF
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\prm;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\xbee_proj_working_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+   17:    SCI1_OutChar(CR);
+  0000 c60d         [1]     LDAB  #13
+  0002 160000       [4]     JSR   SCI1_OutChar
+   18:    SCI1_OutChar(LF);
+  0005 c60a         [1]     LDAB  #10
+  0007 160000       [4]     JSR   SCI1_OutChar
+   19:    PTP_PTP7 ^= 1;
+  000a f60000       [3]     LDAB  _PTP
+  000d c880         [1]     EORB  #128
+  000f 7b0000       [3]     STAB  _PTP
+   20:  }
+  0012 3d           [5]     RTS   
+   21:  
+   22:  void main(void){
+*** EVALUATION ***
+
+Function: main
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources\main.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\prm;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\xbee_proj_working_Data\HCS12_Serial_Monitor\ObjectCode\main.c.o -WmsgSd1106
+
+  0000 1bf1c6       [2]     LEAS  -58,SP
+   23:    unsigned short phrase = 0;
+  0003 c7           [1]     CLRB  
+  0004 87           [1]     CLRA  
+  0005 6c86         [2]     STD   6,SP
+   24:    unsigned char data[50];
+   25:    unsigned short check = 0;
+  0007 6c84         [2]     STD   4,SP
+   26:    unsigned short length  = 0;
+  0009 6c82         [2]     STD   2,SP
+   27:    int i = 0;
+  000b 6c80         [2]     STD   0,SP
+   28:    
+   29:    SCIb_Init(9600);
+  000d cc2580       [2]     LDD   #9600
+  0010 160000       [4]     JSR   SCIb_Init
+   30:    DDRP |= 0x80;       //Port P bit 7 is output to LED
+  0013 1c000080     [4]     BSET  _DDRP,#128
+   31:    PLL_Init();         //Running at 24 MHz
+  0017 160000       [4]     JSR   PLL_Init
+   32:    SCI1_Init(115200);    // fastest standard baud rate on run mode 9S12DP512 
+  001a 86c2         [1]     LDAA  #194
+  001c c7           [1]     CLRB  
+  001d ce0001       [2]     LDX   #1
+  0020 160000       [4]     JSR   SCI1_Init
+   33:    XBee_Init();
+  0023 160000       [4]     JSR   XBee_Init
+   34:    asm cli
+  0026 10ef         [1]     CLI   
+   35:    
+   36:    SCI1_OutString("XBee Test"); OutCRLF();
+  0028 cc0000       [2]     LDD   #"XBee Test"
+  002b 160000       [4]     JSR   SCI1_OutString
+  002e 0700         [4]     BSR   OutCRLF
+   37:    
+   38:    for(;;){
+   39:        SCI1_OutString("XBee Output: ");
+  0030 cc0000       [2]     LDD   #"XBee Output: "
+  0033 160000       [4]     JSR   SCI1_OutString
+   40:        XBee_ReceiveRxFrame(data);
+  0036 1a88         [2]     LEAX  8,SP
+  0038 b754         [1]     TFR   X,D
+  003a 34           [2]     PSHX  
+  003b 160000       [4]     JSR   XBee_ReceiveRxFrame
+   41:        SCI1_OutString(data);OutCRLF();   
+  003e 3a           [3]     PULD  
+  003f 20ea         [3]     BRA   *-20 ;abs = 002b
+   42:    }
+   43:  } 
+   44:      

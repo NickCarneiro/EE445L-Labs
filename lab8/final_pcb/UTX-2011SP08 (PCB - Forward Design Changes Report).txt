@@ -1,0 +1,24 @@
+Forward Design Changes Report
+-----------------------------
+
+Report File    : C:\Users\Owner\Dropbox\EE445L\lab8\final_pcb\UTX-2011SP08 (PCB - Forward Design Changes Report).txt
+Report Written : Thursday, April 07, 2011
+Design Path    : C:\Users\Owner\Dropbox\EE445L\lab8\final_pcb\UTX-2011SP08.pcb
+Design Title   : 
+Created        : 3/27/2011 9:48:09 PM
+Last Saved     : 4/8/2011 1:18:34 AM
+Editing Time   : 1436 min
+Units          : inches (precision 3)
+
+Added component reference "TheBox" of component "CAS1007", package "MISC".
+Added value "Manufacturer=" to component reference "TheBox".
+
+Added value "Manufacturer Part Number=" to component reference "TheBox".
+
+Added value "Distributor=" to component reference "TheBox".
+
+Added value "Distributor Part Number=" to component reference "TheBox".
+
+
+
+End Of Report.

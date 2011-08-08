@@ -1,0 +1,46 @@
+Design Rule Check Report
+------------------------
+
+Report File    : C:\Users\Owner\Dropbox\EE445L\lab8\workable_items\lab8_scheme_workable (PCB - Design Rule Check Report).txt
+Report Written : Wednesday, April 06, 2011
+Design Path    : C:\Users\Owner\Dropbox\EE445L\lab8\workable_items\lab8_scheme_workable.pcb
+Design Title   : 
+Created        : 3/27/2011 9:48:09 PM
+Last Saved     : 4/7/2011 2:52:52 AM
+Editing Time   : 844 min
+Units          : inches (precision 3)
+
+Results
+-------
+
+Dangling Track from (7.556,10.496) to (7.560,10.500) on layer Top Copper
+Dangling Track from (7.307,10.493) to (7.300,10.500) on layer Top Copper
+Dangling Track from (7.335,10.506) to (7.330,10.510) on layer Top Copper
+
+Number of errors found : 3
+
+Settings
+--------
+
+Spacings
+    Tracks                             Yes
+    Pads and Vias                      Yes
+    Shapes                             Yes
+    Text                               Yes
+    Board                              Yes
+    Drills                             Yes
+    Components                         No
+
+Manufacturing
+    Min Drill Hole Size                Yes
+    Min Track Width                    Yes
+    Min Annular Ring                   Yes
+    Drill Breakout                     Yes
+
+Nets
+    Net Completion                     Yes
+    Dangling Tracks                    Yes
+    Net Track Length Differences       No
+
+
+End Of Report.

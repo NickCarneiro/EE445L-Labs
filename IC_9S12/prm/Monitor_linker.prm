@@ -1,0 +1,28 @@
+NAMES
+END
+
+SEGMENTS
+    RAM = READ_WRITE 0x3800 TO 0x3FFF;
+    /* unbanked FLASH ROM */
+    ROM_4000 = READ_ONLY  0x4000 TO 0x7FFF;
+    ROM_C000 = READ_ONLY  0xC000 TO 0xFEFF;
+    /* banked FLASH ROM */
+/*  PAGE_3E = READ_ONLY  0x3E8000 TO 0x3EBFFF; not used: equivalent to ROM_4000 */
+/*  PAGE_3F = READ_ONLY  0x3F8000 TO 0x3FBFFF; not used: equivalent to ROM_C000 */
+END
+
+PLACEMENT
+    _PRESTART, STARTUP,
+    ROM_VAR, STRINGS,
+    VIRTUAL_TABLE_SEGMENT,
+    DEFAULT_ROM, NON_BANKED  ,
+    OTHER_ROM  , COPY            INTO  ROM_4000, ROM_C000;
+    DEFAULT_RAM                  INTO  RAM;
+END
+
+STACKSIZE 0x100
+
+VECTOR 0 _Startup /* reset vector: this is the default entry point for a C/C++ application. */
+//VECTOR 0 Entry  /* reset vector: this is the default entry point for a Assembly application. */
+//INIT Entry      /* for assembly applications: that this is as well the initialisation entry point */
+

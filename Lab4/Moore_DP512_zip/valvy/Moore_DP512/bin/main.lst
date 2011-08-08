@@ -1,0 +1,117 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.38 Build 9056, Feb 26 2009
+
+    1:  // filename ******** Main.C ************** 
+    2:  // MC9S12DP512 Moore finite state machine example   
+    3:  // TCNT increments at a fixed rate
+    4:  // PT1 and PT0 are outputs to LEDs
+    5:  // PH1 and PH0 are inputs from switches
+    6:  // if both buttons not pushed, fast alternate LED toggle
+    7:  // if PH0 button pushed, both LEDs are on
+    8:  // if PH1 button pushed, both LEDs are off
+    9:  // if both buttons pushed, slow together LED toggle
+   10:  // Jonathan W. Valvano 10/11/09
+   11:  
+   12:  //  This example accompanies the books
+   13:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+   14:  //        Thompson, copyright (c) 2006,
+   15:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+   16:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   17:  
+   18:  // Copyright 2009 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   19:  // You may use, edit, run or distribute this file 
+   20:  //    as long as the above copyright notices remain
+   21:  
+   22:  #include <hidef.h>      /* common defines and macros */
+   23:  #include "derivative.h"      /* derivative-specific definitions */
+   24:  #include "pll.h"
+   25:  #include "timer.h"
+   26:  
+   27:  
+   28:  const struct State{
+   29:    unsigned char Out;            // Output to Port T
+   30:    unsigned short Time;          // Time in msec to wait in this state
+   31:    const struct State *Next[4];  // Next state if input=0,1,2,3
+   32:  };
+   33:  typedef const struct State StateType;
+   34:  typedef StateType *	StatePtr;
+   35:  
+   36:  #define SA &fsm[0]
+   37:  #define SB &fsm[1]
+   38:  #define SC &fsm[2]
+   39:  #define SD &fsm[3]
+   40:  #define SE &fsm[4]
+   41:  #define SF &fsm[5]
+   42:  StateType fsm[6]={
+   43:  	{0x01,2,{SB,SC,SD,SE}},   // SA,SB fast alternate toggle
+   44:  	{0x02,2,{SA,SC,SD,SE}},   // SB
+   45:  	{0x03,1,{SA,SC,SD,SE}},   // SC both on
+   46:  	{0x00,1,{SA,SC,SD,SE}},   // SD both off
+   47:  	{0x00,10,{SA,SC,SD,SF}},  // SE,SF together toggle
+   48:  	{0x03,10,{SA,SC,SD,SE}}   // SF
+   49:  };
+   50:  
+   51:  StatePtr Pt;  // Current State 
+   52:  unsigned char Input;
+   53:  
+   54:  //---------FSMInit------------------
+   55:  // initialize FSM, clock, initial state SA
+   56:  // inputs: none
+   57:  // outputs: none
+   58:  void FSMInit(void){
+*** EVALUATION ***
+
+Function: FSMInit
+Source  : D:\EE345L\9S12DP512\Moore_DP512\Sources\main.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=D:\EE345L\9S12DP512\Moore_DP512;D:\EE345L\9S12DP512\Moore_DP512\bin;D:\EE345L\9S12DP512\Moore_DP512\prm;D:\EE345L\9S12DP512\Moore_DP512\cmd;D:\EE345L\9S12DP512\Moore_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\Moore_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\Moore_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\Moore_DP512\Moore_DP512_Data\Standard\ObjectCode\main.c.o -WmsgSd1106
+
+   59:    Pt = SA;        // Initial State
+  0000 180300000000 [5]     MOVW  #fsm,Pt
+   60:    DDRT |= 0x03;    // PT1,PT0 outputs
+  0006 1c000003     [4]     BSET  _DDRT,#3
+   61:    DDRH &= ~0x03;   // PH1,PH0 inputs
+  000a 1d000003     [4]     BCLR  _DDRH,#3
+   62:  }
+  000e 3d           [5]     RTS   
+   63:  
+   64:  void main(void) {
+*** EVALUATION ***
+
+Function: main
+Source  : D:\EE345L\9S12DP512\Moore_DP512\Sources\main.c
+Options : -Cc -CPUHCS12 -D_HCS12_SERIALMON -D__NO_FLOAT__ -Env"GENPATH=D:\EE345L\9S12DP512\Moore_DP512;D:\EE345L\9S12DP512\Moore_DP512\bin;D:\EE345L\9S12DP512\Moore_DP512\prm;D:\EE345L\9S12DP512\Moore_DP512\cmd;D:\EE345L\9S12DP512\Moore_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for S12(X) V5.0\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\Moore_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\Moore_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\Moore_DP512\Moore_DP512_Data\Standard\ObjectCode\main.c.o -WmsgSd1106
+
+   65:    PLL_Init();     // 24 MHz
+  0000 160000       [4]     JSR   PLL_Init
+   66:    Timer_Init();   // TCNT at 1.5 MHz
+  0003 160000       [4]     JSR   Timer_Init
+   67:    FSMInit();
+  0006 0700         [4]     BSR   FSMInit
+   68:    asm cli
+  0008 10ef         [1]     CLI   
+   69:   
+   70:    for(;;) { 
+   71:      PTT = (PTT&0xFC)+Pt->Out; // Output depends on the current state
+  000a f60000       [3]     LDAB  _PTT
+  000d c4fc         [1]     ANDB  #252
+  000f ebfb0000     [6]     ADDB  [Pt,PCR]
+  0013 7b0000       [3]     STAB  _PTT
+   72:      Timer_Wait1ms(Pt->Time);  // Time to wait in this state
+  0016 fe0000       [3]     LDX   Pt
+  0019 ec01         [3]     LDD   1,X
+  001b 160000       [4]     JSR   Timer_Wait1ms
+   73:      Input = PTH&0x03;         // Input=0,1,2,or 3
+  001e f60000       [3]     LDAB  _PTH
+  0021 c403         [1]     ANDB  #3
+  0023 7b0000       [3]     STAB  Input
+   74:      Pt = Pt->Next[Input];     // Next state depends on the input 
+  0026 87           [1]     CLRA  
+  0027 59           [1]     LSLD  
+  0028 f30000       [3]     ADDD  Pt
+  002b b745         [1]     TFR   D,X
+  002d ee03         [3]     LDX   3,X
+  002f 7e0000       [3]     STX   Pt
+  0032 20d6         [3]     BRA   *-40 ;abs = 000a
+   75:    }
+   76:  }
+   77:  

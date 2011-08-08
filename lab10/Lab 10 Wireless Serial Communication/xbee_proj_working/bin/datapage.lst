@@ -1,0 +1,2151 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  /******************************************************************************
+    2:    FILE        : datapage.c
+    3:    PURPOSE     : paged data access runtime routines
+    4:    MACHINE     : Freescale 68HC12 (Target)
+    5:    LANGUAGE    : ANSI-C
+    6:    HISTORY     : 21.7.96 first version created
+    7:  ******************************************************************************/
+    8:  
+    9:  #include "hidef.h"
+   10:  
+   11:  #include "non_bank.sgm"
+   12:  #include "runtime.sgm"
+   13:  
+   14:  /*lint --e{957} , MISRA 8.1 REQ, these are runtime support functions and, as such, are not meant to be called in user code; they are only invoked via jumps, in compiler-generated code */
+   15:  /*lint -estring(553, __OPTION_ACTIVE__) , MISRA 19.11 REQ , __OPTION_ACTIVE__ is a built-in compiler construct to check for active compiler options */
+   16:  
+   17:  #ifndef __HCS12X__ /* it's different for the HCS12X. See the text below at the #else // __HCS12X__ */
+   18:  
+   19:  /*
+   20:     According to the -Cp option of the compiler the
+   21:     __DPAGE__, __PPAGE__ and __EPAGE__ macros are defined.
+   22:     If none of them is given as argument, then no page accesses should occur and
+   23:     this runtime routine should not be used !
+   24:     To be on the save side, the runtime routines are created anyway.
+   25:  */
+   26:  
+   27:  /* Compile with option -DHCS12 to activate this code */
+   28:  #if defined(HCS12) || defined(_HCS12) || defined(__HCS12__)
+   29:  #ifndef PPAGE_ADDR
+   30:  #ifdef __PPAGE_ADR__
+   31:  #define PPAGE_ADDR __PPAGE_ADR__
+   32:  #else
+   33:  #define PPAGE_ADDR (0x30 + REGISTER_BASE)
+   34:  #endif
+   35:  #endif
+   36:  #ifndef __PPAGE__ /* may be set already by option -CPPPAGE */
+   37:  #define __PPAGE__
+   38:  #endif
+   39:  /* Compile with option -DDG128 to activate this code */
+   40:  #elif defined DG128 /* HC912DG128 derivative has PPAGE register only at 0xFF */
+   41:  #ifndef PPAGE_ADDR
+   42:  #define PPAGE_ADDR (0xFF+REGISTER_BASE)
+   43:  #endif
+   44:  #ifndef __PPAGE__ /* may be set already by option -CPPPAGE */
+   45:  #define __PPAGE__
+   46:  #endif
+   47:  #elif defined(HC812A4)
+   48:  /* all setting default to A4 already */
+   49:  #endif
+   50:  
+   51:  
+   52:  #if !defined(__EPAGE__) && !defined(__PPAGE__) && !defined(__DPAGE__)
+   53:  /* as default use all page registers */
+   54:  #define __DPAGE__
+   55:  #define __EPAGE__
+   56:  #define __PPAGE__
+   57:  #endif
+   58:  
+   59:  /* modify the following defines to your memory configuration */
+   60:  
+   61:  #define EPAGE_LOW_BOUND   0x400u
+   62:  #define EPAGE_HIGH_BOUND  0x7ffu
+   63:  
+   64:  #define DPAGE_LOW_BOUND   0x7000u
+   65:  #define DPAGE_HIGH_BOUND  0x7fffu
+   66:  
+   67:  #define PPAGE_LOW_BOUND   (DPAGE_HIGH_BOUND+1u)
+   68:  #define PPAGE_HIGH_BOUND  0xBFFFu
+   69:  
+   70:  #ifndef REGISTER_BASE
+   71:  #define REGISTER_BASE      0x0u
+   72:  #endif
+   73:  
+   74:  #ifndef DPAGE_ADDR
+   75:  #define DPAGE_ADDR        (0x34u+REGISTER_BASE)
+   76:  #endif
+   77:  #ifndef EPAGE_ADDR
+   78:  #define EPAGE_ADDR        (0x36u+REGISTER_BASE)
+   79:  #endif
+   80:  #ifndef PPAGE_ADDR
+   81:  #define PPAGE_ADDR        (0x35u+REGISTER_BASE)
+   82:  #endif
+   83:  
+   84:  /*
+   85:    The following parts about the defines are assumed in the code of _GET_PAGE_REG :
+   86:    - the memory region controlled by DPAGE is above the area controlled by the EPAGE and
+   87:      below the area controlled by the PPAGE.
+   88:    - the lower bound of the PPAGE area is equal to be the higher bound of the DPAGE area + 1
+   89:  */
+   90:  #if (EPAGE_LOW_BOUND >= EPAGE_HIGH_BOUND) || (EPAGE_HIGH_BOUND >= DPAGE_LOW_BOUND) || (DPAGE_LOW_BOUND >= DPAGE_HIGH_BOUND) || (DPAGE_HIGH_BOUND >= PPAGE_LOW_BOUND) || (PPAGE_LOW_BOUND >= PPAGE_HIGH_BOUND)
+   91:  #error /* please adapt _GET_PAGE_REG for this non default page configuration */
+   92:  #endif
+   93:  
+   94:  #if (DPAGE_HIGH_BOUND+1u) != PPAGE_LOW_BOUND
+   95:  #error /* please adapt _GET_PAGE_REG for this non default page configuration */
+   96:  #endif
+   97:  
+   98:  
+   99:  /* this module does either control if any access is in the bounds of the specified page or */
+  100:  /* ,if only one page is specified, just use this page. */
+  101:  /* This behavior is controlled by the define USE_SEVERAL_PAGES. */
+  102:  /* If !USE_SEVERAL_PAGES does increase the performance significantly */
+  103:  /* NOTE : When !USE_SEVERAL_PAGES, the page is also set for accesses outside of the area controlled */
+  104:  /*        by this single page. But this is should not cause problems because the page is restored to the old value before any other access could occur */
+  105:  
+  106:  #if !defined(__DPAGE__) && !defined(__EPAGE__) && !defined(__PPAGE__)
+  107:  /* no page at all is specified */
+  108:  /* only specifying the right pages will speed up these functions a lot */
+  109:  #define USE_SEVERAL_PAGES 1
+  110:  #elif (defined(__DPAGE__) && defined(__EPAGE__)) || (defined(__DPAGE__) && defined(__PPAGE__)) || (defined(__EPAGE__) && defined(__PPAGE__))
+  111:  /* more than one page register is used */
+  112:  #define USE_SEVERAL_PAGES 1
+  113:  #else
+  114:  
+  115:  #define USE_SEVERAL_PAGES 0
+  116:  
+  117:  #if defined(__DPAGE__) /* check which pages are used  */
+  118:  #define PAGE_ADDR PPAGE_ADDR
+  119:  #elif defined(__EPAGE__)
+  120:  #define PAGE_ADDR EPAGE_ADDR
+  121:  #elif defined(__PPAGE__)
+  122:  #define PAGE_ADDR PPAGE_ADDR
+  123:  #else /* we do not know which page, decide it at runtime */
+  124:  #error /* must not happen */
+  125:  #endif
+  126:  
+  127:  #endif
+  128:  
+  129:  
+  130:  #if USE_SEVERAL_PAGES /* only needed for several pages support */
+  131:  /*--------------------------- _GET_PAGE_REG --------------------------------
+  132:    Runtime routine to detect the right register depending on the 16 bit offset part
+  133:    of an address.
+  134:    This function is only used by the functions below.
+  135:  
+  136:    Depending on the compiler options -Cp different versions of _GET_PAGE_REG are produced.
+  137:  
+  138:    Arguments :
+  139:    - Y : offset part of an address
+  140:  
+  141:    Result :
+  142:    if address Y is controlled by a page register :
+  143:    - X : address of page register if Y is controlled by an page register
+  144:    - Zero flag cleared
+  145:    - all other registers remain unchanged
+  146:  
+  147:    if address Y is not controlled by a page register :
+  148:    - Zero flag is set
+  149:    - all registers remain unchanged
+  150:  
+  151:    --------------------------- _GET_PAGE_REG ----------------------------------*/
+  152:  
+  153:  #if defined(__DPAGE__)
+  154:  
+  155:  #ifdef __cplusplus
+  156:  extern "C"
+  157:  #endif
+  158:  #pragma NO_ENTRY
+  159:  #pragma NO_EXIT
+  160:  #pragma NO_FRAME
+  161:  
+  162:  static void NEAR _GET_PAGE_REG(void) { /*lint -esym(528, _GET_PAGE_REG) used in asm code */
+  163:    asm {
+  164:  L_DPAGE:
+  165:          CPY     #DPAGE_LOW_BOUND  ;/* test of lower bound of DPAGE */
+  166:  #if defined(__EPAGE__)
+  167:          BLO     L_EPAGE           ;/* EPAGE accesses are possible */
+  168:  #else
+  169:          BLO     L_NOPAGE          ;/* no paged memory below accesses */
+  170:  #endif
+  171:          CPY     #DPAGE_HIGH_BOUND ;/* test of higher bound DPAGE/lower bound PPAGE */
+  172:  #if defined(__PPAGE__)
+  173:          BHI     L_PPAGE           ;/* EPAGE accesses are possible */
+  174:  #else
+  175:          BHI     L_NOPAGE          ;/* no paged memory above accesses */
+  176:  #endif
+  177:  FOUND_DPAGE:
+  178:          LDX     #DPAGE_ADDR       ;/* load page register address and clear zero flag */
+  179:          RTS
+  180:  
+  181:  #if defined(__PPAGE__)
+  182:  L_PPAGE:
+  183:          CPY     #PPAGE_HIGH_BOUND ;/* test of higher bound of PPAGE */
+  184:          BHI     L_NOPAGE
+  185:  FOUND_PPAGE:
+  186:          LDX     #PPAGE_ADDR       ;/* load page register address and clear zero flag */
+  187:          RTS
+  188:  #endif
+  189:  
+  190:  #if defined(__EPAGE__)
+  191:  L_EPAGE:
+  192:          CPY     #EPAGE_LOW_BOUND  ;/* test of lower bound of EPAGE */
+  193:          BLO     L_NOPAGE
+  194:          CPY     #EPAGE_HIGH_BOUND ;/* test of higher bound of EPAGE */
+  195:          BHI     L_NOPAGE
+  196:  
+  197:  FOUND_EPAGE:
+  198:          LDX     #EPAGE_ADDR       ;/* load page register address and clear zero flag */
+  199:          RTS
+  200:  #endif
+  201:  
+  202:  L_NOPAGE:
+  203:          ORCC    #0x04             ;/* sets zero flag */
+  204:          RTS
+  205:    }
+  206:  }
+  207:  
+  208:  #else /* !defined(__DPAGE__) */
+  209:  
+  210:  #if defined( __PPAGE__ )
+  211:  
+  212:  #ifdef __cplusplus
+  213:  extern "C"
+  214:  #endif
+  215:  #pragma NO_ENTRY
+  216:  #pragma NO_EXIT
+  217:  #pragma NO_FRAME
+  218:  
+  219:  static void NEAR _GET_PAGE_REG(void) {	/*lint -esym(528, _GET_PAGE_REG) used in asm code */
+  220:    asm {
+  221:  L_PPAGE:
+  222:          CPY     #PPAGE_LOW_BOUND  ;/* test of lower bound of PPAGE */
+  223:  #if defined( __EPAGE__ )
+  224:          BLO     L_EPAGE
+  225:  #else
+  226:          BLO     L_NOPAGE          ;/* no paged memory below */
+  227:  #endif
+  228:          CPY     #PPAGE_HIGH_BOUND ;/* test of higher bound PPAGE */
+  229:          BHI     L_NOPAGE
+  230:  FOUND_PPAGE:
+  231:          LDX     #PPAGE_ADDR       ;/* load page register address and clear zero flag */
+  232:          RTS
+  233:  #if defined( __EPAGE__ )
+  234:  L_EPAGE:
+  235:          CPY     #EPAGE_LOW_BOUND  ;/* test of lower bound of EPAGE */
+  236:          BLO     L_NOPAGE
+  237:          CPY     #EPAGE_HIGH_BOUND ;/* test of higher bound of EPAGE */
+  238:          BHI     L_NOPAGE
+  239:  FOUND_EPAGE:
+  240:          LDX     #EPAGE_ADDR       ;/* load page register address and clear zero flag */
+  241:          RTS
+  242:  #endif
+  243:  
+  244:  L_NOPAGE:                         ;/* not in any allowed page area */
+  245:                                    ;/* its a far access to a non paged variable */
+  246:          ORCC #0x04                ;/* sets zero flag */
+  247:          RTS
+  248:    }
+  249:  }
+  250:  
+  251:  #else /* !defined(__DPAGE__ ) && !defined( __PPAGE__) */
+  252:  #if defined(__EPAGE__)
+  253:  
+  254:  #ifdef __cplusplus
+  255:  extern "C"
+  256:  #endif
+  257:  #pragma NO_ENTRY
+  258:  #pragma NO_EXIT
+  259:  #pragma NO_FRAME
+  260:  
+  261:  static void NEAR _GET_PAGE_REG(void) { /*lint -esym(528, _GET_PAGE_REG) used in asm code */
+  262:    asm {
+  263:  L_EPAGE:
+  264:          CPY     #EPAGE_LOW_BOUND  ;/* test of lower bound of EPAGE */
+  265:          BLO     L_NOPAGE
+  266:          CPY     #EPAGE_HIGH_BOUND ;/* test of higher bound of EPAGE */
+  267:          BHI     L_NOPAGE
+  268:  FOUND_EPAGE:
+  269:          LDX     #EPAGE_ADDR       ;/* load page register address and clear zero flag */
+  270:          RTS
+  271:  
+  272:  L_NOPAGE:                         ;/* not in any allowed page area */
+  273:                                    ;/* its a far access to a non paged variable */
+  274:          ORCC    #0x04             ;/* sets zero flag */
+  275:          RTS
+  276:    }
+  277:  }
+  278:  
+  279:  #endif /*  defined(__EPAGE__) */
+  280:  #endif /*  defined(__PPAGE__) */
+  281:  #endif /*  defined(__DPAGE__) */
+  282:  
+  283:  #endif /* USE_SEVERAL_PAGES */
+  284:  
+  285:  /*--------------------------- _SET_PAGE --------------------------------
+  286:    Runtime routine to set the right page register. This routine is used if the compiler
+  287:    does not know the right page register, i.e. if the option -Cp is used for more than
+  288:    one page register or if the runtime option is used for one of the -Cp options.
+  289:  
+  290:    Arguments :
+  291:    - offset part of an address in the Y register
+  292:    - page part of an address in the B register
+  293:  
+  294:    Result :
+  295:    - page part written into the correct page register.
+  296:    - the old page register content is destroyed
+  297:    - all processor registers remains unchanged
+  298:    --------------------------- _SET_PAGE ----------------------------------*/
+  299:  
+  300:  #ifdef __cplusplus
+  301:  extern "C"
+  302:  #endif
+  303:  #pragma NO_ENTRY
+  304:  #pragma NO_EXIT
+  305:  #pragma NO_FRAME
+  306:  
+  307:  void NEAR _SET_PAGE(void) {
+*** EVALUATION ***
+
+Function: _SET_PAGE
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources\datapage.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\prm;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\xbee_proj_working_Data\HCS12_Serial_Monitor\ObjectCode\datapage.c.o
+
+  308:  #if USE_SEVERAL_PAGES
+  309:    asm {
+  310:          PSHX                      ;/* save X register */
+  311:          __PIC_JSR(_GET_PAGE_REG)
+  312:          BEQ     L_NOPAGE
+  313:          STAB    0,X               ;/* set page register */
+  314:  L_NOPAGE:
+  315:          PULX                      ;/* restore X register */
+  316:          RTS
+  317:    }
+  318:  #else /* USE_SEVERAL_PAGES */
+  319:    asm {
+  320:          STAB    PAGE_ADDR         ;/* set page register */
+  0000 5b30         [2]     STAB  48
+  321:          RTS
+  0002 3d           [5]     RTS   
+  322:    }
+  323:  #endif /* USE_SEVERAL_PAGES */
+  324:  }
+  325:  
+  326:  /*--------------------------- _LOAD_FAR_8 --------------------------------
+  327:    This runtime routine is used to access paged memory via a runtime function.
+  328:    It may also be used if the compiler option -Cp is not used with the runtime argument.
+  329:  
+  330:    Arguments :
+  331:    - offset part of an address in the Y register
+  332:    - page part of an address in the B register
+  333:  
+  334:    Result :
+  335:    - value to be read in the B register
+  336:    - all other registers remains unchanged
+  337:    - all page register still contain the same value
+  338:    --------------------------- _LOAD_FAR_8 ----------------------------------*/
+  339:  
+  340:  #ifdef __cplusplus
+  341:  extern "C"
+  342:  #endif
+  343:  #pragma NO_ENTRY
+  344:  #pragma NO_EXIT
+  345:  #pragma NO_FRAME
+  346:  
+  347:  void NEAR _LOAD_FAR_8(void) {
+*** EVALUATION ***
+
+Function: _LOAD_FAR_8
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources\datapage.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\prm;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\xbee_proj_working_Data\HCS12_Serial_Monitor\ObjectCode\datapage.c.o
+
+  348:  #if USE_SEVERAL_PAGES
+  349:    asm {
+  350:          PSHX                      ;/* save X register */
+  351:          __PIC_JSR(_GET_PAGE_REG)
+  352:          BEQ     L_NOPAGE
+  353:          PSHA                      ;/* save A register */
+  354:          LDAA    0,X               ;/* save page register */
+  355:          STAB    0,X               ;/* set page register */
+  356:          LDAB    0,Y               ;/* actual load, overwrites page */
+  357:          STAA    0,X               ;/* restore page register */
+  358:          PULA                      ;/* restore A register */
+  359:          PULX                      ;/* restore X register */
+  360:          RTS
+  361:  L_NOPAGE:
+  362:          LDAB    0,Y               ;/* actual load, overwrites page */
+  363:          PULX                      ;/* restore X register */
+  364:          RTS
+  365:    }
+  366:  #else /* USE_SEVERAL_PAGES */
+  367:    asm {
+  368:          PSHA                      ;/* save A register */
+  0000 36           [2]     PSHA  
+  369:          LDAA    PAGE_ADDR         ;/* save page register */
+  0001 9630         [3]     LDAA  48
+  370:          STAB    PAGE_ADDR         ;/* set page register */
+  0003 5b30         [2]     STAB  48
+  371:          LDAB    0,Y               ;/* actual load, overwrites page */
+  0005 e640         [3]     LDAB  0,Y
+  372:          STAA    PAGE_ADDR         ;/* restore page register */
+  0007 5a30         [2]     STAA  48
+  373:          PULA                      ;/* restore A register */
+  0009 32           [3]     PULA  
+  374:          RTS
+  000a 3d           [5]     RTS   
+  375:    }
+  376:  #endif /* USE_SEVERAL_PAGES */
+  377:  }
+  378:  
+  379:  /*--------------------------- _LOAD_FAR_16 --------------------------------
+  380:    This runtime routine is used to access paged memory via a runtime function.
+  381:    It may also be used if the compiler  option -Cp is not used with the runtime argument.
+  382:  
+  383:    Arguments :
+  384:    - offset part of an address in the Y register
+  385:    - page part of an address in the B register
+  386:  
+  387:    Result :
+  388:    - value to be read in the Y register
+  389:    - all other registers remains unchanged
+  390:    - all page register still contain the same value
+  391:    --------------------------- _LOAD_FAR_16 ----------------------------------*/
+  392:  
+  393:  #ifdef __cplusplus
+  394:  extern "C"
+  395:  #endif
+  396:  #pragma NO_ENTRY
+  397:  #pragma NO_EXIT
+  398:  #pragma NO_FRAME
+  399:  
+  400:  void NEAR _LOAD_FAR_16(void) {
+*** EVALUATION ***
+
+Function: _LOAD_FAR_16
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources\datapage.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\prm;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\xbee_proj_working_Data\HCS12_Serial_Monitor\ObjectCode\datapage.c.o
+
+  401:  #if USE_SEVERAL_PAGES
+  402:    asm {
+  403:          PSHX                      ;/* save X register */
+  404:          __PIC_JSR(_GET_PAGE_REG)
+  405:          BEQ     L_NOPAGE
+  406:          PSHA                      ;/* save A register */
+  407:          LDAA    0,X               ;/* save page register */
+  408:          STAB    0,X               ;/* set page register */
+  409:          LDY     0,Y               ;/* actual load, overwrites address */
+  410:          STAA    0,X               ;/* restore page register */
+  411:          PULA                      ;/* restore A register */
+  412:          PULX                      ;/* restore X register */
+  413:          RTS
+  414:  L_NOPAGE:
+  415:          LDY     0,Y               ;/* actual load, overwrites address */
+  416:          PULX                      ;/* restore X register */
+  417:          RTS
+  418:    }
+  419:  #else /* USE_SEVERAL_PAGES */
+  420:    asm {
+  421:          PSHA                      ;/* save A register */
+  0000 36           [2]     PSHA  
+  422:          LDAA    PAGE_ADDR         ;/* save page register */
+  0001 9630         [3]     LDAA  48
+  423:          STAB    PAGE_ADDR         ;/* set page register */
+  0003 5b30         [2]     STAB  48
+  424:          LDY     0,Y               ;/* actual load, overwrites address */
+  0005 ed40         [3]     LDY   0,Y
+  425:          STAA    PAGE_ADDR         ;/* restore page register */
+  0007 5a30         [2]     STAA  48
+  426:          PULA                      ;/* restore A register */
+  0009 32           [3]     PULA  
+  427:          RTS
+  000a 3d           [5]     RTS   
+  428:    }
+  429:  #endif /* USE_SEVERAL_PAGES */
+  430:  }
+  431:  /*--------------------------- _LOAD_FAR_24 --------------------------------
+  432:    This runtime routine is used to access paged memory via a runtime function.
+  433:    It may also be used if the compiler  option -Cp is not used with the runtime argument.
+  434:  
+  435:    Arguments :
+  436:    - offset part of an address in the Y register
+  437:    - page part of an address in the B register
+  438:  
+  439:    Result :
+  440:    - value to be read in the Y:B registers
+  441:    - all other registers remains unchanged
+  442:    - all page register still contain the same value
+  443:    --------------------------- _LOAD_FAR_24 ----------------------------------*/
+  444:  
+  445:  #ifdef __cplusplus
+  446:  extern "C"
+  447:  #endif
+  448:  #pragma NO_ENTRY
+  449:  #pragma NO_EXIT
+  450:  #pragma NO_FRAME
+  451:  
+  452:  void NEAR _LOAD_FAR_24(void) {
+*** EVALUATION ***
+
+Function: _LOAD_FAR_24
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources\datapage.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\prm;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\xbee_proj_working_Data\HCS12_Serial_Monitor\ObjectCode\datapage.c.o
+
+  453:  #if USE_SEVERAL_PAGES
+  454:    asm {
+  455:          PSHX                      ;/* save X register */
+  456:          __PIC_JSR(_GET_PAGE_REG)
+  457:          BEQ     L_NOPAGE
+  458:          PSHA                      ;/* save A register */
+  459:          LDAA    0,X               ;/* save page register */
+  460:          STAB    0,X               ;/* set page register */
+  461:          LDAB    0,Y               ;/* actual load, overwrites page of address */
+  462:          LDY     1,Y               ;/* actual load, overwrites offset of address */
+  463:          STAA    0,X               ;/* restore page register */
+  464:          PULA                      ;/* restore A register */
+  465:          PULX                      ;/* restore X register */
+  466:          RTS
+  467:  L_NOPAGE:
+  468:          LDAB    0,Y               ;/* actual load, overwrites page of address */
+  469:          LDY     1,Y               ;/* actual load, overwrites offset of address */
+  470:          PULX                      ;/* restore X register */
+  471:          RTS
+  472:    }
+  473:  #else /* USE_SEVERAL_PAGES */
+  474:    asm {
+  475:          PSHA                      ;/* save A register */
+  0000 36           [2]     PSHA  
+  476:          LDAA    PAGE_ADDR         ;/* save page register */
+  0001 9630         [3]     LDAA  48
+  477:          STAB    PAGE_ADDR         ;/* set page register */
+  0003 5b30         [2]     STAB  48
+  478:          LDAB    0,Y               ;/* actual load, overwrites page of address */
+  0005 e640         [3]     LDAB  0,Y
+  479:          LDY     1,Y               ;/* actual load, overwrites offset of address */
+  0007 ed41         [3]     LDY   1,Y
+  480:          STAA    PAGE_ADDR         ;/* restore page register */
+  0009 5a30         [2]     STAA  48
+  481:          PULA                      ;/* restore A register */
+  000b 32           [3]     PULA  
+  482:          RTS
+  000c 3d           [5]     RTS   
+  483:    }
+  484:  #endif /* USE_SEVERAL_PAGES */
+  485:  
+  486:  }
+  487:  
+  488:  /*--------------------------- _LOAD_FAR_32 --------------------------------
+  489:    This runtime routine is used to access paged memory via a runtime function.
+  490:    It may also be used if the compiler  option -Cp is not used with the runtime argument.
+  491:  
+  492:    Arguments :
+  493:    - offset part of an address in the Y register
+  494:    - page part of an address in the B register
+  495:  
+  496:    Result :
+  497:    - low 16 bit of value to be read in the D registers
+  498:    - high 16 bit of value to be read in the Y registers
+  499:    - all other registers remains unchanged
+  500:    - all page register still contain the same value
+  501:    --------------------------- _LOAD_FAR_32 ----------------------------------*/
+  502:  
+  503:  #ifdef __cplusplus
+  504:  extern "C"
+  505:  #endif
+  506:  #pragma NO_ENTRY
+  507:  #pragma NO_EXIT
+  508:  #pragma NO_FRAME
+  509:  
+  510:  void NEAR _LOAD_FAR_32(void) {
+*** EVALUATION ***
+
+Function: _LOAD_FAR_32
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources\datapage.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\prm;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\xbee_proj_working_Data\HCS12_Serial_Monitor\ObjectCode\datapage.c.o
+
+  511:  #if USE_SEVERAL_PAGES
+  512:    asm {
+  513:          PSHX                      ;/* save X register */
+  514:          __PIC_JSR(_GET_PAGE_REG)
+  515:          BEQ     L_NOPAGE
+  516:          LDAA    0,X               ;/* save page register */
+  517:          PSHA                      ;/* put it onto the stack */
+  518:          STAB    0,X               ;/* set page register */
+  519:          LDD     2,Y               ;/* actual load, low word */
+  520:          LDY     0,Y               ;/* actual load, high word */
+  521:          MOVB    1,SP+,0,X         ;/* restore page register */
+  522:          PULX                      ;/* restore X register */
+  523:          RTS
+  524:  L_NOPAGE:
+  525:          LDD     2,Y               ;/* actual load, low word */
+  526:          LDY     0,Y               ;/* actual load, high word */
+  527:          PULX                      ;/* restore X register */
+  528:          RTS
+  529:    }
+  530:  #else /* USE_SEVERAL_PAGES */
+  531:    asm {
+  532:          LDAA    PAGE_ADDR         ;/* save page register */
+  0000 9630         [3]     LDAA  48
+  533:          PSHA                      ;/* put it onto the stack */
+  0002 36           [2]     PSHA  
+  534:          STAB    PAGE_ADDR         ;/* set page register */
+  0003 5b30         [2]     STAB  48
+  535:          LDD     2,Y               ;/* actual load, low word */
+  0005 ec42         [3]     LDD   2,Y
+  536:          LDY     0,Y               ;/* actual load, high word */
+  0007 ed40         [3]     LDY   0,Y
+  537:          MOVB    1,SP+,PAGE_ADDR   ;/* restore page register */
+  0009 180db00030   [5]     MOVB  1,SP+,48
+  538:          RTS
+  000e 3d           [5]     RTS   
+  539:    }
+  540:  #endif /* USE_SEVERAL_PAGES */
+  541:  }
+  542:  
+  543:  /*--------------------------- _STORE_FAR_8 --------------------------------
+  544:    This runtime routine is used to access paged memory via a runtime function.
+  545:    It may also be used if the compiler  option -Cp is not used with the runtime argument.
+  546:  
+  547:    Arguments :
+  548:    - offset part of an address in the Y register
+  549:    - page part of an address in the B register
+  550:    - value to be stored in the B register
+  551:  
+  552:    Result :
+  553:    - value stored at the address
+  554:    - all registers remains unchanged
+  555:    - all page register still contain the same value
+  556:    --------------------------- _STORE_FAR_8 ----------------------------------*/
+  557:  
+  558:  #ifdef __cplusplus
+  559:  extern "C"
+  560:  #endif
+  561:  #pragma NO_ENTRY
+  562:  #pragma NO_EXIT
+  563:  #pragma NO_FRAME
+  564:  
+  565:  void NEAR _STORE_FAR_8(void) {
+*** EVALUATION ***
+
+Function: _STORE_FAR_8
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources\datapage.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\prm;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\xbee_proj_working_Data\HCS12_Serial_Monitor\ObjectCode\datapage.c.o
+
+  566:  #if USE_SEVERAL_PAGES
+  567:    asm {
+  568:          PSHX                      ;/* save X register */
+  569:          __PIC_JSR(_GET_PAGE_REG)
+  570:          BEQ     L_NOPAGE
+  571:          PSHB                      ;/* save B register */
+  572:          LDAB    0,X               ;/* save page register */
+  573:          MOVB    0,SP, 0,X         ;/* set page register */
+  574:          STAA    0,Y               ;/* store the value passed in A */
+  575:          STAB    0,X               ;/* restore page register */
+  576:          PULB                      ;/* restore B register */
+  577:          PULX                      ;/* restore X register */
+  578:          RTS
+  579:  L_NOPAGE:
+  580:          STAA    0,Y               ;/* store the value passed in A */
+  581:          PULX                      ;/* restore X register */
+  582:          RTS
+  583:    }
+  584:  #else /* USE_SEVERAL_PAGES */
+  585:    asm {
+  586:          PSHB                      ;/* save A register */
+  0000 37           [2]     PSHB  
+  587:          LDAB    PAGE_ADDR         ;/* save page register */
+  0001 d630         [3]     LDAB  48
+  588:          MOVB    0,SP,PAGE_ADDR    ;/* set page register */
+  0003 180d800030   [5]     MOVB  0,SP,48
+  589:          STAA    0,Y               ;/* store the value passed in A */
+  0008 6a40         [2]     STAA  0,Y
+  590:          STAB    PAGE_ADDR         ;/* restore page register */
+  000a 5b30         [2]     STAB  48
+  591:          PULB                      ;/* restore B register */
+  000c 33           [3]     PULB  
+  592:          RTS
+  000d 3d           [5]     RTS   
+  593:    }
+  594:  #endif /* USE_SEVERAL_PAGES */
+  595:  }
+  596:  
+  597:  /*--------------------------- _STORE_FAR_16 --------------------------------
+  598:    This runtime routine is used to access paged memory via a runtime function.
+  599:    It may also be used if the compiler  option -Cp is not used with the runtime argument.
+  600:  
+  601:    Arguments :
+  602:    - offset part of an address in the Y register
+  603:    - page part of an address in the B register
+  604:    - value to be stored in the X register
+  605:  
+  606:    Result :
+  607:    - value stored at the address
+  608:    - all registers remains unchanged
+  609:    - all page register still contain the same value
+  610:    --------------------------- _STORE_FAR_16 ----------------------------------*/
+  611:  
+  612:  #ifdef __cplusplus
+  613:  extern "C"
+  614:  #endif
+  615:  #pragma NO_ENTRY
+  616:  #pragma NO_EXIT
+  617:  #pragma NO_FRAME
+  618:  
+  619:  void NEAR _STORE_FAR_16(void) {
+*** EVALUATION ***
+
+Function: _STORE_FAR_16
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources\datapage.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\prm;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\xbee_proj_working_Data\HCS12_Serial_Monitor\ObjectCode\datapage.c.o
+
+  620:  #if USE_SEVERAL_PAGES
+  621:    asm {
+  622:          PSHX                      ;/* save X register */
+  623:          __PIC_JSR(_GET_PAGE_REG)
+  624:          BEQ     L_NOPAGE
+  625:  
+  626:          PSHA
+  627:          LDAA    0,X               ;/* save page register */
+  628:          STAB    0,X               ;/* set page register */
+  629:          MOVW    1,SP,0,Y          ;/* store the value passed in X */
+  630:          STAA    0,X               ;/* restore page register */
+  631:          PULA                      ;/* restore A register */
+  632:          PULX                      ;/* restore X register */
+  633:          RTS
+  634:  
+  635:  L_NOPAGE:
+  636:          STX 0,Y                   ;/* store the value passed in X */
+  637:          PULX                      ;/* restore X register */
+  638:          RTS
+  639:    }
+  640:  #else /* USE_SEVERAL_PAGES */
+  641:    asm {
+  642:          PSHA                      ;/* save A register */
+  0000 36           [2]     PSHA  
+  643:          LDAA    PAGE_ADDR         ;/* save page register */
+  0001 9630         [3]     LDAA  48
+  644:          STAB    PAGE_ADDR         ;/* set page register */
+  0003 5b30         [2]     STAB  48
+  645:          STX     0,Y               ;/* store the value passed in X */
+  0005 6e40         [2]     STX   0,Y
+  646:          STAA    PAGE_ADDR         ;/* restore page register */
+  0007 5a30         [2]     STAA  48
+  647:          PULA                      ;/* restore A register */
+  0009 32           [3]     PULA  
+  648:          RTS
+  000a 3d           [5]     RTS   
+  649:    }
+  650:  #endif /* USE_SEVERAL_PAGES */
+  651:  }
+  652:  /*--------------------------- _STORE_FAR_24 --------------------------------
+  653:    This runtime routine is used to access paged memory via a runtime function.
+  654:    It may also be used if the compiler  option -Cp is not used with the runtime argument.
+  655:  
+  656:    Arguments :
+  657:    - offset part of an address in the Y register
+  658:    - page part of an address in the B register
+  659:    - value to be stored in the X:A registers (X : low 16 bit, A : high 8 bit)
+  660:  
+  661:    Result :
+  662:    - value stored at the address
+  663:    - all registers remains unchanged
+  664:    - all page register still contain the same value
+  665:    --------------------------- _STORE_FAR_24 ----------------------------------*/
+  666:  
+  667:  #ifdef __cplusplus
+  668:  extern "C"
+  669:  #endif
+  670:  #pragma NO_ENTRY
+  671:  #pragma NO_EXIT
+  672:  #pragma NO_FRAME
+  673:  
+  674:  void NEAR _STORE_FAR_24(void) {
+*** EVALUATION ***
+
+Function: _STORE_FAR_24
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources\datapage.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\prm;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\xbee_proj_working_Data\HCS12_Serial_Monitor\ObjectCode\datapage.c.o
+
+  675:  #if USE_SEVERAL_PAGES
+  676:    asm {
+  677:          PSHX                      ;/* save X register */
+  678:          __PIC_JSR(_GET_PAGE_REG)
+  679:          BEQ     L_NOPAGE
+  680:  
+  681:          PSHA
+  682:          LDAA    0,X               ;/* save page register */
+  683:          STAB    0,X               ;/* set page register */
+  684:          MOVW    1,SP, 1,Y         ;/* store the value passed in X */
+  685:          MOVB    0,SP, 0,Y         ;/* store the value passed in A */
+  686:          STAA    0,X               ;/* restore page register */
+  687:          PULA                      ;/* restore A register */
+  688:          PULX                      ;/* restore X register */
+  689:          RTS
+  690:  
+  691:  L_NOPAGE:
+  692:          STX     1,Y               ;/* store the value passed in X */
+  693:          STAA    0,Y               ;/* store the value passed in X */
+  694:          PULX                      ;/* restore X register */
+  695:          RTS
+  696:    }
+  697:  #else /* USE_SEVERAL_PAGES */
+  698:    asm {
+  699:          PSHA                      ;/* save A register */
+  0000 36           [2]     PSHA  
+  700:          LDAA    PAGE_ADDR         ;/* save page register */
+  0001 9630         [3]     LDAA  48
+  701:          STAB    PAGE_ADDR         ;/* set page register */
+  0003 5b30         [2]     STAB  48
+  702:          MOVB    0,SP, 0,Y         ;/* store the value passed in A */
+  0005 180a8040     [5]     MOVB  0,SP,0,Y
+  703:          STX     1,Y               ;/* store the value passed in X */
+  0009 6e41         [2]     STX   1,Y
+  704:          STAA    PAGE_ADDR         ;/* restore page register */
+  000b 5a30         [2]     STAA  48
+  705:          PULA                      ;/* restore A register */
+  000d 32           [3]     PULA  
+  706:          RTS
+  000e 3d           [5]     RTS   
+  707:    }
+  708:  #endif /* USE_SEVERAL_PAGES */
+  709:  }
+  710:  /*--------------------------- _STORE_FAR_32 --------------------------------
+  711:    This runtime routine is used to access paged memory via a runtime function.
+  712:    It may also be used if the compiler  option -Cp is not used with the runtime argument.
+  713:  
+  714:    Arguments :
+  715:    - offset part of an address in the Y register
+  716:    - page part of an address is on the stack at 3,SP (just below the return address)
+  717:    - value to be stored in the X:D registers (D : low 16 bit, X : high 16 bit)
+  718:  
+  719:    Result :
+  720:    - value stored at the address
+  721:    - all registers remains unchanged
+  722:    - the page part is removed from the stack
+  723:    - all page register still contain the same value
+  724:    --------------------------- _STORE_FAR_32 ----------------------------------*/
+  725:  
+  726:  #ifdef __cplusplus
+  727:  extern "C"
+  728:  #endif
+  729:  #pragma NO_ENTRY
+  730:  #pragma NO_EXIT
+  731:  #pragma NO_FRAME
+  732:  
+  733:  void NEAR _STORE_FAR_32(void) {
+*** EVALUATION ***
+
+Function: _STORE_FAR_32
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources\datapage.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\prm;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\xbee_proj_working_Data\HCS12_Serial_Monitor\ObjectCode\datapage.c.o
+
+  734:  #if USE_SEVERAL_PAGES
+  735:    asm {
+  736:          PSHX                      ;/* save X register */
+  737:          __PIC_JSR(_GET_PAGE_REG)
+  738:          BEQ     L_NOPAGE
+  739:  
+  740:          PSHD
+  741:          LDAA    0,X               ;/* save page register */
+  742:          MOVB    6,SP, 0,X         ;/* set page register */
+  743:          MOVW    2,SP, 0,Y         ;/* store the value passed in X (high word) */
+  744:          MOVW    0,SP, 2,Y         ;/* store the value passed in D (low word) */
+  745:          STAA    0,X               ;/* restore page register */
+  746:          PULD                      ;/* restore A register */
+  747:          BRA     done
+  748:  
+  749:  L_NOPAGE:
+  750:          MOVW    0,SP, 0,Y         ;/* store the value passed in X (high word) */
+  751:          STD           2,Y         ;/* store the value passed in D (low word) */
+  752:  done:
+  753:          PULX                      ;/* restore X register */
+  754:          MOVW    0,SP, 1,+SP       ;/* move return address */
+  755:          RTS
+  756:    }
+  757:  #else /* USE_SEVERAL_PAGES */
+  758:    asm {
+  759:          PSHD                      ;/* save D register */
+  0000 3b           [2]     PSHD  
+  760:          LDAA    PAGE_ADDR         ;/* save page register */
+  0001 9630         [3]     LDAA  48
+  761:          LDAB    4,SP              ;/* load page part of address */
+  0003 e684         [3]     LDAB  4,SP
+  762:          STAB    PAGE_ADDR         ;/* set page register */
+  0005 5b30         [2]     STAB  48
+  763:          STX     0,Y               ;/* store the value passed in X */
+  0007 6e40         [2]     STX   0,Y
+  764:          MOVW    0,SP, 2,Y         ;/* store the value passed in D (low word) */
+  0009 18028042     [5]     MOVW  0,SP,2,Y
+  765:          STAA    PAGE_ADDR         ;/* restore page register */
+  000d 5a30         [2]     STAA  48
+  766:          PULD                      ;/* restore D register */
+  000f 3a           [3]     PULD  
+  767:          MOVW    0,SP, 1,+SP       ;/* move return address */
+  0010 180280a0     [5]     MOVW  0,SP,1,+SP
+  768:          RTS
+  0014 3d           [5]     RTS   
+  769:    }
+  770:  #endif /* USE_SEVERAL_PAGES */
+  771:  }
+  772:  
+  773:  /*--------------------------- _FAR_COPY_RC --------------------------------
+  774:    This runtime routine is used to access paged memory via a runtime function.
+  775:    It may also be used if the compiler  option -Cp is not used with the runtime argument.
+  776:  
+  777:    Arguments :
+  778:    - offset part of the source int the X register
+  779:    - page part of the source in the A register
+  780:    - offset part of the dest int the Y register
+  781:    - page part of the dest in the B register
+  782:    - number of bytes to be copied is defined by the next 2 bytes after the return address.
+  783:  
+  784:    Result :
+  785:    - memory area copied
+  786:    - no registers are saved, i.e. all registers may be destroyed
+  787:    - all page register still contain the same value as before the call
+  788:    - the function returns after the constant defining the number of bytes to be copied
+  789:  
+  790:  
+  791:    stack-structure at the loop-label:
+  792:       0,SP : destination offset
+  793:       2,SP : source page
+  794:       3,SP : destination page
+  795:       4,SP : source offset
+  796:       6,SP : points to length to be copied. This function returns after the size
+  797:  
+  798:    A usual call to this function looks like:
+  799:  
+  800:    struct Huge src, dest;
+  801:      ; ...
+  802:      LDX  #src
+  803:      LDAA #PAGE(src)
+  804:      LDY  #dest
+  805:      LDAB #PAGE(dest)
+  806:      JSR  _FAR_COPY_RC
+  807:      DC.W sizeof(struct Huge)
+  808:      ; ...
+  809:  
+  810:    --------------------------- _FAR_COPY_RC ----------------------------------*/
+  811:  
+  812:  #ifdef __cplusplus
+  813:  extern "C"
+  814:  #endif
+  815:  #pragma NO_ENTRY
+  816:  #pragma NO_EXIT
+  817:  #pragma NO_FRAME
+  818:  
+  819:  void NEAR _FAR_COPY_RC(void) {
+*** EVALUATION ***
+
+Function: _FAR_COPY_RC
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources\datapage.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\prm;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\xbee_proj_working_Data\HCS12_Serial_Monitor\ObjectCode\datapage.c.o
+
+  820:  #if USE_SEVERAL_PAGES
+  821:    asm {
+  822:          DEX                       ;/* source addr-=1, because loop counter ends at 1 */
+  823:          PSHX                      ;/* save source offset */
+  824:          PSHD                      ;/* save both pages */
+  825:          DEY                       ;/* destination addr-=1, because loop counter ends at 1 */
+  826:          PSHY                      ;/* save destination offset */
+  827:          LDY     6,SP              ;/* Load Return address */
+  828:          LDX     2,Y+              ;/* Load Size to copy */
+  829:          STY     6,SP              ;/* Store adjusted return address */
+  830:  loop:
+  831:          LDD     4,SP              ;/* load source offset */
+  832:          LEAY    D,X               ;/* calculate actual source address */
+  833:          LDAB    2,SP              ;/* load source page */
+  834:          __PIC_JSR(_LOAD_FAR_8)    ;/* load 1 source byte */
+  835:          PSHB                      ;/* save value */
+  836:          LDD     0+1,SP            ;/* load destination offset */
+  837:          LEAY    D,X               ;/* calculate actual destination address */
+  838:          PULA                      ;/* restore value */
+  839:          LDAB    3,SP              ;/* load destination page */
+  840:          __PIC_JSR(_STORE_FAR_8)   ;/* store one byte */
+  841:          DEX
+  842:          BNE     loop
+  843:          LEAS    6,SP              ;/* release stack */
+  844:          _SRET                     ;/* debug info only: This is the last instr of a function with a special return */
+  845:          RTS                       ;/* return */
+  846:    }
+  847:  #else
+  848:    asm {
+  849:          PSHD                      ;/* store page registers */
+  0000 3b           [2]     PSHD  
+  850:          TFR     X,D
+  0001 b754         [1]     TFR   X,D
+  851:          PSHY                      ;/* temporary space */
+  0003 35           [2]     PSHY  
+  852:          LDY     4,SP              ;/* load return address */
+  0004 ed84         [3]     LDY   4,SP
+  853:          ADDD    2,Y+              ;/* calculate source end address. Increment return address */
+  0006 e371         [3]     ADDD  2,Y+
+  854:          STY     4,SP
+  0008 6d84         [2]     STY   4,SP
+  855:          PULY
+  000a 31           [3]     PULY  
+  856:          PSHD                      ;/* store src end address */
+  000b 3b           [2]     PSHD  
+  857:          LDAB    2,SP              ;/* reload source page */
+  000c e682         [3]     LDAB  2,SP
+  858:          LDAA    PAGE_ADDR         ;/* save page register */
+  000e 9630         [3]     LDAA  48
+  859:          PSHA
+  0010 36           [2]     PSHA  
+  860:  loop:
+  861:          STAB    PAGE_ADDR         ;/* set source page */
+  0011 5b30         [2]     STAB  48
+  862:          LDAA    1,X+              ;/* load value */
+  0013 a630         [3]     LDAA  1,X+
+  863:          MOVB    4,SP, PAGE_ADDR   ;/* set destination page */
+  0015 180d840030   [5]     MOVB  4,SP,48
+  864:          STAA    1,Y+
+  001a 6a70         [2]     STAA  1,Y+
+  865:          CPX     1,SP
+  001c ae81         [3]     CPX   1,SP
+  866:          BNE     loop
+  001e 26f1         [3/1]   BNE   *-13 ;abs = 0011
+  867:  
+  868:          LDAA    5,SP+             ;/* restore old page value and release stack */
+  0020 a6b4         [3]     LDAA  5,SP+
+  869:          STAA    PAGE_ADDR         ;/* store it into page register */
+  0022 5a30         [2]     STAA  48
+  870:          _SRET                     ;/* debug info only: This is the last instr of a function with a special return */
+  871:          RTS
+  0024 3d           [5]     RTS   
+  872:    }
+  873:  #endif
+  874:  }
+  875:  
+  876:  /*--------------------------- _FAR_COPY --------------------------------
+  877:  
+  878:    The _FAR_COPY runtime routine was used to copied large memory blocks in previous compiler releases.
+  879:    However this release now does use _FAR_COPY_RC instead. The only difference is how the size of 
+  880:    the area to be copied is passed into the function. For _FAR_COPY the size is passed on the stack just
+  881:    above the return address. _FAR_COPY_RC does expect the return address just after the JSR _FAR_COPY_RC call
+  882:    in the code of the caller. This allows for denser code calling _FAR_COPY_RC but does also need a slightly
+  883:    larger runtime routine and it is slightly slower.
+  884:    The _FAR_COPY routine is here now mainly for compatibility with previous releases. 
+  885:    The current compiler does not use it. 
+  886:    
+  887:  --------------------------- _FAR_COPY ----------------------------------*/
+  888:  
+  889:  #ifdef __cplusplus
+  890:  extern "C"
+  891:  #endif
+  892:  #pragma NO_ENTRY
+  893:  #pragma NO_EXIT
+  894:  #pragma NO_FRAME
+  895:  
+  896:  void NEAR _FAR_COPY(void) {
+*** EVALUATION ***
+
+Function: _FAR_COPY
+Source  : C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources\datapage.c
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\prm;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\cmd;C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\Sources;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.1\lib\HC12c\include" -EnvOBJPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -EnvTEXTPATH=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\bin -Lasm=%n.lst -Ms -ObjN=C:\Users\aaron\Dropbox\EE445L\lab10\xbee_proj_working\xbee_proj_working_Data\HCS12_Serial_Monitor\ObjectCode\datapage.c.o
+
+  897:  #if USE_SEVERAL_PAGES
+  898:    asm {
+  899:          DEX                       ;/* source addr-=1, because loop counter ends at 1 */
+  900:          PSHX                      ;/* save source offset */
+  901:          PSHD                      ;/* save both pages */
+  902:          DEY                       ;/* destination addr-=1, because loop counter ends at 1 */
+  903:          PSHY                      ;/* save destination offset */
+  904:          LDX     8,SP              ;/* load counter, assuming counter > 0 */
+  905:  
+  906:  loop:
+  907:          LDD     4,SP              ;/* load source offset */
+  908:          LEAY    D,X               ;/* calculate actual source address */
+  909:          LDAB    2,SP              ;/* load source page */
+  910:          __PIC_JSR(_LOAD_FAR_8)    ;/* load 1 source byte */
+  911:          PSHB                      ;/* save value */
+  912:          LDD     0+1,SP            ;/* load destination offset */
+  913:          LEAY    D,X               ;/* calculate actual destination address */
+  914:          PULA                      ;/* restore value */
+  915:          LDAB    3,SP              ;/* load destination page */
+  916:          __PIC_JSR(_STORE_FAR_8)   ;/* store one byte */
+  917:          DEX
+  918:          BNE     loop
+  919:          LDX     6,SP              ;/* load return address */
+  920:          LEAS    10,SP             ;/* release stack */
+  921:          JMP     0,X               ;/* return */
+  922:    }
+  923:  #else
+  924:    asm {
+  925:          PSHD                      ;/* store page registers */
+  0000 3b           [2]     PSHD  
+  926:          TFR     X,D
+  0001 b754         [1]     TFR   X,D
+  927:          ADDD    4,SP              ;/* calculate source end address */
+  0003 e384         [3]     ADDD  4,SP
+  928:          STD     4,SP
+  0005 6c84         [2]     STD   4,SP
+  929:          PULB                      ;/* reload source page */
+  0007 33           [3]     PULB  
+  930:          LDAA    PAGE_ADDR         ;/* save page register */
+  0008 9630         [3]     LDAA  48
+  931:          PSHA
+  000a 36           [2]     PSHA  
+  932:  loop:
+  933:          STAB    PAGE_ADDR         ;/* set source page */
+  000b 5b30         [2]     STAB  48
+  934:          LDAA    1,X+              ;/* load value */
+  000d a630         [3]     LDAA  1,X+
+  935:          MOVB    1,SP, PAGE_ADDR   ;/* set destination page */
+  000f 180d810030   [5]     MOVB  1,SP,48
+  936:          STAA    1,Y+
+  0014 6a70         [2]     STAA  1,Y+
+  937:          CPX     4,SP
+  0016 ae84         [3]     CPX   4,SP
+  938:          BNE     loop
+  0018 26f1         [3/1]   BNE   *-13 ;abs = 000b
+  939:  
+  940:          LDAA    2,SP+             ;/* restore old page value and release stack */
+  001a a6b1         [3]     LDAA  2,SP+
+  941:          STAA    PAGE_ADDR         ;/* store it into page register */
+  001c 5a30         [2]     STAA  48
+  942:          LDX     4,SP+             ;/* release stack and load return address */
+  001e eeb3         [3]     LDX   4,SP+
+  943:          JMP     0,X               ;/* return */
+  0020 0500         [3]     JMP   0,X
+  944:    }
+  945:  #endif
+  946:  }
+  947:  
+  948:  #else  /* __HCS12X__  */
+  949:  
+  950:  /*
+  951:    The HCS12X knows two different kind of addresses:
+  952:      - Logical addresses. E.g.
+  953:         MOVB #page(var),RPAGE
+  954:         INC var
+  955:  
+  956:      - Global addresses E.g.
+  957:         MOVB #page(var),GPAGE
+  958:         GLDAA var
+  959:         INCA
+  960:         GSTAA var
+  961:  
+  962:    Global addresses are used with G-Load's and G-Store's, logical addresses are used for all the other instructions
+  963:    and occasions. As HC12's or HCS12's do not have the G-Load and G-Store instructions,
+  964:    global addresses are not used with these processor families.
+  965:    They are only used with HCS12X chips (and maybe future ones deriving from a HCS12X).
+  966:  
+  967:    Logical and Global addresses can point to the same object, however the global and logical address of an object
+  968:    are different for most objects (actually for all except the registers from 0 to 0x7FF).
+  969:    Therefore the compiler needs to transform in between them.
+  970:  
+  971:    HCS12X Pointer types:
+  972:  
+  973:      The following are logical addresses:
+  974:      - all 16 bit pointers
+  975:         - "char* __near": always.
+  976:         - "char *" in the small and banked memory model
+  977:      - 24 bit dpage, epage, ppage or rpage pointers (*1) (note: the first HCS12X compilers may not support these pointer types)
+  978:         - "char *__dpage": Note this type only exists for
+  979:                            orthogonality with the HC12 A4 chip which has a DPAGE reg.
+  980:                            It does not apply to the HCS12X.
+  981:         - "char *__epage": 24 bit pointer using the EPAGE register
+  982:         - "char *__ppage": 24 bit pointer using the PPAGE register.
+  983:                            As the PPAGE is also used for BANKED code,
+  984:                            using this pointer type is only legal from non banked code.
+  985:         - "char *__rpage": 24 bit pointer using the RPAGE register
+  986:  
+  987:  
+  988:      The following are global addresses:
+  989:         "char*": in the large memory model (only HCS12X)
+  990:         "char* __far": always for HCS12X.
+  991:  
+  992:     (*1): For the HC12 and HCS12 "char* __far" and "char*" in the large memory model are also logical.
+  993:  
+  994:     Some notes for the HC12/HCS12 programmers.
+  995:  
+  996:     The address of a far object for a HC12 and for a HCS12X is different, even if they are at the same place in the memory map.
+  997:     For the HC12, a far address is using the logical addresses, for the HCS12X however, far addresses are using global addresses.
+  998:     This does cause troubles for the unaware!
+  999:     
+ 1000:     The conversion routines implemented in this file support the special HCS12XE RAM mapping (when RAMHM is set).
+ 1001:     To enable this mapping compile this file with the "-MapRAM" compiler option.
+ 1002:  
+ 1003:    HCS12X Logical Memory map
+ 1004:  
+ 1005:      Logical Addresses           Used for                shadowed at           page register     Global Address
+ 1006:  
+ 1007:      0x000000 .. 0x0007FF        Peripheral Registers                          Not Paged         0x000000
+ 1008:      0x??0800 .. 0x??0BFF        Paged EEPROM                                  EPAGE (@0x17)     0x100000+EPAGE*0x0400
+ 1009:      0x000C00 .. 0x000FFF        Non Paged EEPROM        0xFF0800..0xFF0FFF    Not Paged         0x13FC00
+ 1010:      0x??1000 .. 0x??1FFF        Paged RAM                                     RPAGE (@0x16)     0x000000+RPAGE*0x1000
+ 1011:      0x002000 .. 0x003FFF        Non Paged RAM           0xFE1000..0xFF1FFF    Not Paged         0x0FE000
+ 1012:      0x004000 .. 0x007FFF        Non Paged FLASH         0xFC8000..0xFCBFFF    Not Paged         0x7F4000
+ 1013:      0x??8000 .. 0x00BFFF        Paged FLASH                                   PPAGE (@0x30)     0x400000+PPAGE*0x4000
+ 1014:      0x00C000 .. 0x00FFFF        Non Paged FLASH         0xFF8000..0xFFBFFF    Not Paged         0x7FC000
+ 1015:  
+ 1016:      NA: Not Applicable
+ 1017:  
+ 1018:    HCS12X Global Memory map
+ 1019:  
+ 1020:      Global Addresses            Used for                Logical mapped at
+ 1021:  
+ 1022:      0x000000 .. 0x0007FF        Peripheral Registers    0x000000 .. 0x0007FF
+ 1023:      0x000800 .. 0x000FFF        DMA registers           Not mapped
+ 1024:      0x001000 .. 0x0FFFFF        RAM                     0x??1000 .. 0x??1FFF
+ 1025:      0x0FE000 .. 0x0FFFFF        RAM, Log non paged      0x002000 .. 0x003FFF
+ 1026:      0x100000 .. 0x13FFFF        EEPROM                  0x??0800 .. 0x??0BFF
+ 1027:      0x13FC00 .. 0x13FFFF        EEPROM  non paged       0x000C00 .. 0x000FFF
+ 1028:      0x140000 .. 0x3FFFFF        External Space          Not mapped
+ 1029:      0x400000 .. 0x7FFFFF        FLASH                   0x??8000 .. 0x??BFFF
+ 1030:      0x7F4000 .. 0x7F7FFF        FLASH, Log non paged    0x004000 .. 0x007FFF
+ 1031:      0x7FC000 .. 0x7FFFFF        FLASH, Log non paged    0x00C000 .. 0x00FFFF
+ 1032:  
+ 1033:    HCS12XE Logical Memory map (with RAMHM set) 
+ 1034:  
+ 1035:      Logical Addresses           Used for                shadowed at           page register     Global Address
+ 1036:  
+ 1037:      0x000000 .. 0x0007FF        Peripheral Registers                          Not Paged         0x000000
+ 1038:      0x??0800 .. 0x??0BFF        Paged EEPROM                                  EPAGE             0x100000+EPAGE*0x0400
+ 1039:      0x000C00 .. 0x000FFF        Non Paged EEPROM        0xFF0800..0xFF0FFF    Not Paged         0x13FC00
+ 1040:      0x??1000 .. 0x??1FFF        Paged RAM                                     RPAGE             0x000000+RPAGE*0x1000
+ 1041:      0x002000 .. 0x003FFF        Non Paged RAM           0xFA1000..0xFB1FFF    Not Paged         0x0FA000
+ 1042:      0x004000 .. 0x007FFF        Non Paged RAM           0xFC1000..0xFF1FFF    Not Paged         0x0FC000
+ 1043:      0x??8000 .. 0x00BFFF        Paged FLASH                                   PPAGE             0x400000+PPAGE*0x4000
+ 1044:      0x00C000 .. 0x00FFFF        Non Paged FLASH         0xFF8000..0xFFBFFF    Not Paged         0x7FC000
+ 1045:  
+ 1046:      NA: Not Applicable
+ 1047:  
+ 1048:    HCS12X Global Memory map (with RAMHM set) 
+ 1049:  
+ 1050:      Global Addresses            Used for                Logical mapped at
+ 1051:  
+ 1052:      0x000000 .. 0x0007FF        Peripheral Registers    0x000000 .. 0x0007FF
+ 1053:      0x000800 .. 0x000FFF        DMA registers           Not mapped
+ 1054:      0x001000 .. 0x0FFFFF        RAM                     0x??1000 .. 0x??1FFF
+ 1055:      0x0FA000 .. 0x0FFFFF        RAM, Log non paged      0x002000 .. 0x007FFF
+ 1056:      0x100000 .. 0x13FFFF        EEPROM                  0x??0800 .. 0x??0BFF
+ 1057:      0x13FC00 .. 0x13FFFF        EEPROM  non paged       0x000C00 .. 0x000FFF
+ 1058:      0x140000 .. 0x3FFFFF        External Space          Not mapped
+ 1059:      0x400000 .. 0x7FFFFF        FLASH                   0x??8000 .. 0x??BFFF
+ 1060:      0x7F4000 .. 0x7F7FFF        FLASH, Log non paged    Not mapped
+ 1061:      0x7FC000 .. 0x7FFFFF        FLASH, Log non paged    0x00C000 .. 0x00FFFF
+ 1062:  
+ 1063:  
+ 1064:    How to read this table:
+ 1065:      For logical addresses, the lower 16 bits of the address do determine in which area the address is,
+ 1066:      if this address is paged, then this entry also controls and which of the EPAGE, PPAGE or RPAGE
+ 1067:      page register is controlling the bits 16 to 23 of the address.
+ 1068:      For global addresses, the bits 16 to 23 have to be in the GPAGE register and the lower 16 bits
+ 1069:      have to be used with the special G load or store instructions (e.g. GLDAA).
+ 1070:      As example the logical address 0x123456 is invalid. Because its lower bits 0x3456 are in a
+ 1071:      non paged area, so the page 0x12 does not exist.
+ 1072:      The address 0xFE1020 however does exist. To access it, the RPAGE has to contain 0xFE and the
+ 1073:      offset 0x1020 has to be used.
+ 1074:  
+ 1075:        ORG $7000
+ 1076:          MOVB #0xFE, 0x16 ; RPAGE
+ 1077:          LDAA 0x1020      ; reads at the logical address 0xFE1020
+ 1078:  
+ 1079:      Because the last two RAM pages are also accessible directly from 0x2000 to 0x3FFF, the
+ 1080:      following shorter code does read the same memory location:
+ 1081:  
+ 1082:        ORG $7000
+ 1083:          LDAA 0x2020      ; reads at the logical address 0x2020
+ 1084:                           ;   which maps to the same memory as 0xFE1020
+ 1085:  
+ 1086:      This memory location also has a global address. For logical 0xFE1020 the global address is 0x0FE020.
+ 1087:      So the following code does once more access the same memory location:
+ 1088:  
+ 1089:        ORG $7000
+ 1090:          MOVB #0x0F, 0x10 ; GPAGE
+ 1091:          GLDAA 0xE020     ; reads at the global address 0x0FE020
+ 1092:                           ;   which maps to the same memory as the logical addr. 0xFE1020
+ 1093:  
+ 1094:      Therefore every memory location for the HCS12X has up to 3 different addresses.
+ 1095:      Up to two logical and one global.
+ 1096:      Notes.
+ 1097:        - Not every address has a logical equivalent. The external space is only available in the global address space.
+ 1098:  
+ 1099:        - The PPAGE must only be set if the code is outside of the 0x8000 to 0xBFFF range.
+ 1100:          If not, the next code fetch will be from the new wrong PPAGE value.
+ 1101:  
+ 1102:        - Inside of the paged area, the highest pages are allocated first. So all HCS12X's do have the FF pages
+ 1103:          (if they have this memory type at all).
+ 1104:  
+ 1105:        - For RPAGE, the value 0 is illegal. Otherwise the global addresses would overlap with the registers.
+ 1106:  
+ 1107:  */
+ 1108:  
+ 1109:  /*lint -e10, -e106, -e30 */
+ 1110:  #if __OPTION_ACTIVE__("-MapRAM")
+ 1111:  #define __HCS12XE_RAMHM_SET__
+ 1112:  #endif
+ 1113:  /*lint +e10, +e106, +e30 */
+ 1114:  
+ 1115:  /*--------------------------- pointer conversion operations -------------------------------*/
+ 1116:  
+ 1117:  /*--------------------------- _CONV_GLOBAL_TO_LOGICAL --------------------------------
+ 1118:    Convert 24 bit logical to 24 bit global pointer
+ 1119:      ("char*__far" to "char*__gpage")
+ 1120:  
+ 1121:    Arguments :
+ 1122:    - B : page part of global address
+ 1123:    - X : 16 offset part of global address
+ 1124:  
+ 1125:    Postcondition :
+ 1126:    - B == page of returned logical address
+ 1127:    - X == offset of returned logical address
+ 1128:    - Y remains unchanged
+ 1129:    - A remains unchanged
+ 1130:  */
+ 1131:  /*--------------------------- Convert 24 bit global to 24 bit logical pointer ----------------------------------*/
+ 1132:  
+ 1133:  /* B:X = Logical(B:X) */
+ 1134:  #ifdef __cplusplus
+ 1135:  extern "C"
+ 1136:  #endif
+ 1137:  
+ 1138:  #pragma NO_FRAME
+ 1139:  #pragma NO_ENTRY
+ 1140:  #pragma NO_EXIT
+ 1141:  
+ 1142:  void NEAR _CONV_GLOBAL_TO_LOGICAL(void) {
+ 1143:    asm {
+ 1144:          CMPB    #0x40             ;/* flash (0x400000..0x7FFFFF) or not? */
+ 1145:          BLO     Below400000
+ 1146:  /* from 0x400000 to 0x7FFFFF */
+ 1147:          CMPB    #0x7F             ;/* check for Unpaged areas 0x7FC000..0x7FFFFF and 0x7F4000..0x7F7FFF */
+ 1148:          BNE     PAGED_FLASH_AREA
+ 1149:  #ifndef __HCS12XE_RAMHM_SET__
+ 1150:          BITX    #0x4000
+ 1151:          BEQ     PAGED_FLASH_AREA
+ 1152:  #else
+ 1153:          CPX    #0xC000
+ 1154:          BLO     PAGED_FLASH_AREA
+ 1155:  #endif
+ 1156:  /* from 0x7F4000 to 0x7F7FFF or 0x7FC000 to 0x7FFFFF */
+ 1157:                                    ;/* Note: offset in X is already OK. */
+ 1158:          CLRB                      ;/* logical page == 0 */
+ 1159:          RTS
+ 1160:  PAGED_FLASH_AREA:                 ;/* paged flash. Map to 0x8000..0xBFFF */
+ 1161:  /* from 0x400000 to 0x7F3FFF  or 0x7F8000 to 0x7FBFFF */
+ 1162:          LSLX                      ; /* shift 24 bit address 2 bits to the left to get correct page in B */
+ 1163:          ROLB
+ 1164:          LSLX
+ 1165:          ROLB
+ 1166:          LSRX                      ; /* shift back to get offset from 0x8000 to 0xBFFF */
+ 1167:          SEC
+ 1168:          RORX
+ 1169:          RTS                       ;/* done */
+ 1170:  
+ 1171:  Below400000:
+ 1172:  /* from 0x000000 to 0x3FFFFF */
+ 1173:  #if 0 /* How should we handle mapping to External Space. There is no logical equivalent. This is an error case! */
+ 1174:          CMPB    #0x14             ;/* check if above 0x140000. If so, its in the external space */
+ 1175:          BLO     Below140000
+ 1176:          ERROR   !!!!              ;/* this mapping is not possible! What should we do? */
+ 1177:          RTS
+ 1178:  Below140000:
+ 1179:  /* from 0x000000 to 0x13FFFF */
+ 1180:  #endif
+ 1181:          CMPB    #0x10             ;/* if >= 0x100000 it's EEPROM */
+ 1182:          BLO     Below100000
+ 1183:  /* from 0x100000 to 0x13FFFF (or 0x3FFFFF) */
+ 1184:          CMPB    #0x13             ;/* check if its is in the non paged EEPROM area at 0x13FC00..0x13FFFF */
+ 1185:          BLO     Below13FC00
+ 1186:          CPX     #0xFC00
+ 1187:          BLO     Below13FC00
+ 1188:  /* from 0x13FC00 to 0x13FFFF (or 0x3FFFFF) */
+ 1189:          LEAX    0x1000,X          ;/* same as SUBX #0xF000 // map from 0xFC00 to 0x0C00 */
+ 1190:          CLRB
+ 1191:          RTS
+ 1192:  Below13FC00:
+ 1193:  /* from 0x100000 to 0x13FBFF */
+ 1194:          PSHA
+ 1195:          TFR     XH,A              ;/* calculate logical page */
+ 1196:          EXG     A,B
+ 1197:          LSRD
+ 1198:          LSRD
+ 1199:          PULA
+ 1200:          ANDX    #0x03FF
+ 1201:          LEAX    0x0800,X          ;/* same as ORX  #0x0800 */
+ 1202:          RTS
+ 1203:  
+ 1204:  Below100000:
+ 1205:  /* from 0x000000 to 0x0FFFFF */
+ 1206:          TSTB
+ 1207:          BNE     RAM_AREA
+ 1208:          CPX     #0x1000
+ 1209:          BLO     Below001000
+ 1210:  RAM_AREA:
+ 1211:  /* from 0x001000 to 0x0FFFFF */
+ 1212:          CMPB    #0x0F
+ 1213:          BNE     PagedRAM_AREA
+ 1214:  #ifndef __HCS12XE_RAMHM_SET__
+ 1215:          CPX     #0xE000
+ 1216:          BLO     PagedRAM_AREA
+ 1217:  /* from 0x0FE000 to 0x0FFFFF */
+ 1218:          SUBX    #(0xE000-0x2000)  ;/* map 0xE000 to 0x2000 */
+ 1219:  #else
+ 1220:          CPX     #0xA000
+ 1221:          BLO     PagedRAM_AREA
+ 1222:  /* from 0x0FA000 to 0x0FFFFF */
+ 1223:          SUBX    #(0xA000-0x2000)  ;/* map 0xA000 to 0x2000  */
+ 1224:  #endif
+ 1225:          CLRB                      ;/* Page is 0 */
+ 1226:          RTS
+ 1227:  PagedRAM_AREA:
+ 1228:  /* from 0x001000 to 0x0FDFFF */
+ 1229:          PSHA
+ 1230:          TFR     XH, A             ;/* calculate logical page */
+ 1231:          EXG     A,B
+ 1232:          LSRD
+ 1233:          LSRD
+ 1234:          LSRD
+ 1235:          LSRD
+ 1236:          PULA
+ 1237:  
+ 1238:          ANDX    #0x0FFF
+ 1239:          LEAX    0x1000,X          ;/* same as ORX #0x1000 */
+ 1240:          RTS
+ 1241:  
+ 1242:  Below001000:
+ 1243:  /* from 0x000000 to 0x000FFF */
+ 1244:  #if 0
+ 1245:          CMPA    #0x08
+ 1246:          BLO     Below000800
+ 1247:  /* from 0x000800 to 0x000FFF */
+ 1248:      /* ??? DMA Regs? */
+ 1249:          RTS
+ 1250:  Below000800:
+ 1251:  /* from 0x000000 to 0x0007FF */
+ 1252:  #endif
+ 1253:          CLRB
+ 1254:          RTS
+ 1255:    }
+ 1256:  }
+ 1257:  
+ 1258:  /*--------------------------- _CONV_GLOBAL_TO_NEAR --------------------------------
+ 1259:    Convert 24 bit global to 16 bit logical pointer
+ 1260:      ("char*__far" to "char*")
+ 1261:  
+ 1262:    Arguments :
+ 1263:    - B : page part of global address
+ 1264:    - X : 16 offset part of global address
+ 1265:  
+ 1266:    Postcondition :
+ 1267:    - B is undefined
+ 1268:    - A remains unchanged
+ 1269:    - X == offset of returned logical address
+ 1270:    - Y remains unchanged
+ 1271:  */
+ 1272:  /*--------------------------- Convert 24 bit global to 16 bit logical pointer ----------------------------------*/
+ 1273:  
+ 1274:  /* X = Logical(B:X) */
+ 1275:  
+ 1276:  #ifdef __cplusplus
+ 1277:  extern "C"
+ 1278:  #endif
+ 1279:  
+ 1280:  #define _REUSE_CONV_GLOBAL_TO_LOGICAL 1
+ 1281:  
+ 1282:  #pragma NO_FRAME
+ 1283:  #pragma NO_ENTRY
+ 1284:  #pragma NO_EXIT
+ 1285:  
+ 1286:  void NEAR _CONV_GLOBAL_TO_NEAR(void){
+ 1287:  #if _REUSE_CONV_GLOBAL_TO_LOGICAL  /* do we want an optimized version? */
+ 1288:    __asm JMP _CONV_GLOBAL_TO_LOGICAL;  /* offset for NEAR is same as for LOGICAL. */
+ 1289:  #else
+ 1290:    asm {
+ 1291:          CMPB    #0x40             ;/* flash (0x400000..0x7FFFFF) or not? */
+ 1292:          BLO     Below400000
+ 1293:  /* from 0x400000 to 0x7FFFFF */
+ 1294:  #ifndef __HCS12XE_RAMHM_SET__
+ 1295:          CMPB    #0x7F             ;/* check for Unpaged areas 0x7FC000..0x7FFFFF and 0x7F4000..0x7F7FFF */
+ 1296:          BNE     PAGED_FLASH_AREA
+ 1297:          CPX     #0x4000
+ 1298:          BLO     PAGED_FLASH_AREA
+ 1299:  /* from 0x7F4000 to 0x7FFFFF */
+ 1300:  #else
+ 1301:          CMPB    #0x7F             ;/* check for Unpaged area 0x7FC000..0x7FFFFF */
+ 1302:          BNE     PAGED_FLASH_AREA
+ 1303:          CPX     #0xC000           
+ 1304:          BLO     PAGED_FLASH_AREA
+ 1305:  /* from 0x7FC000 to 0x7FFFFF       */
+ 1306:  #endif
+ 1307:                                    ;/* note non PAGED flash areas or paged area 0x7F8000..0x7FBFFF which are mapping all correctly */
+ 1308:          RTS
+ 1309:  PAGED_FLASH_AREA:                 ;/* paged flash. Map to 0x8000..0xBFFF */
+ 1310:  /* from 0x400000 to 0x7F3FFF */
+ 1311:          ANDX    #0x3F00           ;/* cut to 0.. 0x3FFF */
+ 1312:          LEAX    0x8000,X          ;/* same as ORX  #0x8000     ;// move to 0x8000..0xBFFF */
+ 1313:          RTS                       ;/* done */
+ 1314:  
+ 1315:  Below400000:
+ 1316:  /* from 0x000000 to 0x3FFFFF */
+ 1317:  #if 0 /* How should we handle mapping to External Space. There is no logical equivalent. This is an error case! */
+ 1318:          CMPB    #0x14             ;/* check if above 0x140000. If so, its in the external space */
+ 1319:          BLO     Below140000
+ 1320:          ERROR !!!!                ;/* this mapping is not possible! What should we do? */
+ 1321:          RTS
+ 1322:  Below140000:
+ 1323:  /* from 0x000000 to 0x13FFFF */
+ 1324:  #endif
+ 1325:          CMPB    #0x10             ;/* if >= 0x100000 it's EEPROM */
+ 1326:          BLO     Below100000
+ 1327:  /* from 0x100000 to 0x13FFFF (or 0x3FFFFF) */
+ 1328:          CMPB    #0x13             ;/* check if its is in the non paged EEPROM area at 0x13FC00..0x13FFFF */
+ 1329:          BNE     Below13FC00
+ 1330:          CPX     #0xFC00
+ 1331:          BLO     Below13FC00
+ 1332:  /* from 0x13FC00 to 0x13FFFF (or 0x3FFFFF) */
+ 1333:          SUBX    #0xF000           ;/* map from 0xFC00 to 0x0C00 */
+ 1334:          RTS
+ 1335:  Below13FC00:
+ 1336:  /* from 0x100000 to 0x13FBFF */
+ 1337:          ANDX    #0x03FF
+ 1338:          LEAX    0x800,X           ;/* same as ORX  #0x0800 */
+ 1339:          RTS
+ 1340:  
+ 1341:  Below100000:
+ 1342:  /* from 0x000000 to 0x0FFFFF */
+ 1343:          TBNE    B,RAM_AREA
+ 1344:          CPX     #0x1000
+ 1345:          BLO     Below001000
+ 1346:  RAM_AREA:
+ 1347:  /* from 0x001000 to 0x0FFFFF */
+ 1348:          CMPB    #0x0F
+ 1349:          BNE     PagedRAM_AREA
+ 1350:  #ifndef __HCS12XE_RAMHM_SET__
+ 1351:          CPX     #0xE000
+ 1352:          BLO     PagedRAM_AREA
+ 1353:  /* from 0x0FE000 to 0x0FFFFF */
+ 1354:          SUBX    #(0xE000-0x2000)  ;/* map 0xE000 to 0x2000 */
+ 1355:  #else
+ 1356:          CPX     #0xA000
+ 1357:          BLO     PagedRAM_AREA
+ 1358:  /* from 0x0FA000 to 0x0FFFFF */
+ 1359:          SUBX    #(0xA000-0x2000)  ;/* map 0xA000 to 0x2000 */
+ 1360:  #endif
+ 1361:          RTS
+ 1362:  PagedRAM_AREA:
+ 1363:  /* from 0x001000 to 0x0FDFFF (0x001000 to 0x0F9FFF if HCS12XE RAM mapping is enabled)  */
+ 1364:          ANDX    #0x0FFF
+ 1365:          LEAX    0x1000,X          ;/* same as ORX #0x1000 */
+ 1366:          RTS
+ 1367:  
+ 1368:  Below001000:
+ 1369:  /* from 0x000000 to 0x000FFF */
+ 1370:          RTS
+ 1371:    }
+ 1372:  #endif
+ 1373:  }
+ 1374:  
+ 1375:  /*--------------------------- _CONV_NEAR_TO_GLOBAL --------------------------------
+ 1376:    Convert 16 bit logical to 24 bit global pointer
+ 1377:      ("char*__near" to "char*__far")
+ 1378:  
+ 1379:    Arguments :
+ 1380:    - X : 16 bit near pointer
+ 1381:  
+ 1382:    Postcondition :
+ 1383:    - B == page of returned global address
+ 1384:    - X == offset of returned global address
+ 1385:    - Y remains unchanged
+ 1386:    - A is unspecified
+ 1387:  */
+ 1388:  /*--------------------------- Convert 16 bit logical to 24 bit global pointer ----------------------------------*/
+ 1389:  
+ 1390:  /* B:X = Global(X) */
+ 1391:  
+ 1392:  #ifdef __cplusplus
+ 1393:  extern "C"
+ 1394:  #endif
+ 1395:  
+ 1396:  #pragma NO_FRAME
+ 1397:  #pragma NO_ENTRY
+ 1398:  #pragma NO_EXIT
+ 1399:  
+ 1400:  void NEAR _CONV_NEAR_TO_GLOBAL(void){
+ 1401:    asm {
+ 1402:      /* syntax: */
+ 1403:      /*  input 16 bit offset is bit15..bit0 */
+ 1404:      /*  ppage values: ppage7..ppage0 */
+ 1405:      /*  epage values: epage7..epage0 */
+ 1406:      /*  dpage values: dpage7..dpage0 */
+ 1407:      /*  rpage values: rpage7..rpage0 */
+ 1408:          PSHX                      ;/* D contains bit15..bit0 */
+ 1409:          TFR     X,D               ;/* D is cheaper to shift */
+ 1410:          LSLD                      ;/* D contains 0 bit14..bit0, C contains bit15 */
+ 1411:          BCC     Below8000         ;/* bit15 == 0? */
+ 1412:          /* from 0x8000 to 0xFFFF */
+ 1413:          LSLD                      ;/* D contains 00 bit13..bit0, C contains bit14 */
+ 1414:          BCC     BelowC000
+ 1415:          LDAB    #0x7F
+ 1416:          PULX
+ 1417:          RTS                       ;/* returns 0b0111 1111 11 bit13...bit0 */
+ 1418:  BelowC000:                      ;/* from 0x8000 to 0xBFFF */
+ 1419:          TFR     D,X
+ 1420:          LDAB    __PPAGE_ADR__
+ 1421:          SEC
+ 1422:          RORB
+ 1423:          RORX
+ 1424:          LSRB
+ 1425:          RORX
+ 1426:          LEAS    2,SP
+ 1427:          RTS                       ;/* returns 0b01 ppage7..ppage0 bit13...bit0 */
+ 1428:  Below8000:
+ 1429:          LSLD                      ;/* D contains 00 bit13..bit0, C contains bit14 */
+ 1430:          BCC     Below4000
+ 1431:          /* from 0x4000 to 0x7FFF */
+ 1432:          PULX
+ 1433:  #ifndef __HCS12XE_RAMHM_SET__
+ 1434:          LDAB    #0x7F
+ 1435:  #else
+ 1436:          LEAX    (0xC000-0x4000),X
+ 1437:          LDAB    #0x0F             
+ 1438:  #endif
+ 1439:          RTS                       ;/* returns 0b0111 1111 01 bit13...bit0 */
+ 1440:  
+ 1441:  Below4000:
+ 1442:          LSLD                      ;/* D contains 000 bit12..bit0, C contains bit13 */
+ 1443:          BCC     Below2000
+ 1444:          /* from 0x2000 to 0x3FFF */
+ 1445:          PULX
+ 1446:  #ifndef __HCS12XE_RAMHM_SET__
+ 1447:          LEAX    (0xE000-0x2000),X
+ 1448:  #else
+ 1449:          LEAX    (0xA000-0x2000),X
+ 1450:  #endif
+ 1451:          LDAB    #0x0F
+ 1452:          RTS                       ;/* returns 0b0000 1111 111 bit12...bit0 */
+ 1453:  
+ 1454:  Below2000:
+ 1455:          LSLD                      ;/* D contains 0000 bit11..bit0, C contains bit12 */
+ 1456:          BCC     Below1000
+ 1457:          /* from 0x1000 to 0x1FFF */
+ 1458:          LDAB    __RPAGE_ADR__
+ 1459:          LDAA    #0x10
+ 1460:          MUL
+ 1461:          EORB    0,SP
+ 1462:          EORB    #0x10             ;/* clear 1 bit */
+ 1463:          STAB    0,SP
+ 1464:          TFR     A,B
+ 1465:          PULX
+ 1466:          RTS
+ 1467:  
+ 1468:  Below1000:
+ 1469:          LSLD                      ;/* D contains 0000 0 bit10..bit0, C contains bit11 */
+ 1470:          BCC     Below0800
+ 1471:          /* from 0x0800 to 0x0FFF */
+ 1472:          LSLD                      ;/* D contains 0000 00 bit9..bit0, C contains bit10 */
+ 1473:          BCC     Below0C00
+ 1474:      /* from 0x0C00 to 0x0FFF */
+ 1475:          LDAB    #0x13
+ 1476:          PULX
+ 1477:          LEAX     0xF000,X
+ 1478:          RTS                       ;/* returns 0b0001 0011 1111 11 bit9...bit0 */
+ 1479:  Below0C00:
+ 1480:      /* from 0x0800 to 0x0BFF */
+ 1481:          LDAB    __EPAGE_ADR__
+ 1482:          LDAA    #0x04
+ 1483:          MUL
+ 1484:          EORB    0,SP
+ 1485:          EORB    #0x08
+ 1486:          STAB    0,SP
+ 1487:          TFR     A,B
+ 1488:          ORAB    #0b00010000
+ 1489:          PULX
+ 1490:          RTS
+ 1491:  Below0800:
+ 1492:          PULX
+ 1493:          CLRB
+ 1494:          RTS
+ 1495:    }
+ 1496:  }
+ 1497:  
+ 1498:  /*--------------------------- _CONV_STACK_NEAR_TO_GLOBAL --------------------------------
+ 1499:    Convert 16 bit logical of address on the stack 24 bit global pointer
+ 1500:      ("char*__near" to "char*__far")
+ 1501:  
+ 1502:    Arguments :
+ 1503:    - X : 16 bit near pointer
+ 1504:  
+ 1505:    Postcondition :
+ 1506:    - B == page of returned global address
+ 1507:    - X == offset of returned global address
+ 1508:    - Y remains unchanged
+ 1509:    - A is unspecified
+ 1510:  */
+ 1511:  /*--------------------------- Convert 16 bit logical stack address to 24 bit global pointer ----------------------------------*/
+ 1512:  
+ 1513:  /* B:X = Global(D) */
+ 1514:  
+ 1515:  #ifdef __cplusplus
+ 1516:  extern "C"
+ 1517:  #endif
+ 1518:  
+ 1519:  #pragma NO_FRAME
+ 1520:  #pragma NO_ENTRY
+ 1521:  #pragma NO_EXIT
+ 1522:  
+ 1523:  void NEAR _CONV_STACK_NEAR_TO_GLOBAL(void){
+ 1524:    asm {
+ 1525:      /* syntax: */
+ 1526:      /*  input 16 bit offset is bit15..bit0 */
+ 1527:      /*  ppage values: ppage7..ppage0 */
+ 1528:      /*  epage values: epage7..epage0 */
+ 1529:      /*  dpage values: dpage7..dpage0 */
+ 1530:      /*  rpage values: rpage7..rpage0 */
+ 1531:      /* stack must be between $1000 and $3FFF. */
+ 1532:      /* actually placing the stack at $1000 implies that the RPAGE register is not set (and correctly initialized) */
+ 1533:          CPX     #0x2000
+ 1534:          BLO     PAGED_RAM
+ 1535:      /* Map 0x2000 to 0x0FE000 (0x0FA000 for HCS12XE RAM mapping is enabled) */
+ 1536:          LDAB    #0x0F
+ 1537:  #ifndef __HCS12XE_RAMHM_SET__
+ 1538:          LEAX    (0xE000-0x2000),X ;/* LEAX is one cycle faster than ADDX # */
+ 1539:  #else
+ 1540:          LEAX    (0xA000-0x2000),X ;/* LEAX is one cycle faster than ADDX # */
+ 1541:  #endif
+ 1542:          RTS
+ 1543:  PAGED_RAM:
+ 1544:          PSHX
+ 1545:          LDAB    __RPAGE_ADR__
+ 1546:          LDAA    #0x20
+ 1547:          MUL
+ 1548:          EORB    0,SP
+ 1549:          EORB    #0x10             ;/* clear 1 bit */
+ 1550:          STAB    0,SP
+ 1551:          TFR     A,B
+ 1552:          PULX
+ 1553:          RTS
+ 1554:    }
+ 1555:  }
+ 1556:  
+ 1557:  
+ 1558:  
+ 1559:  /*--------------------------- _CONV_LOGICAL_TO_GLOBAL --------------------------------
+ 1560:    Convert 24 bit global to 24 bit logical pointer
+ 1561:      ("char*__far" to "char*__gpage")
+ 1562:  
+ 1563:    Arguments :
+ 1564:    - B : page part of logical address
+ 1565:    - X : 16 offset part of logical address
+ 1566:  
+ 1567:    Postcondition :
+ 1568:    - B == page of returned global address
+ 1569:    - X == offset of returned global address
+ 1570:    - Y remains unchanged
+ 1571:    - A remains unchanged
+ 1572:  */
+ 1573:  /*--------------------------- Convert 24 bit logical to 24 bit global pointer ----------------------------------*/
+ 1574:  
+ 1575:  /* B:X = Logical(B:X) */
+ 1576:  
+ 1577:  #ifdef __cplusplus
+ 1578:  extern "C"
+ 1579:  #endif
+ 1580:  
+ 1581:  #pragma NO_FRAME
+ 1582:  #pragma NO_ENTRY
+ 1583:  #pragma NO_EXIT
+ 1584:  
+ 1585:  void NEAR _CONV_LOGICAL_TO_GLOBAL(void) {
+ 1586:  
+ 1587:    asm {
+ 1588:          /* syntax: */
+ 1589:          /*  input 16 bit offset is bit15..bit0 */
+ 1590:          /*  ppage values: ppage7..ppage0 */
+ 1591:          /*  epage values: epage7..epage0 */
+ 1592:          /*  dpage values: dpage7..dpage0 */
+ 1593:          /*  rpage values: rpage7..rpage0 */
+ 1594:          PSHA                      ;/* save A across this routine. */
+ 1595:          PSHX                      ;/* D contains bit15..bit0 */
+ 1596:          PSHB                      ;/* store page */
+ 1597:          TFR     X,D               ;/* D is cheaper to shift */
+ 1598:          LSLD                      ;/* D contains 0 bit14..bit0, C contains bit15 */
+ 1599:          BCC     Below8000         ;/* bit15 == 0? */
+ 1600:      /* from 0x8000 to 0xFFFF */
+ 1601:          LSLD                      ;/* D contains 00 bit13..bit0, C contains bit14 */
+ 1602:          BCC     BelowC000
+ 1603:          PULB                      ;/* cleanup stack */
+ 1604:          LDAB    #0x7F
+ 1605:          PULX
+ 1606:          PULA
+ 1607:          RTS                       ;/* returns 0b0111 1111 11 bit13...bit0 */
+ 1608:  BelowC000:                      ;/* from 0x8000 to 0xBFFF */
+ 1609:          TFR     D,X
+ 1610:          PULB                      ;/* cleanup stack */
+ 1611:          SEC
+ 1612:          RORB
+ 1613:          RORX
+ 1614:          LSRB
+ 1615:          RORX
+ 1616:          LEAS    2,SP
+ 1617:          PULA
+ 1618:          RTS                       ;/* returns 0b01 ppage7..ppage0 bit13...bit0 */
+ 1619:  Below8000:
+ 1620:          LSLD                      ;/* D contains 00 bit13..bit0, C contains bit14 */
+ 1621:          BCC     Below4000
+ 1622:                                    ;/* from 0x4000 to 0x7FFF */
+ 1623:          PULB                      ;/* cleanup stack */
+ 1624:          PULX
+ 1625:  #ifndef __HCS12XE_RAMHM_SET__
+ 1626:          LDAB    #0x7F
+ 1627:  #else
+ 1628:          LEAX    (0xC000-0x4000),X
+ 1629:          LDAB    #0x0F
+ 1630:  #endif
+ 1631:          PULA
+ 1632:          RTS                       ;/* returns 0b0111 1111 01 bit13...bit0 */
+ 1633:  
+ 1634:  Below4000:
+ 1635:          LSLD                      ;/* D contains 000 bit12..bit0, C contains bit13 */
+ 1636:          BCC     Below2000
+ 1637:      /* from 0x2000 to 0x3FFF */
+ 1638:          PULB                      ;/* cleanup stack */
+ 1639:          PULX
+ 1640:  #ifndef __HCS12XE_RAMHM_SET__
+ 1641:          LEAX    (0xE000-0x2000),X
+ 1642:  #else
+ 1643:          LEAX    (0xA000-0x2000),X 
+ 1644:  #endif
+ 1645:          LDAB    #0x0F
+ 1646:          PULA
+ 1647:          RTS                       ;/* returns 0b0000 1111 111 bit12...bit0 */
+ 1648:  
+ 1649:  Below2000:
+ 1650:          LSLD                      ;/* D contains 0000 bit11..bit0, C contains bit12 */
+ 1651:          BCC     Below1000
+ 1652:      /* from 0x1000 to 0x1FFF */
+ 1653:          PULB
+ 1654:          LDAA    #0x10
+ 1655:          MUL
+ 1656:          EORB    0,SP
+ 1657:          EORB    #0x10             ;/* clear 1 bit */
+ 1658:          STAB    0,SP
+ 1659:          TFR     A,B
+ 1660:          PULX
+ 1661:          PULA
+ 1662:          RTS
+ 1663:  
+ 1664:  Below1000:
+ 1665:          LSLD                      ;/* D contains 0000 0 bit10..bit0, C contains bit11 */
+ 1666:          BCC     Below0800
+ 1667:      /* from 0x0800 to 0x0FFF */
+ 1668:          LSLD                      ;/* D contains 0000 00 bit9..bit0, C contains bit10 */
+ 1669:          BCC     Below0C00
+ 1670:      /* from 0x0C00 to 0x0FFF */
+ 1671:          PULB                      ;/* cleanup stack */
+ 1672:          LDAB    #0x13
+ 1673:          PULX
+ 1674:          LEAX    0xF000,X
+ 1675:          PULA
+ 1676:          RTS                       ;/* returns 0b0001 0011 1111 11 bit9...bit0 */
+ 1677:  Below0C00:
+ 1678:      /* from 0x0800 to 0x0BFF */
+ 1679:          PULB
+ 1680:          LDAA    #0x04
+ 1681:          MUL
+ 1682:          EORB    0,SP
+ 1683:          EORB    #0x08
+ 1684:          STAB    0,SP
+ 1685:          TFR     A,B
+ 1686:          ORAB    #0b00010000
+ 1687:          PULX
+ 1688:          PULA
+ 1689:          RTS
+ 1690:  Below0800:
+ 1691:          PULB
+ 1692:          PULX
+ 1693:          PULA
+ 1694:          CLRB
+ 1695:          RTS
+ 1696:    }
+ 1697:  }
+ 1698:  
+ 1699:  /*--------------------------- _FAR_COPY_RC HCS12X Routines --------------------------------
+ 1700:    copy larger far memory blocks
+ 1701:    There are the following memory block copy routines:
+ 1702:        _COPY :                   16 bit logical copies.
+ 1703:                                    Src and dest are both near. Note: implemented in rtshc12.c and not here.
+ 1704:        _FAR_COPY_RC              HC12/HCS12 struct copy routine.
+ 1705:                                    Expects HC12/HCS12 logical 24 bit address.
+ 1706:                                    Note: Does not exist for the HCS12X.
+ 1707:                                    The HC12/HCS12 implementation is implemented above.
+ 1708:        _FAR_COPY_GLOBAL_GLOBAL_RC:
+ 1709:        _FAR_COPY_GLOBAL_LOGICAL_RC:
+ 1710:        _FAR_COPY_LOGICAL_GLOBAL_RC:
+ 1711:        _FAR_COPY_LOGICAL_LOGICAL_RC:
+ 1712:        _FAR_COPY_NEAR_GLOBAL_RC:
+ 1713:        _FAR_COPY_NEAR_LOGICAL_RC:
+ 1714:        _FAR_COPY_GLOBAL_NEAR_RC:
+ 1715:        _FAR_COPY_LOGICAL_NEAR_RC:  HCS12X specific far copy routine. The name describes what the src/dest address format are.
+ 1716:                                      All near src arguments are passed in X, all 24 bit src in X/B.
+ 1717:                                      All near dest arguments are passed in Y, all 24 bit src in Y/A.
+ 1718:                                      (Note: HC12 _FAR_COPY_RC is using X/A as src and Y/B as dest, so the register usage is not the same!)
+ 1719:  
+ 1720:    Arguments :
+ 1721:    - B:X : src address (for NEAR/_COPY: only X)
+ 1722:    - A:Y : dest address (for NEAR/_COPY: only Y)
+ 1723:    - number of bytes to be copied behind return address (for _COPY: in D register). The number of bytes is always > 0
+ 1724:  
+ 1725:    Result :
+ 1726:    - memory area copied
+ 1727:    - no registers are saved, i.e. all registers may be destroyed
+ 1728:    - for _COPY: D contains 0.
+ 1729:    - for HCS12X _FAR_COPY_... routines: GPAGE state is unknown
+ 1730:  */
+ 1731:  
+ 1732:  
+ 1733:  #ifdef __cplusplus
+ 1734:  extern "C"
+ 1735:  #endif
+ 1736:  #pragma NO_ENTRY
+ 1737:  #pragma NO_EXIT
+ 1738:  #pragma NO_FRAME
+ 1739:  
+ 1740:  void NEAR _FAR_COPY_GLOBAL_GLOBAL_RC(void) {
+ 1741:    asm {
+ 1742:          PSHD
+ 1743:          PSHY
+ 1744:          LDY     4,SP              ;/* load return address */
+ 1745:          LDD     2,Y+              ;/* load size */
+ 1746:          STY     4,SP              ;/* store return address */
+ 1747:          PULY
+ 1748:          PSHD
+ 1749:          LDAB    3,SP
+ 1750:  Loop:
+ 1751:          STAB    __GPAGE_ADR__
+ 1752:          GLDAA   1,X+
+ 1753:          MOVB    2,SP,__GPAGE_ADR__
+ 1754:          GSTAA   1,Y+
+ 1755:          DECW    0,SP
+ 1756:          BNE     Loop
+ 1757:          LEAS    4,SP
+ 1758:          _SRET                     ;/* debug info only: This is the last instr of a function with a special return */
+ 1759:          RTS
+ 1760:    }
+ 1761:  }
+ 1762:  
+ 1763:  #ifdef __cplusplus
+ 1764:  extern "C"
+ 1765:  #endif
+ 1766:  #pragma NO_ENTRY
+ 1767:  #pragma NO_EXIT
+ 1768:  #pragma NO_FRAME
+ 1769:  
+ 1770:  void NEAR _SET_PAGE_REG_HCS12X(void) {
+ 1771:    /* Sets the page contained in A to the register controlling the logical addr contained in X. */
+ 1772:    /* saves the old page before and returns it in A together with the page address just below the return address. */
+ 1773:    /* X/Y both remain valid. */
+ 1774:    asm {
+ 1775:          PSHX
+ 1776:          /* 0000..FFFF */
+ 1777:          CPX     #0x8000
+ 1778:          BLO     _LO8000
+ 1779:          LDX     #__PPAGE_ADR__
+ 1780:          BRA      Handle
+ 1781:  _LO8000:
+ 1782:          /* 0000..7FFF */
+ 1783:          CPX     #0x1000
+ 1784:          BLO     _LO1000
+ 1785:          LDX     #__RPAGE_ADR__
+ 1786:          BRA      Handle
+ 1787:  _LO1000:
+ 1788:          LDX     #__EPAGE_ADR__
+ 1789:  Handle:
+ 1790:          LDAA    0,X               ;/* load old page register content */
+ 1791:          STAB    0,X               ;/* set new page register */
+ 1792:          STX     4,SP
+ 1793:          PULX
+ 1794:          RTS
+ 1795:    }
+ 1796:  }
+ 1797:  
+ 1798:  
+ 1799:  #ifdef __cplusplus
+ 1800:  extern "C"
+ 1801:  #endif
+ 1802:  #pragma NO_ENTRY
+ 1803:  #pragma NO_EXIT
+ 1804:  #pragma NO_FRAME
+ 1805:  
+ 1806:  void NEAR _FAR_COPY_GLOBAL_LOGICAL_RC(void) {
+ 1807:    asm {
+ 1808:          STAB    __GPAGE_ADR__
+ 1809:          EXG     X,Y
+ 1810:          TFR     A,B
+ 1811:          PSHY                      ;/* space to store size */
+ 1812:          PSHX                      ;/* allocate some space where _SET_PAGE_REG_HCS12X can return the page */
+ 1813:          LDY     4,SP              ;/* load return address */
+ 1814:          LDX     2,Y+              ;/* load size */
+ 1815:          STY     4,SP
+ 1816:          LDY     2,SP              ;/* restore dest pointer */
+ 1817:          STX     2,SP              ;/* store size */
+ 1818:          LDX     0,SP              ;/* reload src pointer */
+ 1819:          __PIC_JSR(_SET_PAGE_REG_HCS12X)
+ 1820:  
+ 1821:  Loop:   GLDAB   1,Y+
+ 1822:          STAB    1,X+
+ 1823:          DECW    2,SP
+ 1824:          BNE     Loop
+ 1825:  
+ 1826:          PULX                      ;/* reload page register address */
+ 1827:          STAA    0,X               ;/* restore old page content (necessary if it was PPAGE) */
+ 1828:          PULX                      ;/* clean up stack */
+ 1829:          _SRET                     ;/* debug info only: This is the last instr of a function with a special return */
+ 1830:          RTS
+ 1831:    }
+ 1832:  }
+ 1833:  
+ 1834:  #ifdef __cplusplus
+ 1835:  extern "C"
+ 1836:  #endif
+ 1837:  #pragma NO_ENTRY
+ 1838:  #pragma NO_EXIT
+ 1839:  #pragma NO_FRAME
+ 1840:  
+ 1841:  void NEAR _FAR_COPY_LOGICAL_GLOBAL_RC(void) {
+ 1842:    asm {
+ 1843:          STAA    __GPAGE_ADR__
+ 1844:          PSHY                      ;/* space to store size */
+ 1845:          PSHX                      ;/* allocate some space where _SET_PAGE_REG_HCS12X can return the page */
+ 1846:          LDY     4,SP              ;/* load return address */
+ 1847:          LDX     2,Y+              ;/* load size */
+ 1848:          STY     4,SP
+ 1849:          LDY     2,SP              ;/* restore dest pointer */
+ 1850:          STX     2,SP              ;/* store size */
+ 1851:          LDX     0,SP              ;/* reload src pointer */
+ 1852:  
+ 1853:          __PIC_JSR(_SET_PAGE_REG_HCS12X)
+ 1854:  
+ 1855:  Loop:   LDAB    1,X+
+ 1856:          GSTAB   1,Y+
+ 1857:          DECW    2,SP
+ 1858:          BNE     Loop
+ 1859:  
+ 1860:          PULX
+ 1861:          STAA    0,X               ;/* restore old page content (necessary if it was PPAGE) */
+ 1862:          PULX                      ;/* clean up stack */
+ 1863:          _SRET                     ;/* debug info only: This is the last instr of a function with a special return */
+ 1864:          RTS
+ 1865:    }
+ 1866:  }
+ 1867:  
+ 1868:  #ifdef __cplusplus
+ 1869:  extern "C"
+ 1870:  #endif
+ 1871:  #pragma NO_ENTRY
+ 1872:  #pragma NO_EXIT
+ 1873:  #pragma NO_FRAME
+ 1874:  
+ 1875:  void NEAR _FAR_COPY_LOGICAL_LOGICAL_RC(void) {
+ 1876:    asm {
+ 1877:          PSHA
+ 1878:          __PIC_JSR(_CONV_LOGICAL_TO_GLOBAL);
+ 1879:          PULA
+ 1880:          __PIC_JMP(_FAR_COPY_GLOBAL_LOGICAL_RC);
+ 1881:    }
+ 1882:  }
+ 1883:  
+ 1884:  #ifdef __cplusplus
+ 1885:  extern "C"
+ 1886:  #endif
+ 1887:  #pragma NO_ENTRY
+ 1888:  #pragma NO_EXIT
+ 1889:  #pragma NO_FRAME
+ 1890:  
+ 1891:  void NEAR _FAR_COPY_NEAR_GLOBAL_RC(void) {
+ 1892:    asm {
+ 1893:          CLRB
+ 1894:          __PIC_JMP(_FAR_COPY_LOGICAL_GLOBAL_RC);
+ 1895:    }
+ 1896:  }
+ 1897:  
+ 1898:  #ifdef __cplusplus
+ 1899:  extern "C"
+ 1900:  #endif
+ 1901:  #pragma NO_ENTRY
+ 1902:  #pragma NO_EXIT
+ 1903:  #pragma NO_FRAME
+ 1904:  
+ 1905:  void NEAR _FAR_COPY_NEAR_LOGICAL_RC(void) {
+ 1906:    asm {
+ 1907:          PSHA
+ 1908:          __PIC_JSR(_CONV_NEAR_TO_GLOBAL);
+ 1909:          PULA
+ 1910:          __PIC_JMP(_FAR_COPY_GLOBAL_LOGICAL_RC);
+ 1911:    }
+ 1912:  }
+ 1913:  
+ 1914:  #ifdef __cplusplus
+ 1915:  extern "C"
+ 1916:  #endif
+ 1917:  #pragma NO_ENTRY
+ 1918:  #pragma NO_EXIT
+ 1919:  #pragma NO_FRAME
+ 1920:  
+ 1921:  void NEAR _FAR_COPY_GLOBAL_NEAR_RC(void) {
+ 1922:    asm {
+ 1923:          CLRA                      /* near to logical (we may have to use another runtime if this gets non trivial as well :-( */
+ 1924:          __PIC_JMP(_FAR_COPY_GLOBAL_LOGICAL_RC);
+ 1925:    }
+ 1926:  }
+ 1927:  
+ 1928:  #ifdef __cplusplus
+ 1929:  extern "C"
+ 1930:  #endif
+ 1931:  #pragma NO_ENTRY
+ 1932:  #pragma NO_EXIT
+ 1933:  #pragma NO_FRAME
+ 1934:  
+ 1935:  void NEAR _FAR_COPY_LOGICAL_NEAR_RC(void) {
+ 1936:    asm {
+ 1937:          EXG     A,B
+ 1938:          EXG     X,Y
+ 1939:          PSHA
+ 1940:          __PIC_JSR(_CONV_NEAR_TO_GLOBAL);
+ 1941:          PULA
+ 1942:          EXG     A,B
+ 1943:          EXG     X,Y
+ 1944:          __PIC_JMP(_FAR_COPY_LOGICAL_GLOBAL_RC);
+ 1945:    }
+ 1946:  }
+ 1947:  
+ 1948:  /* _FAR_COPY_LOGICAL_GLOBAL: is used by some old wizard generated projects. Not used by current setup anymore */
+ 1949:  
+ 1950:  #ifdef __cplusplus
+ 1951:  extern "C"
+ 1952:  #endif
+ 1953:  #pragma NO_ENTRY
+ 1954:  #pragma NO_EXIT
+ 1955:  #pragma NO_FRAME
+ 1956:  
+ 1957:  void NEAR _FAR_COPY_LOGICAL_GLOBAL(void) {
+ 1958:    asm {
+ 1959:          STAA    __GPAGE_ADR__
+ 1960:          PSHX                      ;/* allocate some space where _SET_PAGE_REG_HCS12X can return the page */
+ 1961:          __PIC_JSR(_SET_PAGE_REG_HCS12X)
+ 1962:  
+ 1963:  Loop:   LDAB    1,X+
+ 1964:          GSTAB   1,Y+
+ 1965:          DECW    4,SP
+ 1966:          BNE     Loop
+ 1967:  
+ 1968:          PULX
+ 1969:          STAA    0,X               ;/* restore old page content (necessary if it was PPAGE) */
+ 1970:  
+ 1971:          LDX     4,SP+             ;/* load return address and clean stack */
+ 1972:          JMP     0,X
+ 1973:    }
+ 1974:  }
+ 1975:  
+ 1976:  
+ 1977:  #endif /* __HCS12X__  */
+ 1978:  
+ 1979:  
+ 1980:  /*----------------- end of code ------------------------------------------------*/
+ 1981:  /*lint --e{766} , runtime.sgm is not a regular header file, it contains a conditionally compiled CODE_SEG pragma */
+ 1982:  

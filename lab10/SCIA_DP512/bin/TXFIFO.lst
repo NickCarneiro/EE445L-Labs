@@ -1,0 +1,209 @@
+ANSI-C/cC++ Compiler for HC12 V-5.0.35 Build 8093, Apr  3 2008
+
+    1:  // filename ************ TxFIFO.C ***************
+    2:  // Pointer implementation of a FIFO  
+    3:  // Jonathan W. Valvano 9/1/09
+    4:  
+    5:  //  This example accompanies the books
+    6:  //   "Embedded Microcomputer Systems: Real Time Interfacing",
+    7:  //        Thompson, copyright (c) 2006,
+    8:  //   "Introduction to Embedded Systems: Interfacing to the Freescale 9S12",
+    9:  //        Cengage Publishing 2009, ISBN-10: 049541137X | ISBN-13: 9780495411376
+   10:  
+   11:  // Copyright 2009 by Jonathan W. Valvano, valvano@mail.utexas.edu 
+   12:  //    You may use, edit, run or distribute this file 
+   13:  //    as long as the above copyright notice remains 
+   14:  
+   15:  
+   16:  #include "TxFifo.h"  
+   17:     
+   18:  char static volatile *TxPutPt;    /* Pointer of where to put next */
+   19:  char static volatile *TxGetPt;    /* Pointer of where to get next */
+   20:                    /* FIFO is empty if PutPt=GetPt */
+   21:                    /* FIFO is full  if PutPt+1=GetPt */
+   22:  char static TxFifo[TXFIFOSIZE];     /* The statically allocated fifo data */
+   23:  
+   24:  
+   25:    
+   26:  /*-----------------------TxFifo_Init----------------------------
+   27:    Initialize fifo to be empty
+   28:    Inputs: none
+   29:    Outputs: none */
+   30:  void TxFifo_Init(void) {unsigned char SaveCCR;
+
+Function: TxFifo_Init
+Source  : D:\EE345L\9S12DP512\SCIA_DP512\Sources\TXFIFO.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\9S12DP512\SCIA_DP512;D:\EE345L\9S12DP512\SCIA_DP512\bin;D:\EE345L\9S12DP512\SCIA_DP512\prm;D:\EE345L\9S12DP512\SCIA_DP512\cmd;D:\EE345L\9S12DP512\SCIA_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\SCIA_DP512\SCIA_DP512_Data\HCS12_Serial_Monitor\ObjectCode\TXFIFO.C.o
+
+  0000 36           [2]     PSHA  
+   31:  /* save previous interrupt enable */
+   32:  asm  tpa  
+  0001 b720         [1]     TPA   
+   33:  asm  staa SaveCCR 
+  0003 6a80         [2]     STAA  0,SP
+   34:  asm  sei          /* make atomic */
+  0005 1410         [1]     SEI   
+   35:    TxPutPt=TxGetPt=&TxFifo[0];   /* Empty when TxPutPt==TxGetPt */
+  0007 180300000000 [5]     MOVW  #TxFifo,TxGetPt
+  000d fc0000       [3]     LDD   TxGetPt
+  0010 7c0000       [3]     STD   TxPutPt
+   36:  asm  ldaa SaveCCR
+  0013 a680         [3]     LDAA  0,SP
+   37:  asm  tap          /* end critical section */
+  0015 b702         [1]     TAP   
+   38:  }
+  0017 32           [3]     PULA  
+  0018 3d           [5]     RTS   
+   39:  
+   40:  /*-----------------------TxFifo_Put----------------------------
+   41:    Enter one character into the fifo
+   42:    Inputs: 8 bit data
+   43:    Outputs: true if data is properly saved */
+   44:  int TxFifo_Put (char data) {  
+
+Function: TxFifo_Put
+Source  : D:\EE345L\9S12DP512\SCIA_DP512\Sources\TXFIFO.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\9S12DP512\SCIA_DP512;D:\EE345L\9S12DP512\SCIA_DP512\bin;D:\EE345L\9S12DP512\SCIA_DP512\prm;D:\EE345L\9S12DP512\SCIA_DP512\cmd;D:\EE345L\9S12DP512\SCIA_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\SCIA_DP512\SCIA_DP512_Data\HCS12_Serial_Monitor\ObjectCode\TXFIFO.C.o
+
+  0000 6bad         [2]     STAB  3,-SP
+   45:  char volatile *tempPt;
+   46:    tempPt = TxPutPt;
+  0002 fe0000       [3]     LDX   TxPutPt
+   47:    tempPt++;
+  0005 08           [1]     INX   
+  0006 6e81         [2]     STX   1,SP
+   48:    if(tempPt == &TxFifo[TXFIFOSIZE]){   /* need to wrap?*/
+  0008 8e0000       [2]     CPX   #TxFifo:8
+  000b 2605         [3/1]   BNE   *+7 ;abs = 0012
+   49:      tempPt = &TxFifo[0];
+  000d cc0000       [2]     LDD   #TxFifo
+  0010 6c81         [2]     STD   1,SP
+   50:    }
+   51:    if(tempPt == TxGetPt){
+  0012 fc0000       [3]     LDD   TxGetPt
+  0015 ac81         [3]     CPD   1,SP
+  0017 2603         [3/1]   BNE   *+5 ;abs = 001c
+   52:      return(0);             /* Failed, fifo was full */
+  0019 c7           [1]     CLRB  
+  001a 200d         [3]     BRA   *+15 ;abs = 0029
+   53:    }
+   54:    else{
+   55:      *(TxPutPt) = data;     /* Put data into fifo */
+  001c e680         [3]     LDAB  0,SP
+  001e 6bfb0000     [4]     STAB  [TxPutPt,PCR]
+   56:      TxPutPt = tempPt;      /* Success, so update pointer */
+  0022 ec81         [3]     LDD   1,SP
+  0024 7c0000       [3]     STD   TxPutPt
+   57:      return(1);
+  0027 c601         [1]     LDAB  #1
+  0029 87           [1]     CLRA  
+   58:    }
+   59:  }
+  002a 1b83         [2]     LEAS  3,SP
+  002c 3d           [5]     RTS   
+   60:  
+   61:  /*-----------------------TxFifo_Get----------------------------
+   62:    Remove one character from the fifo
+   63:    Inputs: pointer to place to save 8 bit data
+   64:    Outputs: true if data is valid */
+   65:  int TxFifo_Get(char *datapt){
+
+Function: TxFifo_Get
+Source  : D:\EE345L\9S12DP512\SCIA_DP512\Sources\TXFIFO.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\9S12DP512\SCIA_DP512;D:\EE345L\9S12DP512\SCIA_DP512\bin;D:\EE345L\9S12DP512\SCIA_DP512\prm;D:\EE345L\9S12DP512\SCIA_DP512\cmd;D:\EE345L\9S12DP512\SCIA_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\SCIA_DP512\SCIA_DP512_Data\HCS12_Serial_Monitor\ObjectCode\TXFIFO.C.o
+
+  0000 3b           [2]     PSHD  
+   66:    if(TxPutPt == TxGetPt ){
+  0001 fc0000       [3]     LDD   TxPutPt
+  0004 bc0000       [3]     CPD   TxGetPt
+  0007 2603         [3/1]   BNE   *+5 ;abs = 000c
+   67:      return(0);     /* Empty if PutPt=GetPt */
+  0009 c7           [1]     CLRB  
+  000a 201c         [3]     BRA   *+30 ;abs = 0028
+   68:    }
+   69:    else {
+   70:      *datapt = *(TxGetPt);
+  000c ee80         [3]     LDX   0,SP
+  000e e6fb0000     [6]     LDAB  [TxGetPt,PCR]
+  0012 6b00         [2]     STAB  0,X
+   71:      TxGetPt++;
+  0014 fe0000       [3]     LDX   TxGetPt
+  0017 08           [1]     INX   
+  0018 7e0000       [3]     STX   TxGetPt
+   72:      if(TxGetPt == &TxFifo[TXFIFOSIZE]){ 
+  001b 8e0000       [2]     CPX   #TxFifo:8
+  001e 2606         [3/1]   BNE   *+8 ;abs = 0026
+   73:        TxGetPt = &TxFifo[0];
+  0020 180300000000 [5]     MOVW  #TxFifo,TxGetPt
+   74:      }
+   75:      return(1); 
+  0026 c601         [1]     LDAB  #1
+  0028 87           [1]     CLRA  
+   76:    }
+   77:  }
+  0029 30           [3]     PULX  
+  002a 3d           [5]     RTS   
+   78:  
+   79:  /*-----------------------TxFifo_Status----------------------------
+   80:    Check the status of the fifo
+   81:    Inputs: none
+   82:    Outputs: true if there is room in the FIFO */
+   83:  int TxFifo_Status(void) { 
+
+Function: TxFifo_Status
+Source  : D:\EE345L\9S12DP512\SCIA_DP512\Sources\TXFIFO.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\9S12DP512\SCIA_DP512;D:\EE345L\9S12DP512\SCIA_DP512\bin;D:\EE345L\9S12DP512\SCIA_DP512\prm;D:\EE345L\9S12DP512\SCIA_DP512\cmd;D:\EE345L\9S12DP512\SCIA_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\SCIA_DP512\SCIA_DP512_Data\HCS12_Serial_Monitor\ObjectCode\TXFIFO.C.o
+
+   84:  char volatile *nextPt;
+   85:    nextPt = TxPutPt;
+  0000 fe0000       [3]     LDX   TxPutPt
+   86:    nextPt++;                         /* next pointer */
+  0003 08           [1]     INX   
+  0004 34           [2]     PSHX  
+   87:    if(nextPt == &TxFifo[TXFIFOSIZE]){ /* need to wrap?*/
+  0005 8e0000       [2]     CPX   #TxFifo:8
+  0008 2605         [3/1]   BNE   *+7 ;abs = 000f
+   88:      nextPt = &TxFifo[0];
+  000a cc0000       [2]     LDD   #TxFifo
+  000d 6c80         [2]     STD   0,SP
+   89:    }
+   90:    return (nextPt != TxGetPt);
+  000f fc0000       [3]     LDD   TxGetPt
+  0012 ac80         [3]     CPD   0,SP
+  0014 2602         [3/1]   BNE   *+4 ;abs = 0018
+  0016 c7           [1]     CLRB  
+  0017 8f           [2]     SKIP2 
+  0018 c601         [1]     LDAB  #1
+  001a 87           [1]     CLRA  
+   91:  }
+  001b 30           [3]     PULX  
+  001c 3d           [5]     RTS   
+   92:  
+   93:  /*-----------------------TxFifo_Size----------------------------
+   94:    Check the status of the fifo
+   95:    Inputs: none
+   96:    Outputs: number of elements currently stored in the FIFO */
+   97:  unsigned short TxFifo_Size(void) { 
+
+Function: TxFifo_Size
+Source  : D:\EE345L\9S12DP512\SCIA_DP512\Sources\TXFIFO.C
+Options : -Cc -CPUHCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=D:\EE345L\9S12DP512\SCIA_DP512;D:\EE345L\9S12DP512\SCIA_DP512\bin;D:\EE345L\9S12DP512\SCIA_DP512\prm;D:\EE345L\9S12DP512\SCIA_DP512\cmd;D:\EE345L\9S12DP512\SCIA_DP512\Sources;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\lib;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\src;C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -Env"LIBPATH=C:\Program Files\Freescale\CodeWarrior for HCS12 V4.7\lib\HC12c\include" -EnvOBJPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -EnvTEXTPATH=D:\EE345L\9S12DP512\SCIA_DP512\bin -Lasm=%n.lst -Ms -ObjN=D:\EE345L\9S12DP512\SCIA_DP512\SCIA_DP512_Data\HCS12_Serial_Monitor\ObjectCode\TXFIFO.C.o
+
+  0000 3b           [2]     PSHD  
+   98:  unsigned short size;
+   99:    if(TxPutPt>=TxGetPt){
+  0001 fc0000       [3]     LDD   TxPutPt
+  0004 bc0000       [3]     CPD   TxGetPt
+  0007 2502         [3/1]   BCS   *+4 ;abs = 000b
+  100:      size = TxPutPt-TxGetPt;
+  101:    } else{
+  0009 2003         [3]     BRA   *+5 ;abs = 000e
+  102:      size = TXFIFOSIZE+TxPutPt-TxGetPt;
+  000b c30008       [2]     ADDD  #8
+  000e b30000       [3]     SUBD  TxGetPt
+  0011 6c80         [2]     STD   0,SP
+  103:    }
+  104:    return size;
+  105:  }
+  0013 30           [3]     PULX  
+  0014 3d           [5]     RTS   
